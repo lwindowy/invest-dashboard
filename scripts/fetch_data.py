@@ -12,6 +12,7 @@ import datetime as dt
 import io
 import json
 import math
+import re
 import sys
 import time
 from pathlib import Path
@@ -24,6 +25,8 @@ import yfinance as yf
 ROOT = Path(__file__).resolve().parent.parent
 KST = ZoneInfo("Asia/Seoul")
 FRED_CSV = "https://fred.stlouisfed.org/graph/fredgraph.csv"
+FRED_PAGE = "https://fred.stlouisfed.org/series/"
+SPARK_BY_FREQ = {"D": 63, "W": 104, "M": 36, "Q": 12}  # 추이 그래프에 쓰는 점 개수
 SPARK_DAYS = 63   # 약 3개월
 MONTH = 21        # 거래일 기준 약 1개월
 
@@ -48,14 +51,14 @@ def day(ts):
     return pd.Timestamp(ts).strftime("%Y-%m-%d")
 
 
-def spark(series):
-    return [num(v) for v in series.tail(SPARK_DAYS)]
+def spark(series, n=SPARK_DAYS):
+    return [num(v) for v in series.tail(n)]
 
 
 # ───────────────────────── 원본 데이터 받기 ─────────────────────────
 
 def fetch_yahoo(symbols):
-    """심볼별 일봉(High, Close) 2년치. 실패한 심볼은 결과에 없다."""
+    """심볼별 일봉(High, Low, Close) 2년치. 실패한 심볼은 결과에 없다."""
     out, last_err = {}, None
     for attempt in range(3):
         todo = [s for s in symbols if s not in out]
@@ -71,7 +74,7 @@ def fetch_yahoo(symbols):
             continue
         for s in todo:
             try:
-                bars = df[s][["High", "Close"]].dropna(subset=["Close"])
+                bars = df[s][["High", "Low", "Close"]].dropna(subset=["Close"])
             except KeyError:
                 continue
             if len(bars) >= 2:
@@ -83,8 +86,8 @@ def fetch_yahoo(symbols):
 
 
 def fetch_fred(series_id):
-    """FRED 시계열(약 3년치). 키 없이 받는 공개 CSV."""
-    start = (dt.date.today() - dt.timedelta(days=1100)).isoformat()
+    """FRED 시계열(약 5년치). 키 없이 받는 공개 CSV."""
+    start = (dt.date.today() - dt.timedelta(days=1900)).isoformat()
     last_err = None
     for attempt in range(3):
         if attempt:
@@ -157,12 +160,80 @@ def src_yahoo(cfg, ctx):
     return item
 
 
+def period_label(ts, freq):
+    ts = pd.Timestamp(ts)
+    if freq == "M":
+        return f"{ts.year}년 {ts.month}월"
+    if freq == "Q":
+        return f"{ts.year}년 {(ts.month - 1) // 3 + 1}분기"
+    if freq == "W":
+        return f"{ts.month}/{ts.day} 주"
+    return None
+
+
+def next_release(series_id, old, today):
+    """FRED 지표 페이지의 'Next Release Date'. 아직 지나지 않은 이전 결과가 있으면 다시 받지 않는다."""
+    if old and (old.get("next_release") or "") >= today.isoformat():
+        return old["next_release"]
+    try:
+        r = requests.get(FRED_PAGE + series_id, timeout=30)
+        r.raise_for_status()
+        m = re.search(r"Next Release Date:\s*(?:<[^>]+>\s*)*([A-Z][a-z]{2} \d{1,2}, \d{4})", r.text)
+        return dt.datetime.strptime(m.group(1), "%b %d, %Y").date().isoformat() if m else None
+    except Exception as exc:
+        print(f"[참고] 다음 발표일 {series_id}: {exc}", file=sys.stderr)
+        return None
+
+
 def src_fred(cfg, ctx):
+    """FRED 지표. transform 으로 전년 대비(yoy), 전월 대비 %(mom_pct), 전월 대비 증감(mom_diff)을 계산한다."""
     s = ctx["fred"][cfg["id"]]
+    freq, t = cfg.get("freq", "D"), cfg.get("transform")
+    raw_date = s.index[-1]
+    estimated = False
+    if t == "yoy":      # 정확히 1년 전 값과 비교한다. 빠진 달(예: 2025년 10월 CPI)은 앞뒤 달로 추정한다
+        estimated = (s.index[-1] - pd.DateOffset(years=1)) not in s.index
+        filled = s.asfreq("MS").interpolate()
+        ago = filled.reindex(s.index - pd.DateOffset(years=1))
+        s = (s / ago.values - 1) * 100
+    elif t == "mom_pct":
+        s = (s / s.shift(1) - 1) * 100
+    elif t == "mom_diff":
+        s = s.diff()
+    s = (s * cfg.get("scale", 1)).dropna()
+    if s.index[-1] != raw_date:
+        raise ValueError("최신 값의 비교 대상이 없습니다")
     last, prev = float(s.iloc[-1]), float(s.iloc[-2])
-    return {"value": num(last), "prev": num(prev), "diff": num(last - prev),
+    item = {"value": num(last), "prev": num(prev), "diff": num(last - prev),
             "change_pct": num((last / prev - 1) * 100, 2) if prev else None,
-            "asof": day(s.index[-1]), "spark": spark(s), "source": "FRED"}
+            "asof": day(s.index[-1]), "period": period_label(s.index[-1], freq),
+            "spark": spark(s, SPARK_BY_FREQ[freq]), "source": "FRED"}
+    if estimated:
+        item["note"] = "1년 전 값이 발표되지 않아 앞뒤 달로 추정해 계산"
+    if freq != "D":
+        old =(ctx["prev"] or {}).get("series", {}).get(cfg["_key"])
+        item["next_release"] = next_release(cfg["id"], old, ctx["today"])
+    return item
+
+
+def src_manual(cfg, ctx):
+    """config/manual.json 에 직접 적는 값. 입력한 날짜를 함께 보여준다."""
+    v = ctx["manual"].get("values", {}).get(cfg["key"]) or {}
+    if v.get("value") is None:
+        return {"value": None, "error": True, "error_note": "값을 아직 입력하지 않았습니다"}
+    return {"value": num(v["value"]), "prev": num(v.get("prev")),
+            "diff": num(v["value"] - v["prev"]) if v.get("prev") is not None else None,
+            "change_pct": None, "asof": v.get("entered"), "spark": [], "source": "직접 입력"}
+
+
+def build_curve(ctx):
+    """수익률 곡선: 현재, 약 1개월 전, 약 1년 전."""
+    points = ctx["config"]["curve"]["points"]
+    table = pd.DataFrame({label: ctx["fred"][sid] for label, sid in points}).dropna()
+    def row(i):
+        return {"date": day(table.index[i]), "values": [num(v, 2) for v in table.iloc[i]]}
+    return {"labels": [p[0] for p in points], "now": row(-1), "month": row(-1 - MONTH), "year": row(-253),
+            "source": "FRED"}
 
 
 def src_sentiment(cfg, ctx):
@@ -198,7 +269,7 @@ def src_sentiment(cfg, ctx):
             "components": [{"name": k, "score": num(v * 100, 0)} for k, v in latest.items() if pd.notna(v)]}
 
 
-SOURCES = {"yahoo": src_yahoo, "fred": src_fred, "sentiment": src_sentiment}
+SOURCES = {"yahoo": src_yahoo, "fred": src_fred, "sentiment": src_sentiment, "manual": src_manual}
 
 
 # ───────────────────────── 관심 종목 ─────────────────────────
@@ -214,6 +285,172 @@ def stock_row(entry, market, ctx):
             "rsi": num(rsi(close), 1), "from_high_pct": num((last / high52 - 1) * 100, 1),
             "history_days": len(close), "asof": day(close.index[-1]), "spark": spark(close),
             "source": "Yahoo Finance"}
+
+
+# ───────────────────────── 종목 한 장 요약 ─────────────────────────
+
+MA_DAYS = [5, 20, 60, 120, 200]
+CHART_DAYS = 126   # 상대 강도 차트에 쓰는 기간(약 6개월)
+
+
+def cci(bars, n=20):
+    """CCI(20). 대표가격 = (고가+저가+종가)/3, 트레이딩뷰 기본과 같은 계산."""
+    tp = ((bars["High"] + bars["Low"] + bars["Close"]) / 3).dropna()
+    if len(tp) < n:
+        return None
+    window = tp.tail(n)
+    mean_dev = (window - window.mean()).abs().mean()
+    return float((tp.iloc[-1] - window.mean()) / (0.015 * mean_dev)) if mean_dev else 0.0
+
+
+def crossed(a, b, days):
+    """최근 days 거래일 안에 a가 b를 위로(+1) 또는 아래로(-1) 뚫었는지. 없으면 0."""
+    above = (a > b)[(a.notna() & b.notna())].tail(days + 1).tolist()
+    for prev, cur in reversed(list(zip(above, above[1:]))):
+        if prev != cur:
+            return 1 if cur else -1
+    return 0
+
+
+def chart_checklist(close, rules):
+    """노션 「차트 분석」의 기준을 자동 점검한다. 이력이 모자란 항목은 hit=None(확인 불가)."""
+    ma = {n: close.rolling(n).mean() for n in MA_DAYS}
+    last = float(close.iloc[-1])
+    now = {n: (float(ma[n].iloc[-1]) if pd.notna(ma[n].iloc[-1]) else None) for n in MA_DAYS}
+    recent, near, far = rules["recent_days"], rules["near_ma20_pct"], rules["far_ma20_pct"]
+    have = lambda *ns: all(now[n] is not None for n in ns)
+    gap20 = (last / now[20] - 1) * 100 if have(20) else None
+    cross = crossed(ma[20], ma[60], recent) if have(60) else None
+    cross200 = crossed(close, ma[200], recent) if have(200) else None
+
+    def item(text, hit, detail):
+        return {"text": text, "hit": hit, "detail": detail}
+    stack = [f"{n}일선" for n in (5, 20, 60, 120)]
+    buy = [
+        item("정배열 (5 > 20 > 60 > 120일선)", now[5] > now[20] > now[60] > now[120] if have(5, 20, 60, 120) else None,
+             "단기 이평선이 위, 장기 이평선이 아래로 차례대로 놓인 상태"),
+        item(f"골든크로스 (최근 {recent}거래일 안에 20일선이 60일선을 상향 돌파)", cross == 1 if cross is not None else None,
+             "지금 20일선이 60일선 " + ("위" if now[20] > now[60] else "아래") if have(60) else "이력 부족"),
+        item(f"200일선 상향 돌파 (최근 {recent}거래일)", cross200 == 1 if cross200 is not None else None,
+             f"주가가 200일선 대비 {signed((last / now[200] - 1) * 100, 1, '%')}" if have(200) else "상장 후 200거래일이 안 됨"),
+    ]
+    wait = [
+        item(f"20일선 근처에서 횡보 (간격 ±{near:g}% 이내)", abs(gap20) <= near if gap20 is not None else None,
+             f"20일선 대비 {signed(gap20, 1, '%')}" if gap20 is not None else "이력 부족"),
+        item(f"20일선과 간격이 지나치게 벌어짐 (±{far:g}% 초과)", abs(gap20) > far if gap20 is not None else None,
+             "지나치게 벌어지면 되돌아올 가능성이 높음"),
+        item("단기 이평선만 돌파 (5·20일선 위, 200일선 아래)", last > now[5] and last > now[20] and last < now[200] if have(200) else None,
+             "장기 추세를 돌파해야 매수세가 강해짐" if have(200) else "상장 후 200거래일이 안 됨"),
+    ]
+    sell = [
+        item(f"데드크로스 (최근 {recent}거래일 안에 20일선이 60일선을 하향 돌파)", cross == -1 if cross is not None else None,
+             "지금 20일선이 60일선 " + ("위" if now[20] > now[60] else "아래") if have(60) else "이력 부족"),
+        item("200일선 아래", last < now[200] if have(200) else None,
+             (f"최근 {recent}거래일 안에 하향 이탈" if cross200 == -1 else f"200일선 대비 {signed((last / now[200] - 1) * 100, 1, '%')}") if have(200) else "상장 후 200거래일이 안 됨"),
+        item("역배열 (5 < 20 < 60 < 120일선)", now[5] < now[20] < now[60] < now[120] if have(5, 20, 60, 120) else None,
+             "정배열의 반대. 단기 이평선이 아래에 놓인 상태"),
+    ]
+    mas = [{"days": n, "value": num(now[n]), "gap_pct": num((last / now[n] - 1) * 100, 1) if now[n] else None} for n in MA_DAYS]
+    groups = [{"title": "사야 할 때", "tone": "good", "items": buy},
+              {"title": "기다려야 할 때", "tone": "warn", "items": wait},
+              {"title": "팔아야 할 때 (최소한 매수는 하지 말자)", "tone": "bad", "items": sell}]
+    return mas, groups
+
+
+def period_returns(close, fx):
+    """기간 수익률(%). fx(원/달러)가 있으면 원화 환산 수익률도 함께 계산한다."""
+    krw = close * fx.reindex(close.index, method="ffill") if fx is not None else None
+    out = []
+    for label, days in [("1개월", 21), ("3개월", 63), ("6개월", 126), ("1년", 252)]:
+        if len(close) <= days:
+            out.append({"label": label, "local": None, "krw": None})
+            continue
+        row = {"label": label, "local": num((close.iloc[-1] / close.iloc[-1 - days] - 1) * 100, 1), "krw": None}
+        if krw is not None and pd.notna(krw.iloc[-1]) and pd.notna(krw.iloc[-1 - days]):
+            row["krw"] = num((krw.iloc[-1] / krw.iloc[-1 - days] - 1) * 100, 1)
+        out.append(row)
+    return out
+
+
+def fundamentals(ticker, old, today):
+    """재무 요약·실적·목표주가·공매도. 하루 한 번만 받는다(같은 날에는 이전 결과를 다시 쓴다)."""
+    if old and old.get("fetched") == today.isoformat():
+        return old
+    tk = yf.Ticker(ticker)
+    info = tk.info or {}
+    if not info.get("marketCap"):
+        raise ValueError("재무 요약을 받지 못했습니다")
+    g = lambda k, d=4: num(info.get(k), d)
+    cash, debt = g("totalCash", 0), g("totalDebt", 0)
+    short_date = info.get("dateShortInterest")
+    fund = {
+        "fetched": today.isoformat(), "source": "Yahoo Finance",
+        "currency": info.get("financialCurrency") or info.get("currency"),
+        "long_name": info.get("longName"), "sector": info.get("sector"), "industry": info.get("industry"),
+        "website": info.get("website"),
+        "market_cap": g("marketCap", 0), "cash": cash, "debt": debt,
+        "net_cash": cash - debt if cash is not None and debt is not None else None,
+        "per": g("trailingPE", 2), "forward_per": g("forwardPE", 2), "psr": g("priceToSalesTrailing12Months", 2),
+        "peg": num(info.get("trailingPegRatio") or info.get("pegRatio"), 2),
+        "eps": g("trailingEps", 2), "forward_eps": g("forwardEps", 2),
+        "roe_pct": num(info["returnOnEquity"] * 100, 1) if info.get("returnOnEquity") is not None else None,
+        "revenue_growth_pct": num(info["revenueGrowth"] * 100, 1) if info.get("revenueGrowth") is not None else None,
+        "target": {"mean": g("targetMeanPrice", 2), "high": g("targetHighPrice", 2), "low": g("targetLowPrice", 2),
+                   "analysts": info.get("numberOfAnalystOpinions")},
+        "short": {"float_pct": num(info["shortPercentOfFloat"] * 100, 1) if info.get("shortPercentOfFloat") is not None else None,
+                  "ratio": g("shortRatio", 2), "shares": g("sharesShort", 0),
+                  "date": day(pd.Timestamp(short_date, unit="s")) if short_date else None},
+        "quarters": [], "earnings": {},
+    }
+    try:  # 분기 실적 추이 (Yahoo 무료 데이터는 최근 4~5개 분기만 제공)
+        inc, cf = tk.quarterly_income_stmt, tk.quarterly_cashflow
+        row = lambda df, name, col: num(df.loc[name, col], 4) if name in df.index and col in df.columns else None
+        for col in sorted(inc.columns):
+            q = {"period": f"{col.year % 100}.{col.month:02d}", "date": day(col),
+                 "revenue": row(inc, "Total Revenue", col), "op_income": row(inc, "Operating Income", col),
+                 "eps": row(inc, "Diluted EPS", col), "fcf": row(cf, "Free Cash Flow", col),
+                 "capex": row(cf, "Capital Expenditure", col)}
+            if q["revenue"] is not None:
+                fund["quarters"].append(q)
+    except Exception as exc:
+        print(f"[참고] 분기 실적 {ticker}: {exc}", file=sys.stderr)
+    try:  # 다음 실적 발표일과 지난 분기 예상 대비 실제 EPS
+        ed = tk.earnings_dates
+        if ed is not None and len(ed):
+            ed = ed.sort_index()
+            future = ed[ed["Reported EPS"].isna() & (ed.index.tz_convert(KST).date >= today)]
+            past = ed[ed["Reported EPS"].notna()]
+            if len(future):
+                fund["earnings"]["next"] = day(future.index[0].tz_convert(KST))
+            if len(past):
+                last = past.iloc[-1]
+                fund["earnings"]["last"] = {"date": day(past.index[-1].tz_convert(KST)), "eps_estimate": num(last.get("EPS Estimate"), 2),
+                                            "eps_actual": num(last.get("Reported EPS"), 2), "surprise_pct": num(last.get("Surprise(%)"), 1)}
+    except Exception as exc:
+        print(f"[참고] 실적 발표일 {ticker}: {exc}", file=sys.stderr)
+    return fund
+
+
+def stock_detail(entry, market, row, ctx, old):
+    """종목 한 장 요약에 필요한 값. 가격 계열은 매번, 재무 계열은 하루 한 번 갱신한다."""
+    bars = ctx["yahoo"][entry["ticker"]]
+    close = bars["Close"]
+    year = bars.tail(252)
+    mas, groups = chart_checklist(close, ctx["config"]["chart_rules"])
+    fx = ctx["yahoo"].get(ctx["config"]["fx_symbol"]) if market != "kr" else None
+    detail = {**row, "low52": num(year["Low"].min()), "high52": num(year["High"].max()),
+              "cci": num(cci(bars), 0), "mas": mas, "checklist": groups,
+              "returns": period_returns(close, fx["Close"] if fx is not None else None),
+              "chart": {"dates": [day(d) for d in close.tail(CHART_DAYS).index], "close": [num(v) for v in close.tail(CHART_DAYS)]},
+              "links": {k: entry[k] for k in ("ir", "notion") if entry.get(k)}}
+    detail.pop("spark", None)
+    old_fund = (old or {}).get("fund")
+    try:
+        detail["fund"] = fundamentals(entry["ticker"], old_fund, ctx["today"])
+    except Exception as exc:
+        warn(f"재무 {entry['ticker']}", exc)
+        detail["fund"] = {**old_fund, "stale": True} if old_fund else None
+    return detail
 
 
 # ───────────────────────── 시장 국면 판단판 ─────────────────────────
@@ -323,28 +560,21 @@ def third_friday(year, month):
     return first + dt.timedelta(days=(4 - first.weekday()) % 7 + 14)
 
 
-def earnings_events(ctx, prev):
-    """관심 종목의 다음 실적 발표일. 종목별로 실패하면 이전 결과를 다시 쓴다."""
+def earnings_events(ctx):
+    """관심 종목의 다음 실적 발표일(종목 한 장 요약에서 받은 값)."""
     events = []
-    old = [e for e in (prev or {}).get("events_all", []) if e.get("kind") == "실적"]
-    for market, entries in ctx["config"]["watchlist"].items():
+    for entries in ctx["config"]["watchlist"].values():
         for entry in entries:
-            try:
-                cal = yf.Ticker(entry["ticker"]).calendar or {}
-                dates = cal.get("Earnings Date") or []
-                if not isinstance(dates, (list, tuple)):
-                    dates = [dates]
-                for d in dates[:1]:
-                    events.append({"date": day(d), "title": f"{entry['name']} 실적 발표", "kind": "실적",
-                                   "ticker": entry["ticker"], "source": "Yahoo Finance"})
-            except Exception as exc:
-                warn(f"실적일 {entry['ticker']}", exc)
-                events += [e for e in old if e.get("ticker") == entry["ticker"]]
+            fund = (ctx["stocks_out"].get(entry["ticker"]) or {}).get("fund") or {}
+            when = (fund.get("earnings") or {}).get("next")
+            if when:
+                events.append({"date": when, "title": f"{entry['name']} 실적 발표", "kind": "실적",
+                               "ticker": entry["ticker"], "source": "Yahoo Finance"})
     return events
 
 
 def build_events(ctx, prev, today):
-    events = earnings_events(ctx, prev)
+    events = earnings_events(ctx)
     for d in ctx["config"]["calendar"].get("fomc", []):
         events.append({"date": d, "title": "FOMC 금리 결정", "kind": "FOMC", "source": "연준 일정"})
     for offset in range(3):
@@ -354,6 +584,12 @@ def build_events(ctx, prev, today):
         events.append({"date": third_friday(year, month).isoformat(),
                        "title": "선물·옵션 동시 만기일" if quarterly else "옵션 만기일",
                        "kind": "만기", "source": "매월 셋째 금요일"})
+    seen = set()
+    for sid, cfg in ctx["config"]["series"].items():   # 지표에 event 이름이 있으면 다음 발표일을 일정에 넣는다
+        when = (ctx.get("series_out", {}).get(sid) or {}).get("next_release")
+        if cfg.get("event") and when and (cfg["event"], when) not in seen:
+            seen.add((cfg["event"], when))
+            events.append({"date": when, "title": f"{cfg['event']} 발표", "kind": "경제지표", "source": "FRED 발표 일정"})
     for e in ctx["manual"].get("events", []):
         events.append({"date": e["date"], "title": e["title"], "kind": e.get("kind", "내 이벤트"), "source": "직접 입력"})
     events = sorted((e for e in events if e["date"] >= today.isoformat()), key=lambda e: e["date"])
@@ -388,10 +624,14 @@ def main():
     symbols |= {regime["trend"]["symbol"], regime["vol"]["symbol"], regime["commodity"]["oil"], regime["commodity"]["dollar"]}
     symbols |= set(regime["breadth"]["sectors"]) | set(regime["rotation"]["offense"]) | set(regime["rotation"]["defense"])
     symbols |= {senti[k] for k in ("stock", "bond", "equal_weight", "index", "vix")}
+    symbols |= {config["fx_symbol"], config["benchmark"]["symbol"]}
     fred_ids = {c["id"] for c in series.values() if c["source"] == "fred"}
     fred_ids |= {regime["rates"]["fred"], regime["credit"]["fred"], senti["fred_hy"]}
+    fred_ids |= {sid for _, sid in config["curve"]["points"]}
 
-    ctx = {"config": config, "manual": manual, "yahoo": fetch_yahoo(sorted(symbols)), "fred": {}}
+    today = dt.datetime.now(KST).date()
+    ctx = {"config": config, "manual": manual, "prev": prev, "today": today,
+           "yahoo": fetch_yahoo(sorted(symbols)), "fred": {}}
     for sid in sorted(fred_ids):
         s = fetch_fred(sid)
         if s is not None:
@@ -399,23 +639,30 @@ def main():
 
     out_series = {}
     for sid, cfg in series.items():
-        meta = {k: v for k, v in cfg.items() if k in ("name", "decimals", "unit", "change", "diff_unit", "diff_decimals")}
+        meta = {k: v for k, v in cfg.items() if k in ("name", "decimals", "unit", "change", "diff_unit", "diff_decimals", "signed", "prefix")}
         try:
-            out_series[sid] = {**meta, **SOURCES[cfg["source"]](cfg, ctx)}
+            out_series[sid] = {**meta, **SOURCES[cfg["source"]]({**cfg, "_key": sid}, ctx)}
         except Exception as exc:
             if not any(sid_err in str(e["where"]) for e in errors for sid_err in (cfg.get("symbol", "∅"), cfg.get("id", "∅"))):
                 warn(f"지표 {cfg['name']}", exc)
             old = (prev or {}).get("series", {}).get(sid)
             out_series[sid] = {**old, **meta, "stale": True} if old and old.get("value") is not None else {**meta, "value": None, "error": True}
 
-    watch = {}
+    watch, stocks = {}, {}
+    old_stocks = (prev or {}).get("stocks", {})
     for market, entries in config["watchlist"].items():
         watch[market] = []
         old_rows = {r["ticker"]: r for r in (prev or {}).get("watchlist", {}).get(market, [])}
         for entry in entries:
             try:
-                watch[market].append(stock_row(entry, market, ctx))
-            except Exception:
+                row = stock_row(entry, market, ctx)
+                watch[market].append(row)
+                stocks[entry["ticker"]] = stock_detail(entry, market, row, ctx, old_stocks.get(entry["ticker"]))
+            except Exception as exc:
+                if entry["ticker"] in ctx["yahoo"]:
+                    warn(f"종목 {entry['ticker']}", exc)
+                if entry["ticker"] in old_stocks:
+                    stocks[entry["ticker"]] = {**old_stocks[entry["ticker"]], "stale": True}
                 old = old_rows.get(entry["ticker"])
                 if old and old.get("price") is not None:
                     watch[market].append({**old, "name": entry["name"], "stale": True})
@@ -423,7 +670,18 @@ def main():
                     watch[market].append({"ticker": entry["ticker"], "name": entry["name"], "market": market,
                                           "currency": "KRW" if market == "kr" else "USD", "price": None, "error": True})
 
-    today = dt.datetime.now(KST).date()
+    ctx["series_out"], ctx["stocks_out"] = out_series, stocks
+    bench = None
+    try:
+        b = ctx["yahoo"][config["benchmark"]["symbol"]]["Close"].tail(CHART_DAYS + 10)
+        bench = {"name": config["benchmark"]["name"], "dates": [day(d) for d in b.index], "close": [num(v) for v in b]}
+    except Exception as exc:
+        warn("비교 지수", exc)
+    try:
+        curve = build_curve(ctx)
+    except Exception as exc:
+        warn("수익률 곡선", exc)
+        curve = (prev or {}).get("curve")
     try:
         events_all, events_week = build_events(ctx, prev, today)
     except Exception as exc:
@@ -436,7 +694,10 @@ def main():
         "tabs": config["tabs"],
         "regime": build_regime(ctx),
         "series": out_series,
+        "curve": curve,
         "watchlist": watch,
+        "stocks": stocks,
+        "benchmark": bench,
         "events": events_week,
         "events_all": events_all,
         "errors": errors,

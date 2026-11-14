@@ -3,73 +3,691 @@
     "title": "나의 투자 대시보드",
     "disclaimer": "모든 신호는 참고용 점검 알림입니다. 매매 판단의 근거로 쓰지 않습니다."
   },
-
   "watchlist": {
     "us": [
-      { "ticker": "IREN", "name": "아이렌" },
-      { "ticker": "RKLB", "name": "로켓랩" },
-      { "ticker": "CRWV", "name": "코어위브" },
-      { "ticker": "NBIS", "name": "네비우스" },
-      { "ticker": "NVDA", "name": "엔비디아" },
-      { "ticker": "PLTR", "name": "팔란티어" },
-      { "ticker": "SPCX", "name": "스페이스X" },
-      { "ticker": "ORCL", "name": "오라클" },
-      { "ticker": "IONQ", "name": "아이온큐" }
+      {
+        "ticker": "IREN",
+        "name": "아이렌"
+      },
+      {
+        "ticker": "RKLB",
+        "name": "로켓랩"
+      },
+      {
+        "ticker": "CRWV",
+        "name": "코어위브"
+      },
+      {
+        "ticker": "NBIS",
+        "name": "네비우스"
+      },
+      {
+        "ticker": "NVDA",
+        "name": "엔비디아"
+      },
+      {
+        "ticker": "PLTR",
+        "name": "팔란티어"
+      },
+      {
+        "ticker": "SPCX",
+        "name": "스페이스X"
+      },
+      {
+        "ticker": "ORCL",
+        "name": "오라클"
+      },
+      {
+        "ticker": "IONQ",
+        "name": "아이온큐"
+      }
     ],
     "kr": [
-      { "ticker": "005930.KS", "name": "삼성전자" },
-      { "ticker": "000660.KS", "name": "SK하이닉스" }
+      {
+        "ticker": "005930.KS",
+        "name": "삼성전자"
+      },
+      {
+        "ticker": "000660.KS",
+        "name": "SK하이닉스"
+      }
     ]
   },
-
   "series": {
-    "sp500":     { "name": "S&P 500",           "source": "yahoo", "symbol": "^GSPC",    "decimals": 2, "note": "ma200" },
-    "nasdaq":    { "name": "나스닥",             "source": "yahoo", "symbol": "^IXIC",    "decimals": 2, "note": "ma200" },
-    "sox":       { "name": "필라델피아 반도체",   "source": "yahoo", "symbol": "^SOX",     "decimals": 2, "note": "ma200" },
-    "kospi":     { "name": "코스피",             "source": "yahoo", "symbol": "^KS11",    "decimals": 2, "note": "ma200" },
-    "vix":       { "name": "VIX",               "source": "yahoo", "symbol": "^VIX",     "decimals": 1, "note": "vix" },
-    "sentiment": { "name": "심리 지수 (자체 계산)", "source": "sentiment", "decimals": 0, "change": "diff", "diff_decimals": 0 },
-    "us2y":      { "name": "미국채 2년",         "source": "fred",  "id": "DGS2",         "decimals": 2, "unit": "%",  "change": "diff", "diff_unit": "%p", "diff_decimals": 2 },
-    "us10y":     { "name": "미국채 10년",        "source": "fred",  "id": "DGS10",        "decimals": 2, "unit": "%",  "change": "diff", "diff_unit": "%p", "diff_decimals": 2 },
-    "t10y2y":    { "name": "10년−2년 금리차",    "source": "fred",  "id": "T10Y2Y",       "decimals": 2, "unit": "%p", "change": "diff", "diff_unit": "%p", "diff_decimals": 2 },
-    "hy_spread": { "name": "하이일드 스프레드",   "source": "fred",  "id": "BAMLH0A0HYM2", "decimals": 2, "unit": "%p", "change": "diff", "diff_unit": "%p", "diff_decimals": 2 },
-    "dxy":       { "name": "달러 인덱스",        "source": "yahoo", "symbol": "DX-Y.NYB", "decimals": 2, "change": "diff", "diff_decimals": 2 },
-    "usdkrw":    { "name": "원/달러",            "source": "yahoo", "symbol": "KRW=X",    "decimals": 1, "unit": "원", "change": "diff", "diff_unit": "원", "diff_decimals": 1 }
+    "sp500": {
+      "name": "S&P 500",
+      "source": "yahoo",
+      "symbol": "^GSPC",
+      "decimals": 2,
+      "note": "ma200"
+    },
+    "nasdaq": {
+      "name": "나스닥",
+      "source": "yahoo",
+      "symbol": "^IXIC",
+      "decimals": 2,
+      "note": "ma200"
+    },
+    "sox": {
+      "name": "필라델피아 반도체",
+      "source": "yahoo",
+      "symbol": "^SOX",
+      "decimals": 2,
+      "note": "ma200"
+    },
+    "kospi": {
+      "name": "코스피",
+      "source": "yahoo",
+      "symbol": "^KS11",
+      "decimals": 2,
+      "note": "ma200"
+    },
+    "vix": {
+      "name": "VIX",
+      "source": "yahoo",
+      "symbol": "^VIX",
+      "decimals": 1,
+      "note": "vix"
+    },
+    "sentiment": {
+      "name": "심리 지수 (자체 계산)",
+      "source": "sentiment",
+      "decimals": 0,
+      "change": "diff",
+      "diff_decimals": 0
+    },
+    "us2y": {
+      "name": "미국채 2년",
+      "source": "fred",
+      "id": "DGS2",
+      "decimals": 2,
+      "unit": "%",
+      "change": "diff",
+      "diff_unit": "%p",
+      "diff_decimals": 2
+    },
+    "us10y": {
+      "name": "미국채 10년",
+      "source": "fred",
+      "id": "DGS10",
+      "decimals": 2,
+      "unit": "%",
+      "change": "diff",
+      "diff_unit": "%p",
+      "diff_decimals": 2
+    },
+    "t10y2y": {
+      "name": "10년−2년 금리차",
+      "source": "fred",
+      "id": "T10Y2Y",
+      "decimals": 2,
+      "unit": "%p",
+      "change": "diff",
+      "diff_unit": "%p",
+      "diff_decimals": 2
+    },
+    "hy_spread": {
+      "name": "하이일드 스프레드",
+      "source": "fred",
+      "id": "BAMLH0A0HYM2",
+      "decimals": 2,
+      "unit": "%p",
+      "change": "diff",
+      "diff_unit": "%p",
+      "diff_decimals": 2
+    },
+    "dxy": {
+      "name": "달러 인덱스",
+      "source": "yahoo",
+      "symbol": "DX-Y.NYB",
+      "decimals": 2,
+      "change": "diff",
+      "diff_decimals": 2
+    },
+    "usdkrw": {
+      "name": "원/달러",
+      "source": "yahoo",
+      "symbol": "KRW=X",
+      "decimals": 1,
+      "unit": "원",
+      "change": "diff",
+      "diff_unit": "원",
+      "diff_decimals": 1
+    },
+    "fed_funds": {
+      "name": "미국 기준금리 (상단)",
+      "source": "fred",
+      "id": "DFEDTARU",
+      "decimals": 2,
+      "unit": "%",
+      "change": "diff",
+      "diff_unit": "%p",
+      "diff_decimals": 2
+    },
+    "us30y": {
+      "name": "미국채 30년",
+      "source": "fred",
+      "id": "DGS30",
+      "decimals": 2,
+      "unit": "%",
+      "change": "diff",
+      "diff_unit": "%p",
+      "diff_decimals": 2
+    },
+    "t10y3m": {
+      "name": "10년−3개월 금리차",
+      "source": "fred",
+      "id": "T10Y3M",
+      "decimals": 2,
+      "unit": "%p",
+      "change": "diff",
+      "diff_unit": "%p",
+      "diff_decimals": 2
+    },
+    "ccc_spread": {
+      "name": "CCC 등급 스프레드",
+      "source": "fred",
+      "id": "BAMLH0A3HYC",
+      "decimals": 2,
+      "unit": "%p",
+      "change": "diff",
+      "diff_unit": "%p",
+      "diff_decimals": 2
+    },
+    "cpi": {
+      "name": "CPI (전년 대비)",
+      "source": "fred",
+      "id": "CPIAUCSL",
+      "freq": "M",
+      "transform": "yoy",
+      "event": "미국 CPI",
+      "decimals": 1,
+      "unit": "%",
+      "change": "diff",
+      "diff_unit": "%p",
+      "diff_decimals": 1
+    },
+    "core_cpi": {
+      "name": "근원 CPI (전년 대비)",
+      "source": "fred",
+      "id": "CPILFESL",
+      "freq": "M",
+      "transform": "yoy",
+      "event": "미국 CPI",
+      "decimals": 1,
+      "unit": "%",
+      "change": "diff",
+      "diff_unit": "%p",
+      "diff_decimals": 1
+    },
+    "pce": {
+      "name": "PCE 물가 (전년 대비)",
+      "source": "fred",
+      "id": "PCEPI",
+      "freq": "M",
+      "transform": "yoy",
+      "event": "미국 PCE 물가",
+      "decimals": 1,
+      "unit": "%",
+      "change": "diff",
+      "diff_unit": "%p",
+      "diff_decimals": 1
+    },
+    "nfp": {
+      "name": "비농업고용 (전월 대비 증감)",
+      "source": "fred",
+      "id": "PAYEMS",
+      "freq": "M",
+      "transform": "mom_diff",
+      "event": "미국 고용보고서",
+      "signed": true,
+      "decimals": 0,
+      "unit": "천 명",
+      "change": "diff",
+      "diff_unit": "천 명",
+      "diff_decimals": 0
+    },
+    "unrate": {
+      "name": "실업률",
+      "source": "fred",
+      "id": "UNRATE",
+      "freq": "M",
+      "event": "미국 고용보고서",
+      "decimals": 1,
+      "unit": "%",
+      "change": "diff",
+      "diff_unit": "%p",
+      "diff_decimals": 1
+    },
+    "claims": {
+      "name": "신규 실업수당 청구",
+      "source": "fred",
+      "id": "ICSA",
+      "freq": "W",
+      "scale": 0.001,
+      "decimals": 0,
+      "unit": "천 건",
+      "change": "diff",
+      "diff_unit": "천 건",
+      "diff_decimals": 0
+    },
+    "gdp": {
+      "name": "GDP 성장률 (전분기 대비 연율)",
+      "source": "fred",
+      "id": "A191RL1Q225SBEA",
+      "freq": "Q",
+      "event": "미국 GDP",
+      "decimals": 1,
+      "unit": "%",
+      "change": "diff",
+      "diff_unit": "%p",
+      "diff_decimals": 1
+    },
+    "philly": {
+      "name": "필라델피아 연은 제조업지수",
+      "source": "fred",
+      "id": "GACDFSA066MSFRBPHI",
+      "freq": "M",
+      "decimals": 1,
+      "change": "diff",
+      "diff_decimals": 1
+    },
+    "retail": {
+      "name": "소매판매 (전월 대비)",
+      "source": "fred",
+      "id": "RSAFS",
+      "freq": "M",
+      "transform": "mom_pct",
+      "event": "미국 소매판매",
+      "signed": true,
+      "decimals": 1,
+      "unit": "%",
+      "change": "diff",
+      "diff_unit": "%p",
+      "diff_decimals": 1
+    },
+    "umcsent": {
+      "name": "소비자심리지수 (미시간대)",
+      "source": "fred",
+      "id": "UMCSENT",
+      "freq": "M",
+      "decimals": 1,
+      "change": "diff",
+      "diff_decimals": 1
+    },
+    "usdjpy": {
+      "name": "엔/달러",
+      "source": "yahoo",
+      "symbol": "JPY=X",
+      "decimals": 2,
+      "unit": "엔",
+      "change": "diff",
+      "diff_unit": "엔",
+      "diff_decimals": 2
+    },
+    "m2": {
+      "name": "M2 통화량 (전년 대비)",
+      "source": "fred",
+      "id": "M2SL",
+      "freq": "M",
+      "transform": "yoy",
+      "decimals": 1,
+      "unit": "%",
+      "change": "diff",
+      "diff_unit": "%p",
+      "diff_decimals": 1
+    },
+    "wti": {
+      "name": "WTI 유가",
+      "source": "yahoo",
+      "symbol": "CL=F",
+      "decimals": 2,
+      "prefix": "$"
+    },
+    "gold": {
+      "name": "금",
+      "source": "yahoo",
+      "symbol": "GC=F",
+      "decimals": 1,
+      "prefix": "$"
+    },
+    "copper": {
+      "name": "구리",
+      "source": "yahoo",
+      "symbol": "HG=F",
+      "decimals": 3,
+      "prefix": "$"
+    },
+    "kr_base_rate": {
+      "name": "한국은행 기준금리",
+      "source": "manual",
+      "key": "kr_base_rate",
+      "decimals": 2,
+      "unit": "%",
+      "change": "diff",
+      "diff_unit": "%p",
+      "diff_decimals": 2
+    },
+    "kr_exports": {
+      "name": "한국 수출액 (전년 대비)",
+      "source": "fred",
+      "id": "XTEXVA01KRM667S",
+      "freq": "M",
+      "transform": "yoy",
+      "signed": true,
+      "decimals": 1,
+      "unit": "%",
+      "change": "diff",
+      "diff_unit": "%p",
+      "diff_decimals": 1
+    }
   },
-
   "tabs": [
     {
       "id": "home",
       "label": "홈",
       "sections": [
-        { "type": "regime",    "label": "시장 국면 판단판" },
-        { "type": "cards",     "label": "주요 지수와 심리", "items": ["sp500", "nasdaq", "sox", "kospi", "vix", "sentiment"] },
-        { "type": "watchlist", "label": "관심 종목", "column": "main" },
-        { "type": "events",    "label": "이번 주 일정", "column": "side" },
-        { "type": "rows",      "label": "금리와 환율", "column": "side", "items": ["us2y", "us10y", "t10y2y", "hy_spread", "dxy", "usdkrw"] }
+        {
+          "type": "regime",
+          "label": "시장 국면 판단판"
+        },
+        {
+          "type": "cards",
+          "label": "주요 지수와 심리",
+          "items": [
+            "sp500",
+            "nasdaq",
+            "sox",
+            "kospi",
+            "vix",
+            "sentiment"
+          ]
+        },
+        {
+          "type": "watchlist",
+          "label": "관심 종목",
+          "column": "main"
+        },
+        {
+          "type": "events",
+          "label": "이번 주 일정",
+          "column": "side"
+        },
+        {
+          "type": "rows",
+          "label": "금리와 환율",
+          "column": "side",
+          "items": [
+            "us2y",
+            "us10y",
+            "t10y2y",
+            "hy_spread",
+            "dxy",
+            "usdkrw"
+          ]
+        }
       ]
     },
-    { "id": "macro",    "label": "거시경제",   "stage": "1차", "planned": "금리, 물가, 고용, 경기, 통화·환율, 원자재, 한국 지표, 수익률 곡선" },
-    { "id": "stocks",   "label": "종목",       "stage": "1차", "planned": "관심 종목 목록과 종목 한 장 요약(가격, 밸류에이션, 실적 추이, 공매도, 기술적 지표, 차트 체크리스트)" },
-    { "id": "calendar", "label": "캘린더",     "stage": "1차", "planned": "실적 발표일, 경제지표 발표일, FOMC, 옵션·선물 만기일, 직접 적는 이벤트" },
-    { "id": "flows",    "label": "큰손·유동성", "stage": "2차", "planned": "COT, 연준 유동성, 13F, 외국인·기관 순매수, ETF 자금 흐름, 내부자 매수" },
-    { "id": "industry", "label": "산업",       "stage": "2차", "planned": "반도체, AI 인프라, 바이오·헬스케어 선행 지표와 섹터 히트맵" },
-    { "id": "journal",  "label": "내 기록",    "stage": "3차", "planned": "포트폴리오·모의투자, 투자 가설 체크리스트, 어닝콜 요약 보관함, 차트 복기 게임" }
+    {
+      "id": "macro",
+      "label": "거시경제",
+      "sections": [
+        {
+          "type": "cards",
+          "label": "금리",
+          "heading": true,
+          "items": [
+            "fed_funds",
+            "us2y",
+            "us10y",
+            "us30y",
+            "t10y2y",
+            "t10y3m"
+          ]
+        },
+        {
+          "type": "curve",
+          "label": "수익률 곡선"
+        },
+        {
+          "type": "cards",
+          "label": "신용",
+          "heading": true,
+          "items": [
+            "hy_spread",
+            "ccc_spread"
+          ]
+        },
+        {
+          "type": "cards",
+          "label": "물가",
+          "heading": true,
+          "items": [
+            "cpi",
+            "core_cpi",
+            "pce"
+          ]
+        },
+        {
+          "type": "cards",
+          "label": "고용",
+          "heading": true,
+          "items": [
+            "nfp",
+            "unrate",
+            "claims"
+          ]
+        },
+        {
+          "type": "cards",
+          "label": "경기",
+          "heading": true,
+          "items": [
+            "gdp",
+            "philly",
+            "retail",
+            "umcsent"
+          ]
+        },
+        {
+          "type": "cards",
+          "label": "통화·환율",
+          "heading": true,
+          "items": [
+            "dxy",
+            "usdkrw",
+            "usdjpy",
+            "m2"
+          ]
+        },
+        {
+          "type": "cards",
+          "label": "원자재",
+          "heading": true,
+          "items": [
+            "wti",
+            "gold",
+            "copper"
+          ]
+        },
+        {
+          "type": "cards",
+          "label": "한국",
+          "heading": true,
+          "items": [
+            "kr_base_rate",
+            "kr_exports"
+          ],
+          "note": "한국은행 기준금리는 무료 자동 수집 경로가 없어 config/manual.json 에 직접 적습니다. 수출액은 OECD 집계(FRED)라 2~3개월 늦습니다."
+        }
+      ]
+    },
+    {
+      "id": "stocks",
+      "label": "종목",
+      "sections": [
+        {
+          "type": "stocks",
+          "label": "종목"
+        }
+      ]
+    },
+    {
+      "id": "calendar",
+      "label": "캘린더",
+      "stage": "1차",
+      "planned": "실적 발표일, 경제지표 발표일, FOMC, 옵션·선물 만기일, 직접 적는 이벤트"
+    },
+    {
+      "id": "flows",
+      "label": "큰손·유동성",
+      "stage": "2차",
+      "planned": "COT, 연준 유동성, 13F, 외국인·기관 순매수, ETF 자금 흐름, 내부자 매수"
+    },
+    {
+      "id": "industry",
+      "label": "산업",
+      "stage": "2차",
+      "planned": "반도체, AI 인프라, 바이오·헬스케어 선행 지표와 섹터 히트맵"
+    },
+    {
+      "id": "journal",
+      "label": "내 기록",
+      "stage": "3차",
+      "planned": "포트폴리오·모의투자, 투자 가설 체크리스트, 어닝콜 요약 보관함, 차트 복기 게임"
+    }
   ],
-
   "regime": {
-    "trend":     { "symbol": "^GSPC" },
-    "breadth":   { "sectors": ["XLK", "XLY", "XLC", "XLI", "XLF", "XLE", "XLB", "XLV", "XLP", "XLU", "XLRE"], "good_min": 8, "bad_max": 4 },
-    "rotation":  { "offense": ["XLK", "XLY", "XLI", "XLF"], "defense": ["XLU", "XLP", "XLV"], "good_min": 0.0, "bad_max": -3.0 },
-    "rates":     { "fred": "DGS10", "good_max": 0.10, "bad_min": 0.30 },
-    "credit":    { "fred": "BAMLH0A0HYM2", "good_level": 4.0, "good_change": 0.3, "bad_level": 5.0, "bad_change": 1.0 },
-    "vol":       { "symbol": "^VIX", "good_max": 20, "bad_min": 30 },
-    "commodity": { "oil": "CL=F", "dollar": "DX-Y.NYB", "good_oil": 10, "good_dollar": 2, "bad_oil": 20, "bad_dollar": 4 }
+    "trend": {
+      "symbol": "^GSPC"
+    },
+    "breadth": {
+      "sectors": [
+        "XLK",
+        "XLY",
+        "XLC",
+        "XLI",
+        "XLF",
+        "XLE",
+        "XLB",
+        "XLV",
+        "XLP",
+        "XLU",
+        "XLRE"
+      ],
+      "good_min": 8,
+      "bad_max": 4
+    },
+    "rotation": {
+      "offense": [
+        "XLK",
+        "XLY",
+        "XLI",
+        "XLF"
+      ],
+      "defense": [
+        "XLU",
+        "XLP",
+        "XLV"
+      ],
+      "good_min": 0.0,
+      "bad_max": -3.0
+    },
+    "rates": {
+      "fred": "DGS10",
+      "good_max": 0.1,
+      "bad_min": 0.3
+    },
+    "credit": {
+      "fred": "BAMLH0A0HYM2",
+      "good_level": 4.0,
+      "good_change": 0.3,
+      "bad_level": 5.0,
+      "bad_change": 1.0
+    },
+    "vol": {
+      "symbol": "^VIX",
+      "good_max": 20,
+      "bad_min": 30
+    },
+    "commodity": {
+      "oil": "CL=F",
+      "dollar": "DX-Y.NYB",
+      "good_oil": 10,
+      "good_dollar": 2,
+      "bad_oil": 20,
+      "bad_dollar": 4
+    }
   },
-
-  "sentiment": { "stock": "SPY", "bond": "TLT", "equal_weight": "RSP", "index": "^GSPC", "vix": "^VIX", "fred_hy": "BAMLH0A0HYM2" },
-
+  "sentiment": {
+    "stock": "SPY",
+    "bond": "TLT",
+    "equal_weight": "RSP",
+    "index": "^GSPC",
+    "vix": "^VIX",
+    "fred_hy": "BAMLH0A0HYM2"
+  },
   "calendar": {
-    "fomc": ["2026-12-09"]
+    "fomc": [
+      "2026-12-09"
+    ]
+  },
+  "curve": {
+    "points": [
+      [
+        "1개월",
+        "DGS1MO"
+      ],
+      [
+        "3개월",
+        "DGS3MO"
+      ],
+      [
+        "6개월",
+        "DGS6MO"
+      ],
+      [
+        "1년",
+        "DGS1"
+      ],
+      [
+        "2년",
+        "DGS2"
+      ],
+      [
+        "3년",
+        "DGS3"
+      ],
+      [
+        "5년",
+        "DGS5"
+      ],
+      [
+        "7년",
+        "DGS7"
+      ],
+      [
+        "10년",
+        "DGS10"
+      ],
+      [
+        "20년",
+        "DGS20"
+      ],
+      [
+        "30년",
+        "DGS30"
+      ]
+    ]
+  },
+  "fx_symbol": "KRW=X",
+  "benchmark": {
+    "symbol": "^IXIC",
+    "name": "나스닥"
+  },
+  "chart_rules": {
+    "recent_days": 10,
+    "near_ma20_pct": 2,
+    "far_ma20_pct": 15
   }
 }
