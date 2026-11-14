@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>나의 투자 대시보드</title>
+<script>
+// 화면이 깜빡이지 않도록 저장된 테마를 먼저 적용한다
+(function () {
+  try {
+    var r = document.documentElement;
+    r.dataset.theme = localStorage.getItem('theme') || 'light';
+    r.dataset.color = localStorage.getItem('colorStyle') || 'kr';
+  } catch (e) {}
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <div>
+      <h1 id="site-title">나의 투자 대시보드</h1>
+      <p class="sub" id="updated">데이터를 불러오는 중입니다…</p>
+    </div>
+    <div class="controls">
+      <button type="button" class="btn" id="btn-color" aria-label="상승·하락 색상 방식 바꾸기"></button>
+      <button type="button" class="btn" id="btn-theme" aria-label="밝은 화면과 어두운 화면 전환"></button>
+    </div>
+  </header>
+  <nav class="tabs" id="tabs" aria-label="탭"></nav>
+  <div id="notice"></div>
+  <main id="view"></main>
+  <footer class="foot sub" id="foot"></footer>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
