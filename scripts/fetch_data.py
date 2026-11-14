@@ -26,6 +26,8 @@ ROOT = Path(__file__).resolve().parent.parent
 KST = ZoneInfo("Asia/Seoul")
 FRED_CSV = "https://fred.stlouisfed.org/graph/fredgraph.csv"
 FRED_PAGE = "https://fred.stlouisfed.org/series/"
+FOMC_PAGE = "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
 SPARK_BY_FREQ = {"D": 63, "W": 104, "M": 36, "Q": 12}  # 추이 그래프에 쓰는 점 개수
 SPARK_DAYS = 63   # 약 3개월
 MONTH = 21        # 거래일 기준 약 1개월
@@ -573,11 +575,45 @@ def earnings_events(ctx):
     return events
 
 
+def fetch_fomc(ctx):
+    """연준 공식 일정 페이지에서 FOMC 결정일(회의 둘째 날)을 읽는다. 하루 한 번만 받는다.
+
+    실패하면 이전 결과, 그것도 없으면 config 의 calendar.fomc 를 쓴다.
+    """
+    today, old = ctx["today"], (ctx["prev"] or {}).get("fomc") or {}
+    if old.get("fetched") == today.isoformat() and old.get("meetings"):
+        return old
+    try:
+        r = requests.get(FOMC_PAGE, timeout=40, headers={"User-Agent": "invest-dashboard (personal use)"})
+        r.raise_for_status()
+        meetings = []
+        panels = re.split(r">(\d{4}) FOMC Meetings<", r.text)
+        for year, body in zip(panels[1::2], panels[2::2]):
+            rows = re.findall(r"fomc-meeting__month[^>]*>\s*<strong>([^<]+)</strong>.*?fomc-meeting__date[^>]*>([^<]+)<", body, re.S)
+            for month, days in rows:
+                if "(" in days:        # 임시 회의·서면 표결은 뺀다
+                    continue
+                last_month = month.split("/")[-1].strip()[:3]
+                month_no = next(i + 1 for i, m in enumerate(MONTHS) if m.startswith(last_month))
+                day_no = int(re.findall(r"\d+", days)[-1])
+                meetings.append({"date": dt.date(int(year), month_no, day_no).isoformat(), "sep": "*" in days})
+        meetings = sorted((m for m in meetings if m["date"] >= (today - dt.timedelta(days=45)).isoformat()), key=lambda m: m["date"])
+        if not [m for m in meetings if m["date"] >= today.isoformat()]:
+            raise ValueError("앞으로의 회의 일정을 찾지 못했습니다")
+        return {"fetched": today.isoformat(), "meetings": meetings, "source": "연준 공식 일정"}
+    except Exception as exc:
+        print(f"[참고] FOMC 일정: {exc}", file=sys.stderr)
+        if old.get("meetings"):
+            return old
+        return {"meetings": [{"date": d, "sep": False} for d in ctx["config"]["calendar"].get("fomc", [])], "source": "설정 파일"}
+
+
 def build_events(ctx, prev, today):
     events = earnings_events(ctx)
-    for d in ctx["config"]["calendar"].get("fomc", []):
-        events.append({"date": d, "title": "FOMC 금리 결정", "kind": "FOMC", "source": "연준 일정"})
-    for offset in range(3):
+    for m in ctx["fomc"]["meetings"]:
+        events.append({"date": m["date"], "title": "FOMC 금리 결정" + (" (경제전망 발표)" if m.get("sep") else ""),
+                       "kind": "FOMC", "source": ctx["fomc"]["source"] + " · 미국 날짜"})
+    for offset in range(13):
         m = today.month - 1 + offset
         year, month = today.year + m // 12, m % 12 + 1
         quarterly = month in (3, 6, 9, 12)
@@ -587,17 +623,25 @@ def build_events(ctx, prev, today):
     seen = set()
     for sid, cfg in ctx["config"]["series"].items():   # 지표에 event 이름이 있으면 다음 발표일을 일정에 넣는다
         when = (ctx.get("series_out", {}).get(sid) or {}).get("next_release")
-        if cfg.get("event") and when and (cfg["event"], when) not in seen:
-            seen.add((cfg["event"], when))
-            events.append({"date": when, "title": f"{cfg['event']} 발표", "kind": "경제지표", "source": "FRED 발표 일정"})
+        label = cfg.get("event") or cfg["name"].split(" (")[0]
+        if when and (label, when) not in seen:
+            seen.add((label, when))
+            events.append({"date": when, "title": f"{label} 발표", "kind": "경제지표", "source": "FRED 발표 일정 · 미국 날짜",
+                           "minor": not cfg.get("event")})
     for e in ctx["manual"].get("events", []):
         events.append({"date": e["date"], "title": e["title"], "kind": e.get("kind", "내 이벤트"), "source": "직접 입력"})
-    events = sorted((e for e in events if e["date"] >= today.isoformat()), key=lambda e: e["date"])
+    # 지난 일정은 이전 결과에서 45일치를 이어받아 달력에 남긴다
+    floor = (today - dt.timedelta(days=45)).isoformat()
+    events = [e for e in events if e["date"] >= today.isoformat()]
+    events += [e for e in (prev or {}).get("events_all", []) if floor <= e["date"] < today.isoformat()]
+    uniq = {(e["date"], e["title"]): e for e in events}
+    past_and_future = sorted(uniq.values(), key=lambda e: (e["date"], e["kind"]))
+    events = [e for e in past_and_future if e["date"] >= today.isoformat() and not e.get("minor")]
     week = [e for e in events if e["date"] <= (today + dt.timedelta(days=7)).isoformat()]
     if len(week) < 3:  # 한산한 주에는 30일 안의 다음 일정으로 3건까지 채운다
         later = [e for e in events if e not in week and e["date"] <= (today + dt.timedelta(days=30)).isoformat()]
         week += later[:3 - len(week)]
-    return events, week[:5]
+    return past_and_future, week[:5]
 
 
 # ───────────────────────── 조립 ─────────────────────────
@@ -682,6 +726,7 @@ def main():
     except Exception as exc:
         warn("수익률 곡선", exc)
         curve = (prev or {}).get("curve")
+    ctx["fomc"] = fetch_fomc(ctx)
     try:
         events_all, events_week = build_events(ctx, prev, today)
     except Exception as exc:
@@ -700,6 +745,7 @@ def main():
         "benchmark": bench,
         "events": events_week,
         "events_all": events_all,
+        "fomc": ctx["fomc"],
         "errors": errors,
     }
     out = Path(args.out)

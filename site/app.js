@@ -9,7 +9,7 @@
     get: function (k, d) { try { return localStorage.getItem(k) || d; } catch (e) { return d; } },
     set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
   };
-  var state = { tab: 'home', stock: null, market: store.get('market', 'us'), edit: false, compare: '' };
+  var state = { tab: 'home', stock: null, market: store.get('market', 'us'), edit: false, compare: '', month: null, kinds: {} };
   function route() {
     var h = (location.hash || '#home').slice(1).split('/');
     state.tab = h[0] || 'home';
@@ -199,7 +199,7 @@
           '<div class="what"><b>' + esc(e.title) + '</b><span>' + esc(e.kind) + ' · ' + esc(e.source || '') + '</span></div></div>';
       }).join('') : '<p class="empty">앞으로 30일 안에 잡힌 일정이 없습니다.</p>';
       return '<section class="card" aria-label="' + esc(sec.label) + '"><h2>' + esc(sec.label) + '</h2>' + body +
-        '<p class="src">경제지표 발표일은 캘린더 탭을 만들 때 추가합니다. 실적일은 회사 확정 전에는 바뀔 수 있습니다.</p></section>';
+        '<p class="src">전체 일정은 <a href="#calendar">캘린더 탭</a>에서 봅니다. 실적일은 회사 확정 전에는 바뀔 수 있습니다.</p></section>';
     },
     rows: function (sec) {
       var rows = sec.items.map(function (id) {
@@ -438,6 +438,42 @@
     holder.innerHTML = ''; holder.className = 'tv-on'; w.appendChild(inner); w.appendChild(sc); holder.appendChild(w);
   }
 
+  // ───────── 캘린더 탭 ─────────
+  var KINDS = ['실적', '경제지표', 'FOMC', '만기', '내 이벤트'];
+  function kstToday() { return new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Seoul' }).format(new Date()); }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  SECTIONS.calendar = function () {
+    var today = kstToday();
+    var ym = state.month || today.slice(0, 7), y = Number(ym.slice(0, 4)), m = Number(ym.slice(5, 7));
+    var events = (DATA.events_all || []).filter(function (e) { return !state.kinds[KINDS.indexOf(e.kind) < 0 ? '내 이벤트' : e.kind]; });
+    var inMonth = events.filter(function (e) { return e.date.slice(0, 7) === ym; });
+    var byDay = {};
+    inMonth.forEach(function (e) { (byDay[e.date] = byDay[e.date] || []).push(e); });
+    function shift(step) { var d = new Date(y, m - 1 + step, 1); return d.getFullYear() + '-' + pad(d.getMonth() + 1); }
+    var nav = '<div class="seg"><button type="button" class="btn" data-month="' + shift(-1) + '" aria-label="이전 달">←</button>' +
+      '<button type="button" class="btn" data-month="' + today.slice(0, 7) + '">이번 달</button>' +
+      '<button type="button" class="btn" data-month="' + shift(1) + '" aria-label="다음 달">→</button></div>';
+    var filters = '<div class="seg wrap">' + KINDS.map(function (k) {
+      return '<button type="button" class="btn small" data-kind="' + k + '" aria-pressed="' + !state.kinds[k] + '">' + k + '</button>';
+    }).join('') + '</div>';
+    var first = new Date(y, m - 1, 1).getDay(), days = new Date(y, m, 0).getDate(), cells = '';
+    for (var i = 0; i < first; i++) cells += '<div class="day off"></div>';
+    for (var d = 1; d <= days; d++) {
+      var iso = ym + '-' + pad(d), list = byDay[iso] || [];
+      cells += '<div class="day' + (iso === today ? ' today' : '') + (iso < today ? ' past' : '') + '"><span class="n">' + d + '</span>' +
+        list.map(function (e) { return '<span class="chip k' + KINDS.indexOf(e.kind) + '" title="' + esc(e.title) + '">' + esc(e.title.replace(' 발표', '')) + '</span>'; }).join('') + '</div>';
+    }
+    var grid = '<div class="cal" aria-hidden="true"><div class="dow">' + '일월화수목금토'.split('').map(function (w) { return '<span>' + w + '</span>'; }).join('') + '</div><div class="days">' + cells + '</div></div>';
+    var list = inMonth.length ? inMonth.map(function (e) {
+      return '<div class="event' + (e.date < today ? ' past' : '') + '"><div class="date' + (e.date === today ? ' today' : '') + '"><b>' + md(e.date) + '</b><span>' + weekday(e.date) + '</span></div>' +
+        '<div class="what"><b>' + esc(e.title) + '</b><span>' + esc(e.kind) + ' · ' + esc(e.source || '') + '</span></div></div>';
+    }).join('') : '<p class="empty">이 달에 잡힌 일정이 없습니다. 실적일과 경제지표 발표일은 다음 한 건씩만 미리 알 수 있어, 먼 달은 FOMC와 만기일만 보입니다.</p>';
+    return '<section class="card" aria-label="캘린더"><div class="card-head"><h2>' + y + '년 ' + m + '월</h2>' + nav + '</div>' + filters + grid + '</section>' +
+      '<section class="card" aria-label="' + m + '월 일정 목록"><h2>' + m + '월 일정 ' + inMonth.length + '건</h2>' + list +
+      '<p class="src">실적일은 한국 시간, 경제지표와 FOMC는 미국 날짜 기준입니다(FOMC 결과는 한국 시간으로 다음 날 새벽). 실적일은 회사 확정 전에는 바뀔 수 있습니다. ' +
+      '직접 적는 일정은 config/manual.json 의 events 에 넣습니다. 출처: Yahoo Finance, FRED, 연준' + (DATA.fomc && DATA.fomc.fetched ? ' (FOMC ' + md(DATA.fomc.fetched) + ' 확인)' : '') + '</p></section>';
+  };
+
   // ───────── 화면 조립 ─────────
   function renderTabs() {
     $('tabs').innerHTML = DATA.tabs.map(function (t) {
@@ -482,7 +518,7 @@
       notes.push('일부 항목을 받지 못했습니다: ' + DATA.errors.map(function (e) { return e.where; }).join(', ') + '. 해당 항목은 이전 값이거나 비어 있습니다.');
     }
     $('notice').innerHTML = notes.map(function (n) { return '<p class="notice" role="status">' + esc(n) + '</p>'; }).join('');
-    $('foot').innerHTML = esc(DATA.site.disclaimer) + '<br>출처: Yahoo Finance(주가·환율·지수·원자재), FRED(금리·스프레드·경제지표). 무료 데이터는 개인 용도로만 씁니다.';
+    $('foot').innerHTML = esc(DATA.site.disclaimer) + '<br>출처: Yahoo Finance(주가·환율·지수·원자재·재무), FRED(금리·스프레드·경제지표), 연준(FOMC 일정). 무료 데이터는 개인 용도로만 씁니다.';
   }
   function renderButtons() {
     var dark = root.dataset.theme === 'dark', us = root.dataset.color === 'us';
@@ -511,6 +547,9 @@
     var b = e.target.closest('[data-market]');
     if (b) { state.market = b.dataset.market; store.set('market', state.market); renderView(); return; }
     if (e.target.closest('[data-tv]')) { loadTradingView($('tv')); return; }
+    var mo = e.target.closest('[data-month]'), ki = e.target.closest('[data-kind]');
+    if (mo) { state.month = mo.dataset.month; renderView(); return; }
+    if (ki) { state.kinds[ki.dataset.kind] = !state.kinds[ki.dataset.kind]; renderView(); return; }
     var a = e.target.closest('[data-act]');
     if (!a) return;
     var act = a.dataset.act, t = a.dataset.t;

@@ -535,8 +535,12 @@
     {
       "id": "calendar",
       "label": "캘린더",
-      "stage": "1차",
-      "planned": "실적 발표일, 경제지표 발표일, FOMC, 옵션·선물 만기일, 직접 적는 이벤트"
+      "sections": [
+        {
+          "type": "calendar",
+          "label": "캘린더"
+        }
+      ]
     },
     {
       "id": "flows",
