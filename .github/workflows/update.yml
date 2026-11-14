@@ -1,0 +1,54 @@
+name: 데이터 갱신과 배포
+
+# 30분마다 데이터를 받아 GitHub Pages에 배포한다.
+# 예약 실행은 기본 브랜치(main)에서만 돌고, GitHub 사정으로 몇 분~수십 분 늦을 수 있다.
+on:
+  schedule:
+    - cron: "7,37 * * * *"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: scripts/requirements.txt
+
+      - run: pip install -r scripts/requirements.txt
+
+      - id: pages
+        uses: actions/configure-pages@v5
+
+      # 수집에 실패한 항목은 지금 사이트에 떠 있는 값으로 대신한다
+      - name: 이전 데이터 받기
+        run: curl -fsSL --max-time 30 "${{ steps.pages.outputs.base_url }}/data/dashboard.json" -o "$RUNNER_TEMP/prev.json" || echo "이전 데이터 없음"
+
+      - name: 데이터 수집
+        run: python scripts/fetch_data.py --prev "$RUNNER_TEMP/prev.json"
+
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+
+      - id: deploy
+        uses: actions/deploy-pages@v4

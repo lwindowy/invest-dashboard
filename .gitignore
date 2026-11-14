@@ -1,0 +1,6 @@
+# 수집 결과는 GitHub Actions가 매번 새로 만들어 배포합니다. 저장소에는 올리지 않습니다.
+site/data/
+__pycache__/
+*.pyc
+.venv/
+preview/
