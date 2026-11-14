@@ -21,7 +21,7 @@
   }
   function fmt(x, digits) {
     if (x == null) return '–';
-    return Number(x).toLocaleString('ko-KR', { minimumFractionDigits: digits || 0, maximumFractionDigits: digits || 0 });
+    return Number(x).toLocaleString('ko-KR', { minimumFractionDigits: digits || 0, maximumFractionDigits: digits || 0 }).replace('-', '−');
   }
   function signed(x, digits, unit) {
     if (x == null) return '';
@@ -54,20 +54,28 @@
   function stamp(item) {
     // 데이터마다 출처와 기준일을 붙인다
     if (!item || item.error) return '';
-    return esc(item.source || '') + ' · ' + md(item.asof) + ' 기준' + (item.stale ? ' · 수집 실패로 이전 값' : '');
+    var when = item.period ? esc(item.period) : md(item.asof) + (item.source === '직접 입력' ? ' 입력' : ' 기준');
+    return esc(item.source || '') + ' · ' + when + (item.stale ? ' · 수집 실패로 이전 값' : '');
+  }
+  function value(s) {
+    // 숫자와 단위. '%'처럼 짧은 단위는 붙여 쓰고, '천 명' 같은 단위는 작게 띄어 쓴다
+    var n = (s.signed && s.value > 0 ? '+' : '') + fmt(s.value, s.decimals);
+    var u = s.unit || '';
+    return esc(s.prefix || '') + n + (u.length > 2 ? '<small>' + esc(u) + '</small>' : esc(u));
   }
   function numCard(s) {
     if (!s) return '';
     if (s.error || s.value == null) {
-      return '<div class="num-card"><span class="name">' + esc(s.name) + '</span><span class="value flat">–</span><span class="note">데이터를 받지 못했습니다</span></div>';
+      return '<div class="num-card"><span class="name">' + esc(s.name) + '</span><span class="value flat">–</span><span class="note">' + esc(s.error_note || '데이터를 받지 못했습니다') + '</span></div>';
     }
     var c = change(s);
     var note = s.note ? (s.note_level ? pill(s.note, s.note_level, true) : esc(s.note)) : '';
     return '<div class="num-card">' +
       '<span class="name">' + esc(s.name) + '</span>' +
-      '<span class="value">' + fmt(s.value, s.decimals) + esc(s.unit || '') + '</span>' +
+      '<span class="value">' + value(s) + '</span>' +
       '<div class="row"><span class="chg ' + c.d + '">' + c.text + '</span>' + sparkline(s.spark, c.d, 84, 26) + '</div>' +
       (note ? '<span class="note">' + note + '</span>' : '') +
+      (s.next_release ? '<span class="note">다음 발표 ' + md(s.next_release) + ' (' + weekday(s.next_release) + ')</span>' : '') +
       '<span class="src">' + stamp(s) + '</span></div>';
   }
 
@@ -89,8 +97,46 @@
         '<p class="src">출처: Yahoo Finance, FRED. 기준값은 config/dashboard.json 의 regime 에서 바꿉니다.</p></details></section>';
     },
     cards: function (sec) {
-      return '<section class="cards" aria-label="' + esc(sec.label) + '">' +
-        sec.items.map(function (id) { return numCard(DATA.series[id]); }).join('') + '</section>';
+      var cards = '<div class="cards">' + sec.items.map(function (id) { return numCard(DATA.series[id]); }).join('') + '</div>';
+      if (!sec.heading) return '<section aria-label="' + esc(sec.label) + '">' + cards + '</section>';
+      return '<section class="group" aria-label="' + esc(sec.label) + '"><h2>' + esc(sec.label) + '</h2>' + cards +
+        (sec.note ? '<p class="src">' + esc(sec.note) + '</p>' : '') + '</section>';
+    },
+    curve: function (sec) {
+      var c = DATA.curve;
+      if (!c) return '<section class="card"><h2>' + esc(sec.label) + '</h2><p class="empty">데이터를 받지 못했습니다.</p></section>';
+      var W = 720, H = 260, L = 44, R = 16, T = 14, B = 30, n = c.labels.length;
+      var lines = [['now', '현재'], ['month', '1개월 전'], ['year', '1년 전']];
+      var all = [].concat(c.now.values, c.month.values, c.year.values).filter(function (v) { return v != null; });
+      var lo = Math.floor(Math.min.apply(null, all) * 2) / 2, hi = Math.ceil(Math.max.apply(null, all) * 2) / 2;
+      if (hi === lo) hi = lo + 0.5;
+      function x(i) { return L + i * (W - L - R) / (n - 1); }
+      function y(v) { return T + (hi - v) / (hi - lo) * (H - T - B); }
+      var grid = '', step = (hi - lo) > 3 ? 1 : 0.5;
+      for (var v = lo; v <= hi + 1e-9; v += step) {
+        grid += '<line class="grid" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(v).toFixed(1) + '" y2="' + y(v).toFixed(1) + '"></line>' +
+          '<text class="axis" x="' + (L - 8) + '" y="' + (y(v) + 4).toFixed(1) + '" text-anchor="end">' + v.toFixed(1) + '%</text>';
+      }
+      var xs = c.labels.map(function (l, i) {
+        return '<text class="axis" x="' + x(i).toFixed(1) + '" y="' + (H - 8) + '" text-anchor="middle">' + esc(l) + '</text>';
+      }).join('');
+      var paths = lines.slice().reverse().map(function (ln) {
+        var pts = c[ln[0]].values.map(function (v, i) { return x(i).toFixed(1) + ',' + y(v).toFixed(1); }).join(' ');
+        var dots = ln[0] === 'now' ? c.now.values.map(function (v, i) { return '<circle class="dot" cx="' + x(i).toFixed(1) + '" cy="' + y(v).toFixed(1) + '" r="3"></circle>'; }).join('') : '';
+        return '<polyline class="curve-' + ln[0] + '" points="' + pts + '"></polyline>' + dots;
+      }).join('');
+      var legend = lines.map(function (ln) {
+        return '<span class="legend-item"><svg aria-hidden="true" width="28" height="10"><line class="curve-' + ln[0] + '" x1="1" x2="27" y1="5" y2="5"></line></svg>' +
+          ln[1] + ' (' + md(c[ln[0]].date) + (ln[0] === 'year' ? ', ' + c.year.date.slice(0, 4) + '년' : '') + ')</span>';
+      }).join('');
+      var head = '<div class="ctr th"><span>만기</span>' + lines.map(function (ln) { return '<span>' + ln[1] + '</span>'; }).join('') + '</div>';
+      var body = c.labels.map(function (l, i) {
+        return '<div class="ctr"><span>' + esc(l) + '</span>' + lines.map(function (ln) { return '<span>' + fmt(c[ln[0]].values[i], 2) + '%</span>'; }).join('') + '</div>';
+      }).join('');
+      return '<section class="card" aria-label="' + esc(sec.label) + '"><div class="card-head"><h2>' + esc(sec.label) + '</h2><div class="legend">' + legend + '</div></div>' +
+        '<svg class="curve" role="img" aria-label="미국 국채 수익률 곡선. 아래 표에 같은 값이 있습니다." viewBox="0 0 ' + W + ' ' + H + '">' + grid + xs + paths + '</svg>' +
+        '<details class="rules"><summary>만기별 금리 표 보기</summary><div class="ctable">' + head + body + '</div></details>' +
+        '<p class="src">미국 국채 만기별 금리. 단기 금리가 장기 금리보다 높으면(역전) 경기 둔화 신호로 봅니다. 출처: ' + esc(c.source) + ' · ' + md(c.now.date) + ' 기준</p></section>';
     },
     watchlist: function (sec) {
       var seg = [['us', '미국'], ['kr', '한국']].map(function (m) {
@@ -190,7 +236,7 @@
       notes.push('일부 항목을 받지 못했습니다: ' + DATA.errors.map(function (e) { return e.where; }).join(', ') + '. 해당 항목은 이전 값이거나 비어 있습니다.');
     }
     $('notice').innerHTML = notes.map(function (n) { return '<p class="notice" role="status">' + esc(n) + '</p>'; }).join('');
-    $('foot').innerHTML = esc(DATA.site.disclaimer) + '<br>출처: Yahoo Finance(주가·환율·지수), FRED(금리·스프레드). 무료 데이터는 개인 용도로만 씁니다.';
+    $('foot').innerHTML = esc(DATA.site.disclaimer) + '<br>출처: Yahoo Finance(주가·환율·지수·원자재), FRED(금리·스프레드·경제지표). 무료 데이터는 개인 용도로만 씁니다.';
   }
   function renderButtons() {
     var dark = root.dataset.theme === 'dark', us = root.dataset.color === 'us';

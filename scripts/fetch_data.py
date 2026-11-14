@@ -12,6 +12,7 @@ import datetime as dt
 import io
 import json
 import math
+import re
 import sys
 import time
 from pathlib import Path
@@ -24,6 +25,8 @@ import yfinance as yf
 ROOT = Path(__file__).resolve().parent.parent
 KST = ZoneInfo("Asia/Seoul")
 FRED_CSV = "https://fred.stlouisfed.org/graph/fredgraph.csv"
+FRED_PAGE = "https://fred.stlouisfed.org/series/"
+SPARK_BY_FREQ = {"D": 63, "W": 104, "M": 36, "Q": 12}  # 추이 그래프에 쓰는 점 개수
 SPARK_DAYS = 63   # 약 3개월
 MONTH = 21        # 거래일 기준 약 1개월
 
@@ -48,8 +51,8 @@ def day(ts):
     return pd.Timestamp(ts).strftime("%Y-%m-%d")
 
 
-def spark(series):
-    return [num(v) for v in series.tail(SPARK_DAYS)]
+def spark(series, n=SPARK_DAYS):
+    return [num(v) for v in series.tail(n)]
 
 
 # ───────────────────────── 원본 데이터 받기 ─────────────────────────
@@ -83,8 +86,8 @@ def fetch_yahoo(symbols):
 
 
 def fetch_fred(series_id):
-    """FRED 시계열(약 3년치). 키 없이 받는 공개 CSV."""
-    start = (dt.date.today() - dt.timedelta(days=1100)).isoformat()
+    """FRED 시계열(약 5년치). 키 없이 받는 공개 CSV."""
+    start = (dt.date.today() - dt.timedelta(days=1900)).isoformat()
     last_err = None
     for attempt in range(3):
         if attempt:
@@ -157,12 +160,80 @@ def src_yahoo(cfg, ctx):
     return item
 
 
+def period_label(ts, freq):
+    ts = pd.Timestamp(ts)
+    if freq == "M":
+        return f"{ts.year}년 {ts.month}월"
+    if freq == "Q":
+        return f"{ts.year}년 {(ts.month - 1) // 3 + 1}분기"
+    if freq == "W":
+        return f"{ts.month}/{ts.day} 주"
+    return None
+
+
+def next_release(series_id, old, today):
+    """FRED 지표 페이지의 'Next Release Date'. 아직 지나지 않은 이전 결과가 있으면 다시 받지 않는다."""
+    if old and (old.get("next_release") or "") >= today.isoformat():
+        return old["next_release"]
+    try:
+        r = requests.get(FRED_PAGE + series_id, timeout=30)
+        r.raise_for_status()
+        m = re.search(r"Next Release Date:\s*(?:<[^>]+>\s*)*([A-Z][a-z]{2} \d{1,2}, \d{4})", r.text)
+        return dt.datetime.strptime(m.group(1), "%b %d, %Y").date().isoformat() if m else None
+    except Exception as exc:
+        print(f"[참고] 다음 발표일 {series_id}: {exc}", file=sys.stderr)
+        return None
+
+
 def src_fred(cfg, ctx):
+    """FRED 지표. transform 으로 전년 대비(yoy), 전월 대비 %(mom_pct), 전월 대비 증감(mom_diff)을 계산한다."""
     s = ctx["fred"][cfg["id"]]
+    freq, t = cfg.get("freq", "D"), cfg.get("transform")
+    raw_date = s.index[-1]
+    estimated = False
+    if t == "yoy":      # 정확히 1년 전 값과 비교한다. 빠진 달(예: 2025년 10월 CPI)은 앞뒤 달로 추정한다
+        estimated = (s.index[-1] - pd.DateOffset(years=1)) not in s.index
+        filled = s.asfreq("MS").interpolate()
+        ago = filled.reindex(s.index - pd.DateOffset(years=1))
+        s = (s / ago.values - 1) * 100
+    elif t == "mom_pct":
+        s = (s / s.shift(1) - 1) * 100
+    elif t == "mom_diff":
+        s = s.diff()
+    s = (s * cfg.get("scale", 1)).dropna()
+    if s.index[-1] != raw_date:
+        raise ValueError("최신 값의 비교 대상이 없습니다")
     last, prev = float(s.iloc[-1]), float(s.iloc[-2])
-    return {"value": num(last), "prev": num(prev), "diff": num(last - prev),
+    item = {"value": num(last), "prev": num(prev), "diff": num(last - prev),
             "change_pct": num((last / prev - 1) * 100, 2) if prev else None,
-            "asof": day(s.index[-1]), "spark": spark(s), "source": "FRED"}
+            "asof": day(s.index[-1]), "period": period_label(s.index[-1], freq),
+            "spark": spark(s, SPARK_BY_FREQ[freq]), "source": "FRED"}
+    if estimated:
+        item["note"] = "1년 전 값이 발표되지 않아 앞뒤 달로 추정해 계산"
+    if freq != "D":
+        old =(ctx["prev"] or {}).get("series", {}).get(cfg["_key"])
+        item["next_release"] = next_release(cfg["id"], old, ctx["today"])
+    return item
+
+
+def src_manual(cfg, ctx):
+    """config/manual.json 에 직접 적는 값. 입력한 날짜를 함께 보여준다."""
+    v = ctx["manual"].get("values", {}).get(cfg["key"]) or {}
+    if v.get("value") is None:
+        return {"value": None, "error": True, "error_note": "값을 아직 입력하지 않았습니다"}
+    return {"value": num(v["value"]), "prev": num(v.get("prev")),
+            "diff": num(v["value"] - v["prev"]) if v.get("prev") is not None else None,
+            "change_pct": None, "asof": v.get("entered"), "spark": [], "source": "직접 입력"}
+
+
+def build_curve(ctx):
+    """수익률 곡선: 현재, 약 1개월 전, 약 1년 전."""
+    points = ctx["config"]["curve"]["points"]
+    table = pd.DataFrame({label: ctx["fred"][sid] for label, sid in points}).dropna()
+    def row(i):
+        return {"date": day(table.index[i]), "values": [num(v, 2) for v in table.iloc[i]]}
+    return {"labels": [p[0] for p in points], "now": row(-1), "month": row(-1 - MONTH), "year": row(-253),
+            "source": "FRED"}
 
 
 def src_sentiment(cfg, ctx):
@@ -198,7 +269,7 @@ def src_sentiment(cfg, ctx):
             "components": [{"name": k, "score": num(v * 100, 0)} for k, v in latest.items() if pd.notna(v)]}
 
 
-SOURCES = {"yahoo": src_yahoo, "fred": src_fred, "sentiment": src_sentiment}
+SOURCES = {"yahoo": src_yahoo, "fred": src_fred, "sentiment": src_sentiment, "manual": src_manual}
 
 
 # ───────────────────────── 관심 종목 ─────────────────────────
@@ -354,6 +425,12 @@ def build_events(ctx, prev, today):
         events.append({"date": third_friday(year, month).isoformat(),
                        "title": "선물·옵션 동시 만기일" if quarterly else "옵션 만기일",
                        "kind": "만기", "source": "매월 셋째 금요일"})
+    seen = set()
+    for sid, cfg in ctx["config"]["series"].items():   # 지표에 event 이름이 있으면 다음 발표일을 일정에 넣는다
+        when = (ctx.get("series_out", {}).get(sid) or {}).get("next_release")
+        if cfg.get("event") and when and (cfg["event"], when) not in seen:
+            seen.add((cfg["event"], when))
+            events.append({"date": when, "title": f"{cfg['event']} 발표", "kind": "경제지표", "source": "FRED 발표 일정"})
     for e in ctx["manual"].get("events", []):
         events.append({"date": e["date"], "title": e["title"], "kind": e.get("kind", "내 이벤트"), "source": "직접 입력"})
     events = sorted((e for e in events if e["date"] >= today.isoformat()), key=lambda e: e["date"])
@@ -390,8 +467,11 @@ def main():
     symbols |= {senti[k] for k in ("stock", "bond", "equal_weight", "index", "vix")}
     fred_ids = {c["id"] for c in series.values() if c["source"] == "fred"}
     fred_ids |= {regime["rates"]["fred"], regime["credit"]["fred"], senti["fred_hy"]}
+    fred_ids |= {sid for _, sid in config["curve"]["points"]}
 
-    ctx = {"config": config, "manual": manual, "yahoo": fetch_yahoo(sorted(symbols)), "fred": {}}
+    today = dt.datetime.now(KST).date()
+    ctx = {"config": config, "manual": manual, "prev": prev, "today": today,
+           "yahoo": fetch_yahoo(sorted(symbols)), "fred": {}}
     for sid in sorted(fred_ids):
         s = fetch_fred(sid)
         if s is not None:
@@ -399,9 +479,9 @@ def main():
 
     out_series = {}
     for sid, cfg in series.items():
-        meta = {k: v for k, v in cfg.items() if k in ("name", "decimals", "unit", "change", "diff_unit", "diff_decimals")}
+        meta = {k: v for k, v in cfg.items() if k in ("name", "decimals", "unit", "change", "diff_unit", "diff_decimals", "signed", "prefix")}
         try:
-            out_series[sid] = {**meta, **SOURCES[cfg["source"]](cfg, ctx)}
+            out_series[sid] = {**meta, **SOURCES[cfg["source"]]({**cfg, "_key": sid}, ctx)}
         except Exception as exc:
             if not any(sid_err in str(e["where"]) for e in errors for sid_err in (cfg.get("symbol", "∅"), cfg.get("id", "∅"))):
                 warn(f"지표 {cfg['name']}", exc)
@@ -423,7 +503,12 @@ def main():
                     watch[market].append({"ticker": entry["ticker"], "name": entry["name"], "market": market,
                                           "currency": "KRW" if market == "kr" else "USD", "price": None, "error": True})
 
-    today = dt.datetime.now(KST).date()
+    ctx["series_out"] = out_series
+    try:
+        curve = build_curve(ctx)
+    except Exception as exc:
+        warn("수익률 곡선", exc)
+        curve = (prev or {}).get("curve")
     try:
         events_all, events_week = build_events(ctx, prev, today)
     except Exception as exc:
@@ -436,6 +521,7 @@ def main():
         "tabs": config["tabs"],
         "regime": build_regime(ctx),
         "series": out_series,
+        "curve": curve,
         "watchlist": watch,
         "events": events_week,
         "events_all": events_all,
