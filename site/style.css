@@ -216,6 +216,13 @@ dialog.narrow { width: min(520px, calc(100vw - 24px)); }
 #help-text { font-size: 15px; line-height: 1.7; }
 #help-link { align-self: flex-start; }
 
+.alert { display: flex; gap: 10px; align-items: flex-start; }
+.alert .pill { flex: none; margin-top: 2px; }
+.alert .what { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.alert .what b { font-size: 14px; font-weight: 500; }
+.alert .what a { color: inherit; }
+.alert .what span { font-size: 12px; color: var(--sub); }
+
 /* 2단 배치: 좁아지면 한 줄로 쌓인다 */
 .cols { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
 .col-main { flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 20px; }

@@ -760,6 +760,105 @@ def build_events(ctx, prev, today):
     return past_and_future, week[:5]
 
 
+# ───────────────────────── 알림 ─────────────────────────
+
+def build_alerts(ctx, data, now):
+    """알릴 만한 변화를 찾는다. 같은 알림은 하루에 한 번만 만들고, 며칠 동안 쌓아 둔다.
+
+    클로드 예약 작업(아침·오후 브리핑)과 홈 화면이 이 목록을 읽는다.
+    """
+    rules, prev = ctx["config"]["alerts"], ctx["prev"] or {}
+    today, tomorrow = ctx["today"].isoformat(), (ctx["today"] + dt.timedelta(days=1)).isoformat()
+    found = []
+
+    def add(key, kind, title, detail, level="info", ticker=None, day_=None):
+        # id 앞의 날짜가 같으면 같은 알림으로 본다. 종가 기준 알림은 그 종가의 날짜를 써서 주말에 되풀이되지 않게 한다
+        found.append({"id": f"{day_ or today}:{kind}:{key}", "kind": kind, "level": level, "ticker": ticker,
+                      "title": title, "detail": detail, "at": now})
+
+    old_stocks = prev.get("stocks", {})
+    for t, s in data["stocks"].items():
+        if s.get("stale") or s.get("price") is None:
+            continue
+        o, name = old_stocks.get(t) or {}, s["name"]
+        chg = s.get("change_pct")
+        if chg is not None and abs(chg) >= rules["move_pct"]:
+            add(t, "급등락", f"{name} {signed(chg, 1, '%')}", f"{s['asof']} 종가 기준 하루 변동", "warn", t, s["asof"])
+        rsi_now, rsi_old = s.get("rsi"), o.get("rsi")
+        if rsi_now is not None and rsi_old is not None:
+            if rsi_now >= rules["rsi_high"] > rsi_old:
+                add(t, "RSI", f"{name} RSI {rsi_now:.0f} (과매수 진입)", f"RSI가 {rules['rsi_high']} 이상으로 올라섬", "info", t)
+            if rsi_now <= rules["rsi_low"] < rsi_old:
+                add(t, "RSI", f"{name} RSI {rsi_now:.0f} (과매도 진입)", f"RSI가 {rules['rsi_low']} 이하로 내려옴", "info", t)
+        gap = lambda row: next((m["gap_pct"] for m in row.get("mas", []) if m["days"] == 200), None)
+        g_now, g_old = gap(s), gap(o)
+        if g_now is not None and g_old is not None and (g_now >= 0) != (g_old >= 0):
+            up = g_now >= 0
+            add(t, "200일선", f"{name} 200일선 {'상향 돌파' if up else '하향 이탈'}", f"200일선 대비 {signed(g_now, 1, '%')}", "good" if up else "warn", t)
+        hit = lambda row, gi, ii: (row.get("checklist") or [{}] * 3)[gi].get("items", [{}] * 3)[ii].get("hit") if row.get("checklist") else None
+        if hit(s, 0, 1) and hit(o, 0, 1) is False:
+            add(t, "골든크로스", f"{name} 골든크로스", "20일선이 60일선을 상향 돌파", "good", t)
+        if hit(s, 2, 0) and hit(o, 2, 0) is False:
+            add(t, "데드크로스", f"{name} 데드크로스", "20일선이 60일선을 하향 돌파", "warn", t)
+        if s.get("history_days", 0) >= 252 and o.get("price") is not None:
+            if s["price"] >= s["high52"] * 0.999 and o["price"] < s["high52"] * 0.999:
+                add(t, "52주", f"{name} 52주 신고가", f"현재가가 최근 1년 최고가 부근", "good", t)
+            if s["price"] <= s["low52"] * 1.001 and o["price"] > s["low52"] * 1.001:
+                add(t, "52주", f"{name} 52주 신저가", f"현재가가 최근 1년 최저가 부근", "warn", t)
+        earn, old_earn = (s.get("fund") or {}).get("earnings") or {}, (o.get("fund") or {}).get("earnings") or {}
+        if earn.get("next") in (today, tomorrow):
+            add(f"{t}:{earn['next']}", "실적 예정", f"{name} 실적 발표 {'오늘' if earn['next'] == today else '내일'}", f"{earn['next']} (한국 시간)", "info", t)
+        last, old_last = earn.get("last") or {}, old_earn.get("last") or {}
+        if last.get("date") and old_last.get("date") and last["date"] != old_last["date"]:
+            sur = last.get("surprise_pct")
+            add(f"{t}:{last['date']}", "실적 결과", f"{name} 실적 발표: EPS {last.get('eps_actual')} (예상 {last.get('eps_estimate')})",
+                f"예상 대비 {signed(sur, 1, '%')}" if sur is not None else "예상 대비 값 없음",
+                "good" if (sur or 0) > 0 else "warn" if (sur or 0) < 0 else "info", t)
+        sf = ((s.get("fund") or {}).get("short") or {}).get("float_pct")
+        sf_old = ((o.get("fund") or {}).get("short") or {}).get("float_pct")
+        if sf is not None and sf_old is not None and sf >= rules["short_float"] > sf_old:
+            add(t, "공매도", f"{name} Short Float {sf:.1f}%", f"{rules['short_float']}% 이상으로 올라섬", "warn", t)
+
+    old_regime = {i["id"]: i["state"] for i in (prev.get("regime") or {}).get("items", [])}
+    rank = {"양호": 0, "주의": 1, "위험": 2}
+    for i in data["regime"]["items"]:
+        before = old_regime.get(i["id"])
+        if before in rank and i["state"] in rank and before != i["state"]:
+            worse = rank[i["state"]] > rank[before]
+            add(i["id"], "시장 국면", f"시장 국면 '{i['name']}' {before} → {i['state']}", i["why"], "warn" if worse else "good")
+    vix, vix_old = (data["series"].get("vix") or {}).get("value"), ((prev.get("series") or {}).get("vix") or {}).get("value")
+    if vix is not None and vix_old is not None and vix >= rules["vix_high"] > vix_old:
+        add("vix", "변동성", f"VIX {vix:.1f} (공포 구간 진입)", f"VIX가 {rules['vix_high']} 이상으로 올라섬", "warn")
+    for e in data["events_all"]:
+        if e["date"] in (today, tomorrow) and (e["kind"] == "FOMC" or (e["kind"] == "경제지표" and not e.get("minor"))):
+            add(f"{e['title']}:{e['date']}", "일정", f"{e['title']} {'오늘' if e['date'] == today else '내일'}", f"{e['date']} (미국 날짜)")
+
+    # 이전 알림을 이어받고, 오래된 것은 지운다. 같은 알림이 이미 있으면 처음 만든 시각을 유지한다
+    floor = (ctx["today"] - dt.timedelta(days=rules["keep_days"])).isoformat()
+    merged = {a["id"]: a for a in prev.get("alerts", []) if a["id"][:10] >= floor}
+    for a in found:
+        merged.setdefault(a["id"], a)
+    return sorted(merged.values(), key=lambda a: a["at"], reverse=True)
+
+
+def build_brief(data):
+    """클로드 브리핑이 읽는 작은 요약 파일. 전체 데이터 대신 이것만 읽어 사용량을 줄인다."""
+    pick = lambda sid: {k: data["series"].get(sid, {}).get(k) for k in ("name", "value", "change_pct", "diff", "asof", "note")}
+    return {
+        "generated_at": data["generated_at"],
+        "regime": {"summary": {k: data["regime"][k] for k in ("total", "good", "warn", "bad")},
+                   "items": [{k: i[k] for k in ("name", "state", "why")} for i in data["regime"]["items"]]},
+        "market": [pick(s) for s in ("sp500", "nasdaq", "sox", "kospi", "vix", "sentiment", "us10y", "hy_spread", "dxy", "usdkrw", "wti", "pe_nasdaq100")],
+        "watchlist": [{"ticker": s["ticker"], "name": s["name"], "price": s.get("price"), "change_pct": s.get("change_pct"),
+                       "rsi": s.get("rsi"), "from_high_pct": s.get("from_high_pct"), "asof": s.get("asof"),
+                       "next_earnings": ((data["stocks"].get(s["ticker"], {}).get("fund") or {}).get("earnings") or {}).get("next")}
+                      for rows in data["watchlist"].values() for s in rows],
+        "events_next_7_days": data["events"],
+        "alerts": data["alerts"],
+        "site": "https://" + data["site"]["repo"].split("/")[0] + ".github.io/" + data["site"]["repo"].split("/")[1] + "/",
+    }
+
+
 # ───────────────────────── 조립 ─────────────────────────
 
 def main():
@@ -872,8 +971,14 @@ def main():
         "glossary": json.loads((ROOT / "config/glossary.json").read_text(encoding="utf-8"))["terms"],
         "errors": errors,
     }
+    try:
+        data["alerts"] = build_alerts(ctx, data, data["generated_at"])
+    except Exception as exc:
+        warn("알림", exc)
+        data["alerts"] = (prev or {}).get("alerts", [])
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
+    (out.parent / "brief.json").write_text(json.dumps(build_brief(data), ensure_ascii=False, indent=1, allow_nan=False), encoding="utf-8")
     out.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":"), allow_nan=False), encoding="utf-8")
     (out.parent / "history.json").write_text(json.dumps(history, ensure_ascii=False, separators=(",", ":"), allow_nan=False), encoding="utf-8")
     print(f"저장: {out} · 지표 {len(out_series)}개 · 종목 {sum(len(v) for v in watch.values())}개 · 실패 {len(errors)}건")

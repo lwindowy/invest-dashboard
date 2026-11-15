@@ -209,6 +209,16 @@
         rows + '</div></div>' +
         '<p class="src">종목 이름을 누르면 종목 한 장 요약으로 이동합니다. RSI 70 이상은 과매수, 30 이하는 과매도로 표시합니다. 출처: Yahoo Finance · ' + md(asof) + ' 기준 · 주가는 15분가량 지연됩니다.</p></section>';
     },
+    alerts: function (sec) {
+      var list = (DATA.alerts || []).slice(0, 8), tone = { good: 'good', warn: 'warn', info: 'none' };
+      var body = list.length ? list.map(function (a) {
+        var when = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(a.at));
+        var title = a.ticker && DATA.stocks[a.ticker] ? '<a href="#stocks/' + encodeURIComponent(a.ticker) + '">' + esc(a.title) + '</a>' : esc(a.title);
+        return '<div class="alert">' + pill(a.kind, tone[a.level] || 'none', true) + '<div class="what"><b>' + title + '</b><span>' + esc(a.detail) + ' · ' + when + '</span></div></div>';
+      }).join('') : '<p class="empty">최근 며칠 동안 알릴 만한 변화가 없었습니다.</p>';
+      return '<section class="card" aria-label="' + esc(sec.label) + '"><h2>' + esc(sec.label) + '</h2>' + body +
+        '<p class="src">급등락, 실적, 이동평균선 돌파, RSI, 국면 변화, 주요 일정을 30분마다 점검합니다. 참고용 점검 알림입니다.</p></section>';
+    },
     events: function (sec) {
       var ev = DATA.events || [];
       var body = ev.length ? ev.map(function (e) {

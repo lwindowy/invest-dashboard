@@ -533,6 +533,11 @@
           "column": "main"
         },
         {
+          "type": "alerts",
+          "label": "최근 알림",
+          "column": "side"
+        },
+        {
           "type": "events",
           "label": "이번 주 일정",
           "column": "side"
@@ -893,5 +898,13 @@
         ]
       }
     ]
+  },
+  "alerts": {
+    "move_pct": 5,
+    "rsi_high": 70,
+    "rsi_low": 30,
+    "vix_high": 30,
+    "short_float": 20,
+    "keep_days": 4
   }
 }
