@@ -421,6 +421,47 @@
       "change": "diff",
       "diff_unit": "%p",
       "diff_decimals": 2
+    },
+    "pe_nasdaq100": {
+      "name": "나스닥 100 포워드 PER",
+      "basket": "nasdaq100",
+      "baseline": "nasdaq100_fwd_pe_5y_avg",
+      "source": "valuation",
+      "decimals": 1,
+      "unit": "배",
+      "change": "diff",
+      "diff_unit": "배",
+      "diff_decimals": 1
+    },
+    "pe_bigtech": {
+      "name": "대형 기술주 7개 포워드 PER",
+      "basket": "bigtech",
+      "source": "valuation",
+      "decimals": 1,
+      "unit": "배",
+      "change": "diff",
+      "diff_unit": "배",
+      "diff_decimals": 1
+    },
+    "pe_ai_infra": {
+      "name": "AI 인프라 포워드 PER",
+      "basket": "ai_infra",
+      "source": "valuation",
+      "decimals": 1,
+      "unit": "배",
+      "change": "diff",
+      "diff_unit": "배",
+      "diff_decimals": 1
+    },
+    "pe_memory": {
+      "name": "메모리 포워드 PER",
+      "basket": "memory",
+      "source": "valuation",
+      "decimals": 1,
+      "unit": "배",
+      "change": "diff",
+      "diff_unit": "배",
+      "diff_decimals": 1
     }
   },
   "tabs": [
@@ -503,6 +544,18 @@
             "hy_spread"
           ],
           "note": "회사채 금리가 같은 만기 국채보다 얼마나 높은지입니다. 벌어질수록 시장이 부도 위험을 크게 본다는 뜻입니다. 개별 기업의 CDS·회사채 가격은 무료 데이터가 없어 등급별 스프레드로 봅니다. 하이일드는 BB 이하 전체입니다."
+        },
+        {
+          "type": "cards",
+          "label": "밸류에이션",
+          "heading": true,
+          "items": [
+            "pe_nasdaq100",
+            "pe_bigtech",
+            "pe_ai_infra",
+            "pe_memory"
+          ],
+          "note": "포워드 PER = 구성 종목의 시가총액 합 ÷ 예상 순이익 합. 하루 한 번 직접 계산하고, 값을 매일 쌓아 자체 추이를 만듭니다(계산을 시작한 날부터). 묶음의 구성 종목은 config/dashboard.json 의 valuation 에서 바꿉니다. 나스닥 100 구성 종목은 위키백과 목록에서 매일 읽습니다."
         },
         {
           "type": "cards",
@@ -746,5 +799,57 @@
     "leverage_warn": 2.5,
     "leverage_bad": 4,
     "current_ratio_warn": 1
+  },
+  "valuation": {
+    "baskets": [
+      {
+        "id": "nasdaq100",
+        "name": "나스닥 100",
+        "source": "wikipedia_nasdaq100"
+      },
+      {
+        "id": "bigtech",
+        "name": "대형 기술주 7개",
+        "tickers": [
+          "AAPL",
+          "MSFT",
+          "NVDA",
+          "GOOGL",
+          "AMZN",
+          "META",
+          "TSLA"
+        ]
+      },
+      {
+        "id": "ai_infra",
+        "name": "AI 인프라",
+        "tickers": [
+          "NVDA",
+          "AVGO",
+          "AMD",
+          "TSM",
+          "MRVL",
+          "ANET",
+          "VRT",
+          "DELL",
+          "ORCL",
+          "CRWV",
+          "NBIS",
+          "IREN"
+        ]
+      },
+      {
+        "id": "memory",
+        "name": "메모리",
+        "tickers": [
+          "MU",
+          "SNDK",
+          "WDC",
+          "STX",
+          "005930.KS",
+          "000660.KS"
+        ]
+      }
+    ]
   }
 }

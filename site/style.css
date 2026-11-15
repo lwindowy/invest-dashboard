@@ -180,6 +180,30 @@ details.rules b { color: var(--ink); font-weight: 500; }
 .add input:focus-visible { outline: 2px solid var(--blue); outline-offset: 1px; }
 .tools .btn.del { min-height: 40px; color: var(--bad-ink); }
 
+/* 누르면 차트가 열리는 카드 */
+button.num-card, button.kv { font: inherit; color: inherit; text-align: left; cursor: pointer; }
+button.num-card:hover, button.num-card:focus-visible { border-color: var(--sub); }
+button.num-card:focus-visible, button.kv:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+button.kv { width: 100%; background: none; border: 0; border-bottom: 1px solid var(--line); }
+button.kv:hover .k { color: var(--ink); text-decoration: underline; }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+dialog { border: 1px solid var(--line); border-radius: 14px; padding: 0; background: var(--card); color: var(--ink); width: min(880px, calc(100vw - 24px)); max-height: calc(100vh - 24px); }
+dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
+.dlg { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.dlg h2 { font-size: 18px; font-weight: 700; }
+.dlg .now { font-size: 20px; font-weight: 700; color: var(--ink); }
+.plot { position: relative; }
+.curve.big .line { fill: none; stroke: var(--blue); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.curve.big .zero { stroke: var(--sub); stroke-width: 1; }
+.curve.big .end { fill: var(--blue); stroke: var(--card); stroke-width: 2; }
+.curve.big .cross { stroke: var(--sub); stroke-width: 1; }
+.curve.big .hit { fill: transparent; }
+.curve.big { touch-action: pan-y; }
+.tip { position: absolute; pointer-events: none; background: var(--active-bg); color: var(--active-ink); border-radius: 8px; padding: 6px 10px; font-size: 12px; display: flex; flex-direction: column; gap: 1px; white-space: nowrap; }
+.tip[hidden] { display: none; }
+.tip b { font-size: 14px; font-weight: 700; }
+.ctr.c2 { grid-template-columns: 1fr 1fr; }
+
 /* 2단 배치: 좁아지면 한 줄로 쌓인다 */
 .cols { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
 .col-main { flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 20px; }

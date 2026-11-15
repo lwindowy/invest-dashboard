@@ -37,6 +37,18 @@
   <main id="view"></main>
   <footer class="foot sub" id="foot"></footer>
 </div>
+<dialog id="chart-dialog" aria-labelledby="chart-title">
+  <div class="dlg">
+    <div class="card-head">
+      <div><h2 id="chart-title"></h2><p class="sub" id="chart-sub"></p></div>
+      <button type="button" class="btn" data-close>닫기</button>
+    </div>
+    <div class="seg wrap" id="chart-ranges"></div>
+    <div class="plot" id="chart-plot"></div>
+    <details class="rules"><summary>최근 값 표로 보기</summary><div id="chart-table"></div></details>
+    <p class="src" id="chart-src"></p>
+  </div>
+</dialog>
 <script src="app.js"></script>
 </body>
 </html>
