@@ -226,7 +226,7 @@ def src_manual(cfg, ctx):
         return {"value": None, "error": True, "error_note": "값을 아직 입력하지 않았습니다"}
     return {"value": num(v["value"]), "prev": num(v.get("prev")),
             "diff": num(v["value"] - v["prev"]) if v.get("prev") is not None else None,
-            "change_pct": None, "asof": v.get("entered"), "spark": [], "source": "직접 입력"}
+            "change_pct": None, "asof": v.get("entered"), "spark": [], "source": "직접 입력", "note": v.get("note")}
 
 
 def build_curve(ctx):
@@ -560,7 +560,8 @@ def stock_detail(entry, market, row, ctx, old):
               "cci": num(cci(bars), 0), "mas": mas, "checklist": groups,
               "returns": period_returns(close, fx["Close"] if fx is not None else None),
               "chart": {"dates": [day(d) for d in close.tail(CHART_DAYS).index], "close": [num(v) for v in close.tail(CHART_DAYS)]},
-              "links": {k: entry[k] for k in ("ir", "notion") if entry.get(k)}}
+              "links": {k: entry[k] for k in ("ir", "notion") if entry.get(k)},
+              "rating": {k: v for k, v in (ctx["manual"].get("ratings", {}).get(entry["ticker"]) or {}).items()} or None}
     detail.pop("spark", None)
     old_fund = (old or {}).get("fund")
     try:
