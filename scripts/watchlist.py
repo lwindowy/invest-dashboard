@@ -79,7 +79,10 @@ def main():
                "한국 종목은 숫자 6자리(예: 005930)로 적습니다.")
     ticker, long_name = found
     market = "kr" if re.search(r"\.K[SQ]$", ticker) else "us"
-    watch.setdefault(market, []).append({"ticker": ticker, "name": name or long_name})
+    entry = {"ticker": ticker, "name": name or long_name}
+    if market == "kr":  # 한국 종목은 티커로 뉴스가 검색되지 않아 영문 회사명으로 찾는다
+        entry["news_q"] = long_name
+    watch.setdefault(market, []).append(entry)
     CONFIG.write_text(json.dumps(config, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     finish(f"**{name or long_name} ({ticker})** 을(를) 관심 종목에 넣었습니다. 1~3분 뒤 사이트에 모든 지표가 나옵니다.",
            f"관심 종목 추가: {ticker}")
