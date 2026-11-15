@@ -59,6 +59,20 @@
   function weekday(iso) { return '일월화수목금토'[new Date(iso + 'T00:00:00').getDay()]; }
   var LEVEL = { '양호': 'good', '주의': 'warn', '위험': 'bad', '확인 불가': 'none' };
 
+  // ───────── 용어 설명 (이름 옆 물음표) ─────────
+  function q(key) {
+    var g = key && DATA.glossary && DATA.glossary[key];
+    return g ? '<button type="button" class="help" data-help="' + esc(key) + '" aria-label="' + esc(g.title) + ' 설명 보기">?</button>' : '';
+  }
+  var HELP_BY_LABEL = {
+    '시가총액': 'market_cap', '순현금': 'net_cash', '순부채': 'net_cash', 'PER': 'per', '포워드 PER': 'forward_per', 'PSR': 'psr', 'PEG': 'peg',
+    '매출 성장률 (전년 동기 대비)': 'revenue_growth', 'EPS (최근 12개월)': 'eps', 'ROE': 'roe', '예상 대비': 'earnings_surprise',
+    'Short Float': 'short_float', 'Short Ratio': 'short_ratio', 'Short Interest': 'short_interest', 'RSI (14)': 'rsi', 'CCI (20)': 'cci',
+    '이자보상배율': 'interest_coverage', '순부채 ÷ EBITDA': 'net_debt_ebitda', '부채비율': 'debt_to_equity', '유동비율': 'current_ratio',
+    '52주 고점 대비': 'from_high', '차트 체크리스트': 'chart_checklist', '애널리스트 목표주가': 'target_price',
+    '나스닥 대비 상대 강도와 종목 비교': 'relative_strength', '실적 추이': 'fcf'
+  };
+
   // ───────── 공통 부품 ─────────
   function pill(text, level, small) {
     return '<span class="pill ' + level + (small ? ' small' : '') + '">' + esc(text) + '</span>';
@@ -92,10 +106,10 @@
   function numCard(s, id) {
     if (!s) return '';
     // 차트 이력이 있는 카드는 누르면 큰 차트가 열린다
-    var open = s.chart ? '<button type="button" class="num-card" data-chart="' + esc(id) + '" aria-label="' + esc(s.name) + ' 차트 보기">' : '<div class="num-card">';
-    var close = s.chart ? '</button>' : '</div>';
+    var open = '<div class="num-wrap">' + (s.chart ? '<button type="button" class="num-card" data-chart="' + esc(id) + '" aria-label="' + esc(s.name) + ' 차트 보기">' : '<div class="num-card">');
+    var close = (s.chart ? '</button>' : '</div>') + q(s.help) + '</div>';
     if (s.error || s.value == null) {
-      return '<div class="num-card"><span class="name">' + esc(s.name) + '</span><span class="value flat">–</span><span class="note">' + esc(s.error_note || '데이터를 받지 못했습니다') + '</span></div>';
+      return '<div class="num-wrap"><div class="num-card"><span class="name">' + esc(s.name) + '</span><span class="value flat">–</span><span class="note">' + esc(s.error_note || '데이터를 받지 못했습니다') + '</span></div>' + q(s.help) + '</div>';
     }
     var c = change(s);
     var note = s.note ? (s.note_level ? pill(s.note, s.note_level, true) : esc(s.note)) : '';
@@ -120,7 +134,7 @@
       }).join('');
       var rules = r.items.map(function (i) { return '<li><b>' + esc(i.name) + '</b> — ' + esc(i.rule) + '</li>'; }).join('');
       return '<section class="card" aria-label="' + esc(sec.label) + '">' +
-        '<div class="card-head"><h2>' + esc(sec.label) + '</h2><p class="regime-sum">' + sum + '</p></div>' +
+        '<div class="card-head"><h2>' + esc(sec.label) + q('regime') + '</h2><p class="regime-sum">' + sum + '</p></div>' +
         '<div class="regime-grid">' + items + '</div>' +
         '<details class="rules"><summary>판단 기준 보기</summary><ul>' + rules + '</ul>' +
         '<p class="src">출처: Yahoo Finance, FRED. 기준값은 config/dashboard.json 의 regime 에서 바꿉니다.</p></details></section>';
@@ -162,7 +176,7 @@
       var body = c.labels.map(function (l, i) {
         return '<div class="ctr"><span>' + esc(l) + '</span>' + lines.map(function (ln) { return '<span>' + fmt(c[ln[0]].values[i], 2) + '%</span>'; }).join('') + '</div>';
       }).join('');
-      return '<section class="card" aria-label="' + esc(sec.label) + '"><div class="card-head"><h2>' + esc(sec.label) + '</h2><div class="legend">' + legend + '</div></div>' +
+      return '<section class="card" aria-label="' + esc(sec.label) + '"><div class="card-head"><h2>' + esc(sec.label) + q('yield_curve') + '</h2><div class="legend">' + legend + '</div></div>' +
         '<svg class="curve" role="img" aria-label="미국 국채 수익률 곡선. 아래 표에 같은 값이 있습니다." viewBox="0 0 ' + W + ' ' + H + '">' + grid + xs + paths + '</svg>' +
         '<details class="rules"><summary>만기별 금리 표 보기</summary><div class="ctable">' + head + body + '</div></details>' +
         '<p class="src">미국 국채 만기별 금리. 단기 금리가 장기 금리보다 높으면(역전) 경기 둔화 신호로 봅니다. 출처: ' + esc(c.source) + ' · ' + md(c.now.date) + ' 기준</p></section>';
@@ -191,9 +205,19 @@
       return '<section class="card" aria-label="' + esc(sec.label) + '">' +
         '<div class="card-head"><h2>' + esc(sec.label) + '</h2><div class="seg">' + seg + '</div></div>' +
         '<div class="scroll-x"><div class="table">' +
-        '<div class="tr th"><span>종목</span><span>현재가</span><span>등락률</span><span>RSI(14)</span><span>52주 고점 대비</span><span>3개월 추이</span></div>' +
+        '<div class="tr th"><span>종목</span><span>현재가</span><span>등락률</span><span>RSI(14)' + q('rsi') + '</span><span>52주 고점 대비' + q('from_high') + '</span><span>3개월 추이</span></div>' +
         rows + '</div></div>' +
         '<p class="src">종목 이름을 누르면 종목 한 장 요약으로 이동합니다. RSI 70 이상은 과매수, 30 이하는 과매도로 표시합니다. 출처: Yahoo Finance · ' + md(asof) + ' 기준 · 주가는 15분가량 지연됩니다.</p></section>';
+    },
+    alerts: function (sec) {
+      var list = (DATA.alerts || []).slice(0, 8), tone = { good: 'good', warn: 'warn', info: 'none' };
+      var body = list.length ? list.map(function (a) {
+        var when = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(a.at));
+        var title = a.ticker && DATA.stocks[a.ticker] ? '<a href="#stocks/' + encodeURIComponent(a.ticker) + '">' + esc(a.title) + '</a>' : esc(a.title);
+        return '<div class="alert">' + pill(a.kind, tone[a.level] || 'none', true) + '<div class="what"><b>' + title + '</b><span>' + esc(a.detail) + ' · ' + when + '</span></div></div>';
+      }).join('') : '<p class="empty">최근 며칠 동안 알릴 만한 변화가 없었습니다.</p>';
+      return '<section class="card" aria-label="' + esc(sec.label) + '"><h2>' + esc(sec.label) + '</h2>' + body +
+        '<p class="src">급등락, 실적, 이동평균선 돌파, RSI, 국면 변화, 주요 일정을 30분마다 점검합니다. 참고용 점검 알림입니다.</p></section>';
     },
     events: function (sec) {
       var ev = DATA.events || [];
@@ -236,10 +260,10 @@
   }
   function ratio(v, digits, unit) { return v == null ? '–' : fmt(v, digits == null ? 2 : digits) + (unit || ''); }
   function fact(label, val, sub) {
-    return '<div class="fact"><span class="k">' + esc(label) + '</span><b>' + val + '</b>' + (sub ? '<span class="s">' + sub + '</span>' : '') + '</div>';
+    return '<div class="fact"><span class="k">' + esc(label) + q(HELP_BY_LABEL[label]) + '</span><b>' + val + '</b>' + (sub ? '<span class="s">' + sub + '</span>' : '') + '</div>';
   }
   function box(title, body, src) {
-    return '<section class="card" aria-label="' + esc(title) + '"><h2>' + esc(title) + '</h2>' + body + (src ? '<p class="src">' + src + '</p>' : '') + '</section>';
+    return '<section class="card" aria-label="' + esc(title) + '"><h2>' + esc(title) + q(HELP_BY_LABEL[title]) + '</h2>' + body + (src ? '<p class="src">' + src + '</p>' : '') + '</section>';
   }
   function rangeBar(lo, hi, at, cur, label) {
     if (lo == null || hi == null || at == null || hi <= lo) return '';
@@ -451,7 +475,7 @@
       }).join('');
       html += '<section class="card" aria-label="' + m[1] + ' 종목"><div class="card-head"><h2>' + m[1] + '</h2>' +
         (m[0] === 'us' ? '<button type="button" class="btn" data-act="edit" aria-pressed="' + state.edit + '">' + (state.edit ? '편집 끝내기' : '목록 편집') + '</button>' : '') + '</div>' +
-        '<div class="scroll-x"><div class="table">' + (state.edit ? '' : '<div class="tr th"><span>종목</span><span>현재가</span><span>등락률</span><span>RSI(14)</span><span>52주 고점 대비</span><span>시가총액</span></div>') +
+        '<div class="scroll-x"><div class="table">' + (state.edit ? '' : '<div class="tr th"><span>종목</span><span>현재가</span><span>등락률</span><span>RSI(14)' + q('rsi') + '</span><span>52주 고점 대비' + q('from_high') + '</span><span>시가총액</span></div>') +
         (rows || '<p class="empty">표시할 종목이 없습니다. 목록 편집에서 숨긴 종목을 다시 보이게 할 수 있습니다.</p>') + '</div></div></section>';
     });
     return html + '<p class="src">종목 이름을 누르면 종목 한 장 요약이 열립니다. 숨기기·순서·즐겨찾기는 이 브라우저에만 저장됩니다. 숨기기는 화면에서만 가리고, 삭제 요청은 수집 대상에서 완전히 뺍니다.</p>';
@@ -607,6 +631,17 @@
     }).join('') + '</div>';
     $('chart-src').textContent = '출처: ' + (s.source || '') + ' · 최근 1년은 발표된 값 그대로, 그 이전은 주 단위로 줄여 그립니다. 선 위에 마우스를 올리거나 손가락으로 누르면 그 날의 값이 나옵니다.';
   }
+  function openHelp(key) {
+    var g = DATA.glossary[key];
+    $('help-title').textContent = g.title;
+    $('help-text').textContent = g.text;
+    $('help-link').href = DATA.site.notion_glossary || '#';
+    $('help-link').hidden = !DATA.site.notion_glossary;
+    $('help-dialog').showModal();
+  }
+  $('help-dialog').addEventListener('click', function (e) {
+    if (e.target === this || e.target.closest('[data-close]')) this.close();
+  });
   $('chart-dialog').addEventListener('click', function (e) {
     var r = e.target.closest('[data-range]');
     if (r) { chart.range = r.dataset.range; drawChart(); return; }
@@ -687,6 +722,8 @@
     if (!DATA) return;
     var b = e.target.closest('[data-market]');
     if (b) { state.market = b.dataset.market; store.set('market', state.market); renderView(); return; }
+    var hp = e.target.closest('[data-help]');
+    if (hp) { openHelp(hp.dataset.help); return; }
     var ch = e.target.closest('[data-chart]');
     if (ch) { openChart(ch.dataset.chart); return; }
     var mo = e.target.closest('[data-month]'), ki = e.target.closest('[data-kind]');
