@@ -8,6 +8,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      fresh:
+        description: 이전 데이터 없이 시작 (쌓아 둔 이력이 사라집니다)
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -42,7 +47,11 @@ jobs:
 
       # 수집에 실패한 항목은 지금 사이트에 떠 있는 값으로 대신한다
       - name: 이전 데이터 받기
-        run: curl -fsSL --max-time 30 "${{ steps.pages.outputs.base_url }}/data/dashboard.json" -o "$RUNNER_TEMP/prev.json" || echo "이전 데이터 없음"
+        # 이전 데이터에는 매일 쌓는 값(포워드 PER 추이)이 들어 있다. 못 받으면 그 이력이 사라지므로 배포하지 않고 멈춘다.
+        # 처음부터 새로 만들 때만 Actions 탭에서 '이전 데이터 없이 시작'을 켜고 직접 실행한다.
+        run: |
+          curl -fsSL --retry 5 --retry-delay 10 --retry-all-errors --max-time 30 "${{ steps.pages.outputs.base_url }}/data/dashboard.json" -o "$RUNNER_TEMP/prev.json" \
+            || [ "${{ inputs.fresh }}" = "true" ]
 
       - name: 데이터 수집
         run: python scripts/fetch_data.py --prev "$RUNNER_TEMP/prev.json"

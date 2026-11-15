@@ -26,6 +26,7 @@ ROOT = Path(__file__).resolve().parent.parent
 KST = ZoneInfo("Asia/Seoul")
 FRED_CSV = "https://fred.stlouisfed.org/graph/fredgraph.csv"
 FRED_PAGE = "https://fred.stlouisfed.org/series/"
+NDX_PAGE = "https://en.wikipedia.org/wiki/List_of_NASDAQ-100_companies"
 FOMC_PAGE = "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
 MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
 SPARK_BY_FREQ = {"D": 63, "W": 104, "M": 36, "Q": 12}  # 추이 그래프에 쓰는 점 개수
@@ -148,7 +149,7 @@ def src_yahoo(cfg, ctx):
     last, prev = float(close.iloc[-1]), float(close.iloc[-2])
     item = {"value": num(last), "prev": num(prev), "diff": num(last - prev),
             "change_pct": num((last / prev - 1) * 100, 2), "asof": day(close.index[-1]),
-            "spark": spark(close), "source": "Yahoo Finance"}
+            "spark": spark(close), "source": "Yahoo Finance", "_history": close}
     if cfg.get("note") == "ma200" and len(close) >= 200:
         above = last >= float(close.tail(200).mean())
         item["note"] = "200일선 위" if above else "200일선 아래"
@@ -209,7 +210,7 @@ def src_fred(cfg, ctx):
     item = {"value": num(last), "prev": num(prev), "diff": num(last - prev),
             "change_pct": num((last / prev - 1) * 100, 2) if prev else None,
             "asof": day(s.index[-1]), "period": period_label(s.index[-1], freq),
-            "spark": spark(s, SPARK_BY_FREQ[freq]), "source": "FRED"}
+            "spark": spark(s, SPARK_BY_FREQ[freq]), "source": "FRED", "_history": s}
     if estimated:
         item["note"] = "1년 전 값이 발표되지 않아 앞뒤 달로 추정해 계산"
     if freq != "D":
@@ -267,11 +268,103 @@ def src_sentiment(cfg, ctx):
     latest = ranks.loc[score.index[-1]]
     return {"value": num(last, 0), "prev": num(prev, 0), "diff": num(round(last) - round(prev), 0),
             "change_pct": None, "asof": day(score.index[-1]), "spark": [num(v, 1) for v in score.tail(SPARK_DAYS)],
-            "source": "자체 계산 (Yahoo Finance·FRED)", "note": note,
+            "source": "자체 계산 (Yahoo Finance·FRED)", "note": note, "_history": score,
             "components": [{"name": k, "score": num(v * 100, 0)} for k, v in latest.items() if pd.notna(v)]}
 
 
-SOURCES = {"yahoo": src_yahoo, "fred": src_fred, "sentiment": src_sentiment, "manual": src_manual}
+def nasdaq100_tickers():
+    """위키백과의 나스닥 100 구성 종목 표에서 티커를 읽는다."""
+    r = requests.get(NDX_PAGE, timeout=40, headers={"User-Agent": "invest-dashboard/1.0 (personal use)"})
+    r.raise_for_status()
+    for table in re.findall(r"<table[^>]*wikitable.*?</table>", r.text, re.S):
+        rows = re.findall(r"<tr[^>]*>(.*?)</tr>", table, re.S)
+        if not rows or not re.sub(r"<[^>]+>|\s", "", rows[0]).startswith("Ticker"):
+            continue
+        cells = [re.search(r"<td[^>]*>(.*?)</td>", row, re.S) for row in rows[1:]]
+        tickers = [re.sub(r"<[^>]+>", "", c.group(1)).strip() for c in cells if c]
+        tickers = [t.replace(".", "-") for t in tickers if re.fullmatch(r"[A-Z.]{1,6}", t)]
+        if len(tickers) >= 90:
+            return tickers
+    raise ValueError("나스닥 100 구성 종목 표를 찾지 못했습니다")
+
+
+def build_valuation(ctx):
+    """종목 묶음의 포워드 PER = 시가총액 합 ÷ 예상 순이익 합. 하루 한 번 계산하고 매일 값을 쌓는다.
+
+    종목별 예상 순이익은 시가총액 ÷ 포워드 PER 로 구한다(적자 예상 종목은 음수로 합산).
+    """
+    today, old = ctx["today"].isoformat(), (ctx["prev"] or {}).get("valuation") or {}
+    if old.get("fetched") == today:
+        return old
+    history = {k: list(v) for k, v in (old.get("history") or {}).items()}
+    try:
+        members = {}
+        for b in ctx["config"]["valuation"]["baskets"]:
+            try:
+                members[b["id"]] = nasdaq100_tickers() if b.get("source") == "wikipedia_nasdaq100" else b["tickers"]
+            except Exception as exc:
+                warn(f"밸류에이션 {b['name']} 구성 종목", exc)
+                members[b["id"]] = (old.get("baskets") or {}).get(b["id"], {}).get("tickers") or []
+        fx = float(ctx["yahoo"][ctx["config"]["fx_symbol"]]["Close"].iloc[-1])
+        infos = {}
+        for t in sorted({t for ts in members.values() for t in ts}):
+            try:
+                info = yf.Ticker(t).info or {}
+                cap = info.get("marketCap")
+                if cap:
+                    infos[t] = (cap / fx if info.get("currency") == "KRW" else cap, info.get("forwardPE"))
+            except Exception as exc:
+                print(f"[참고] 밸류에이션 {t}: {exc}", file=sys.stderr)
+            time.sleep(0.15)
+        baskets = {}
+        for b in ctx["config"]["valuation"]["baskets"]:
+            tickers = members[b["id"]]
+            known = [infos[t] for t in tickers if t in infos]
+            used = [(cap, pe) for cap, pe in known if pe]
+            cap_all, cap_used = sum(c for c, _ in known), sum(c for c, _ in used)
+            earnings = sum(c / pe for c, pe in used)
+            coverage = cap_used / cap_all if cap_all else 0
+            value = cap_used / earnings if earnings > 0 and coverage >= 0.8 else None
+            baskets[b["id"]] = {"name": b["name"], "value": num(value, 2), "used": len(used), "total": len(tickers),
+                                "coverage_pct": num(coverage * 100, 0), "tickers": tickers}
+            if value is not None:
+                rows = [h for h in history.get(b["id"], []) if h[0] != today] + [[today, num(value, 2)]]
+                history[b["id"]] = rows[-2000:]
+            else:
+                warn(f"밸류에이션 {b['name']}", f"계산 불가 (반영 {len(used)}/{len(tickers)}개)")
+        return {"fetched": today, "baskets": baskets, "history": history, "source": "자체 계산 (Yahoo Finance)"}
+    except Exception as exc:
+        warn("밸류에이션", exc)
+        return old
+
+
+def src_valuation(cfg, ctx):
+    v = ctx["valuation"]
+    b = v["baskets"][cfg["basket"]]
+    if b.get("value") is None:
+        raise ValueError("계산된 값이 없습니다")
+    hist = pd.Series({pd.Timestamp(d): x for d, x in v["history"].get(cfg["basket"], [])}, dtype=float)
+    prev = float(hist.iloc[-2]) if len(hist) > 1 else None
+    notes = [f"{b['total']}개 중 {b['used']}개 반영"]
+    base = ctx["manual"].get("values", {}).get(cfg.get("baseline") or "", {})
+    if base.get("value"):
+        gap = (b["value"] / base["value"] - 1) * 100
+        notes.insert(0, f"5년 평균 {base['value']:g}배 대비 {signed(gap, 0, '%')}")
+    return {"value": b["value"], "prev": num(prev), "diff": num(b["value"] - prev, 2) if prev is not None else None,
+            "change_pct": None, "asof": v["fetched"], "spark": [num(x) for x in hist.tail(SPARK_DAYS)],
+            "source": v["source"], "note": " · ".join(notes), "_history": hist}
+
+
+def compact_history(s):
+    """차트용 이력. 최근 1년은 그대로, 그 이전은 주 단위로 줄여 파일 크기를 줄인다."""
+    s = s.dropna()
+    if len(s) > 400:
+        s = pd.concat([s.iloc[:-260].resample("W").last().dropna(), s.iloc[-260:]])
+        s = s[~s.index.duplicated(keep="last")].sort_index()
+    return {"dates": [day(d) for d in s.index], "values": [num(v) for v in s]}
+
+
+SOURCES = {"valuation": src_valuation, "yahoo": src_yahoo, "fred": src_fred, "sentiment": src_sentiment, "manual": src_manual}
 
 
 # ───────────────────────── 관심 종목 ─────────────────────────
@@ -704,16 +797,21 @@ def main():
         if s is not None:
             ctx["fred"][sid] = s
 
-    out_series = {}
+    ctx["valuation"] = build_valuation(ctx)
+    out_series, history = {}, {}
     for sid, cfg in series.items():
         meta = {k: v for k, v in cfg.items() if k in ("name", "decimals", "unit", "change", "diff_unit", "diff_decimals", "signed", "prefix")}
         try:
-            out_series[sid] = {**meta, **SOURCES[cfg["source"]]({**cfg, "_key": sid}, ctx)}
+            item = SOURCES[cfg["source"]]({**cfg, "_key": sid}, ctx)
+            hist = item.pop("_history", None)
+            if hist is not None and len(hist) >= 2:
+                history[sid] = compact_history(hist)
+            out_series[sid] = {**meta, **item, "chart": sid in history}
         except Exception as exc:
             if not any(sid_err in str(e["where"]) for e in errors for sid_err in (cfg.get("symbol", "∅"), cfg.get("id", "∅"))):
                 warn(f"지표 {cfg['name']}", exc)
             old = (prev or {}).get("series", {}).get(sid)
-            out_series[sid] = {**old, **meta, "stale": True} if old and old.get("value") is not None else {**meta, "value": None, "error": True}
+            out_series[sid] = {**old, **meta, "stale": True, "chart": False} if old and old.get("value") is not None else {**meta, "value": None, "error": True}
 
     watch, stocks = {}, {}
     old_stocks = (prev or {}).get("stocks", {})
@@ -769,12 +867,14 @@ def main():
         "events": events_week,
         "events_all": events_all,
         "fomc": ctx["fomc"],
+        "valuation": ctx["valuation"],
         "debt_rules": config["debt_rules"],
         "errors": errors,
     }
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":"), allow_nan=False), encoding="utf-8")
+    (out.parent / "history.json").write_text(json.dumps(history, ensure_ascii=False, separators=(",", ":"), allow_nan=False), encoding="utf-8")
     print(f"저장: {out} · 지표 {len(out_series)}개 · 종목 {sum(len(v) for v in watch.values())}개 · 실패 {len(errors)}건")
 
     got_anything = bool(ctx["yahoo"]) or bool(ctx["fred"])

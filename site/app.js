@@ -89,20 +89,23 @@
     var u = s.unit || '';
     return esc(s.prefix || '') + n + (u.length > 2 ? '<small>' + esc(u) + '</small>' : esc(u));
   }
-  function numCard(s) {
+  function numCard(s, id) {
     if (!s) return '';
+    // 차트 이력이 있는 카드는 누르면 큰 차트가 열린다
+    var open = s.chart ? '<button type="button" class="num-card" data-chart="' + esc(id) + '" aria-label="' + esc(s.name) + ' 차트 보기">' : '<div class="num-card">';
+    var close = s.chart ? '</button>' : '</div>';
     if (s.error || s.value == null) {
       return '<div class="num-card"><span class="name">' + esc(s.name) + '</span><span class="value flat">–</span><span class="note">' + esc(s.error_note || '데이터를 받지 못했습니다') + '</span></div>';
     }
     var c = change(s);
     var note = s.note ? (s.note_level ? pill(s.note, s.note_level, true) : esc(s.note)) : '';
-    return '<div class="num-card">' +
+    return open +
       '<span class="name">' + esc(s.name) + '</span>' +
       '<span class="value">' + value(s) + '</span>' +
-      '<div class="row"><span class="chg ' + c.d + '">' + c.text + '</span>' + sparkline(s.spark, c.d, 84, 26) + '</div>' +
+      '<span class="row"><span class="chg ' + c.d + '">' + c.text + '</span>' + sparkline(s.spark, c.d, 84, 26) + '</span>' +
       (note ? '<span class="note">' + note + '</span>' : '') +
       (s.next_release ? '<span class="note">다음 발표 ' + md(s.next_release) + ' (' + weekday(s.next_release) + ')</span>' : '') +
-      '<span class="src">' + stamp(s) + '</span></div>';
+      '<span class="src">' + stamp(s) + '</span>' + close;
   }
 
   // ───────── 섹션 ─────────
@@ -123,7 +126,7 @@
         '<p class="src">출처: Yahoo Finance, FRED. 기준값은 config/dashboard.json 의 regime 에서 바꿉니다.</p></details></section>';
     },
     cards: function (sec) {
-      var cards = '<div class="cards">' + sec.items.map(function (id) { return numCard(DATA.series[id]); }).join('') + '</div>';
+      var cards = '<div class="cards">' + sec.items.map(function (id) { return numCard(DATA.series[id], id); }).join('') + '</div>';
       if (!sec.heading) return '<section aria-label="' + esc(sec.label) + '">' + cards + '</section>';
       return '<section class="group" aria-label="' + esc(sec.label) + '"><h2>' + esc(sec.label) + '</h2>' + cards +
         (sec.note ? '<p class="src">' + esc(sec.note) + '</p>' : '') + '</section>';
@@ -207,8 +210,9 @@
         if (!s) return '';
         if (s.error || s.value == null) return '<div class="kv"><span class="k">' + esc(s.name) + '</span><span class="src">수집 실패</span></div>';
         var c = change(s);
-        return '<div class="kv" title="' + stamp(s) + '"><span class="k">' + esc(s.name) + (s.stale ? ' (이전 값)' : '') + '</span>' +
-          '<div class="v"><b>' + fmt(s.value, s.decimals) + esc(s.unit || '') + '</b><span class="' + c.d + '">' + c.text + '</span></div></div>';
+        var tag = s.chart ? 'button type="button" data-chart="' + esc(id) + '" aria-label="' + esc(s.name) + ' 차트 보기"' : 'div';
+        return '<' + tag + ' class="kv" title="' + stamp(s) + '"><span class="k">' + esc(s.name) + (s.stale ? ' (이전 값)' : '') + '</span>' +
+          '<span class="v"><b>' + fmt(s.value, s.decimals) + esc(s.unit || '') + '</b><span class="' + c.d + '">' + c.text + '</span></span></' + tag.split(' ')[0] + '>';
       }).join('');
       var used = sec.items.map(function (id) { return DATA.series[id]; }).filter(function (s) { return s && s.asof; });
       var by = {};
@@ -406,9 +410,9 @@
       }).join('') + '</div>';
     }).join(''), '노션 「차트 분석」의 기준을 자동 점검한 참고용 알림입니다. 기준 숫자는 config/dashboard.json 의 chart_rules 에서 바꿉니다.');
 
-    var charts = box('나스닥 대비 상대 강도와 종목 비교', strengthChart(s), '시작일을 100으로 맞춘 값입니다. 비교 종목을 고르면 선이 하나 더 그려집니다.') +
-      box('트레이딩뷰 차트', '<div id="tv" data-symbol="' + esc(s.market === 'kr' ? 'KRX:' + s.ticker.replace(/\.K[SQ]$/, '') : s.ticker) + '"><button type="button" class="btn" data-tv>트레이딩뷰 차트 불러오기</button></div>',
-        '트레이딩뷰 무료 위젯입니다. 한국 종목은 무료 위젯에서 표시되지 않을 수 있습니다.');
+    var charts = box('나스닥 대비 상대 강도와 종목 비교', '<div id="strength" class="stack">' + strengthChart(s) + '</div>', '시작일을 100으로 맞춘 값입니다. 비교 종목을 고르면 선이 하나 더 그려집니다.') +
+      box('트레이딩뷰 차트', '<div id="tv" data-symbol="' + esc(s.market === 'kr' ? 'KRX:' + s.ticker.replace(/\.K[SQ]$/, '') : s.ticker) + '"></div>',
+        '트레이딩뷰 무료 위젯입니다. 한국 종목은 무료 위젯에서 표시되지 않을 수 있습니다. 차트가 비어 있으면 위의 트레이딩뷰 바로가기를 누르세요.');
 
     return head + '<div class="grid2">' + priceBox + tech + '</div>' + check + charts +
       '<div class="grid2">' + base + val + '</div>' + debtBox + trend + '<div class="grid2">' + earn + analyst + '</div>' + shortBox;
@@ -504,6 +508,111 @@
       '직접 적는 일정은 config/manual.json 의 events 에 넣습니다. 출처: Yahoo Finance, FRED, 연준' + (DATA.fomc && DATA.fomc.fetched ? ' (FOMC ' + md(DATA.fomc.fetched) + ' 확인)' : '') + '</p></section>';
   };
 
+
+  // ───────── 지표 차트 (카드를 누르면 열린다) ─────────
+  var HIST = null, histAt = null, chart = { id: null, range: null };
+  var RANGES = [['3m', '3개월', 92], ['1y', '1년', 366], ['3y', '3년', 1096], ['all', '전체', 1e9]];
+  function loadHistory() {
+    if (HIST && histAt === DATA.generated_at) return Promise.resolve(HIST);
+    return fetch('data/history.json?t=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (h) { HIST = h; histAt = DATA.generated_at; return h; });
+  }
+  function fmtV(s, v) {
+    var u = s.unit || '';
+    return (s.prefix || '') + fmt(v, s.decimals) + (u.length > 2 ? ' ' + u : u);
+  }
+  function niceStep(raw) {
+    var p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p;
+    return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p;
+  }
+  function openChart(id) {
+    chart.id = id; chart.range = null;
+    var s = DATA.series[id];
+    $('chart-title').textContent = s.name;
+    $('chart-sub').textContent = '불러오는 중입니다…';
+    $('chart-ranges').innerHTML = ''; $('chart-plot').innerHTML = ''; $('chart-table').innerHTML = ''; $('chart-src').textContent = '';
+    $('chart-dialog').showModal();
+    loadHistory().then(drawChart).catch(function (err) { $('chart-sub').textContent = '차트 데이터를 불러오지 못했습니다 (' + err.message + ').'; });
+  }
+  function drawChart() {
+    var s = DATA.series[chart.id], h = HIST[chart.id];
+    if (!h || h.dates.length < 2) { $('chart-sub').textContent = '이 지표는 아직 쌓인 이력이 없습니다.'; return; }
+    var t = h.dates.map(function (d) { return Date.parse(d + 'T00:00:00Z'); }), DAY = 864e5;
+    var spanDays = (t[t.length - 1] - t[0]) / DAY;
+    // 데이터 길이에 맞는 기간만 보여 준다. 점이 3개 미만인 기간은 뺀다
+    var ranges = RANGES.slice(0, 3).filter(function (r) {
+      var cut = t[t.length - 1] - r[2] * DAY;
+      return r[2] <= spanDays * 1.05 && t.filter(function (v) { return v >= cut; }).length >= 3;
+    });
+    if (!ranges.length || spanDays > ranges[ranges.length - 1][2] * 1.05) ranges.push(RANGES[3]);
+    if (!chart.range) chart.range = ranges.some(function (r) { return r[0] === '1y'; }) ? '1y' : ranges[ranges.length - 1][0];
+    var days = RANGES.filter(function (r) { return r[0] === chart.range; })[0][2];
+    var from = t[t.length - 1] - days * DAY, start = 0;
+    while (start < t.length - 2 && t[start] < from) start++;
+    var X = t.slice(start), Y = h.values.slice(start), D = h.dates.slice(start), n = X.length;
+    var monthly = /월|분기/.test(s.period || '');
+    function label(d, long) { return monthly ? d.slice(0, 4) + '.' + d.slice(5, 7) : long ? d : (X[n - 1] - X[0]) / DAY > 400 ? d.slice(2, 4) + '.' + d.slice(5, 7) : md(d); }
+
+    $('chart-ranges').innerHTML = ranges.length > 1 ? ranges.map(function (r) {
+      return '<button type="button" class="btn small" data-range="' + r[0] + '" aria-pressed="' + (r[0] === chart.range) + '">' + r[1] + '</button>';
+    }).join('') : '';
+    var first = Y[0], last = Y[n - 1], diff = last - first;
+    var moved = s.change === 'diff' ? signed(diff, s.diff_decimals || 0, s.diff_unit) : signed(first ? (last / first - 1) * 100 : 0, 1, '%');
+    $('chart-sub').innerHTML = '<b class="now">' + esc(fmtV(s, last)) + '</b> · ' + label(D[0], true) + ' 이후 <span class="' + dir(diff) + '">' + moved + '</span>';
+
+    var W = 720, H = 300, L = 58, R = 18, T = 14, B = 28;
+    var lo = Math.min.apply(null, Y), hi = Math.max.apply(null, Y), padv = (hi - lo) * 0.08 || Math.abs(hi) * 0.05 || 1;
+    lo -= padv; hi += padv;
+    var step = niceStep((hi - lo) / 5), mant = step / Math.pow(10, Math.floor(Math.log10(step)));
+    var dec = Math.max(0, -Math.floor(Math.log10(step) + 1e-9)) + (Math.abs(mant - 2.5) < 1e-9 ? 1 : 0);
+    function x(v) { return L + (v - X[0]) / ((X[n - 1] - X[0]) || 1) * (W - L - R); }
+    function y(v) { return T + (hi - v) / (hi - lo) * (H - T - B); }
+    var grid = '';
+    for (var g0 = Math.ceil(lo / step) * step; g0 <= hi + 1e-9; g0 += step) {
+      var g = Math.abs(g0) < step / 1e6 ? 0 : g0;
+      grid += '<line class="' + (g === 0 ? 'zero' : 'grid') + '" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(g).toFixed(1) + '" y2="' + y(g).toFixed(1) + '"></line>' +
+        '<text class="axis" x="' + (L - 8) + '" y="' + (y(g) + 4).toFixed(1) + '" text-anchor="end">' + fmt(g, Math.min(dec, 4)) + '</text>';
+    }
+    var ticks = [0, 1, 2, 3].map(function (k) {
+      var want = X[0] + k * (X[n - 1] - X[0]) / 3, i = 0;      // 시간 간격이 고르게 눈금을 놓는다
+      for (var j = 1; j < n; j++) if (Math.abs(X[j] - want) < Math.abs(X[i] - want)) i = j;
+      return '<text class="axis" x="' + x(X[i]).toFixed(1) + '" y="' + (H - 8) + '" text-anchor="' + (k === 0 ? 'start' : k === 3 ? 'end' : 'middle') + '">' + label(D[i]) + '</text>';
+    }).join('');
+    var pts = X.map(function (v, i) { return x(v).toFixed(1) + ',' + y(Y[i]).toFixed(1); }).join(' ');
+    $('chart-plot').innerHTML = '<svg class="curve big" role="img" aria-label="' + esc(s.name) + ' 추이. 아래 표에 같은 값이 있습니다." viewBox="0 0 ' + W + ' ' + H + '">' +
+      grid + ticks + '<polyline class="line" points="' + pts + '"></polyline>' +
+      '<circle class="end" cx="' + x(X[n - 1]).toFixed(1) + '" cy="' + y(last).toFixed(1) + '" r="4"></circle>' +
+      '<g class="hover" visibility="hidden"><line class="cross" y1="' + T + '" y2="' + (H - B) + '"></line><circle class="end" r="5"></circle></g>' +
+      '<rect class="hit" x="' + L + '" y="' + T + '" width="' + (W - L - R) + '" height="' + (H - T - B) + '"></rect></svg><div class="tip" hidden></div>';
+    var svg = $('chart-plot').querySelector('svg'), hov = svg.querySelector('.hover'), tip = $('chart-plot').querySelector('.tip');
+    function show(e) {
+      var box = svg.getBoundingClientRect(), px = (e.clientX - box.left) / box.width * W;
+      var tv = X[0] + (px - L) / (W - L - R) * (X[n - 1] - X[0]), i = 0;
+      for (var k = 1; k < n; k++) if (Math.abs(X[k] - tv) < Math.abs(X[i] - tv)) i = k;
+      hov.setAttribute('visibility', 'visible');
+      hov.querySelector('line').setAttribute('x1', x(X[i])); hov.querySelector('line').setAttribute('x2', x(X[i]));
+      hov.querySelector('circle').setAttribute('cx', x(X[i])); hov.querySelector('circle').setAttribute('cy', y(Y[i]));
+      tip.hidden = false; tip.innerHTML = '<span>' + label(D[i], true) + '</span><b>' + esc(fmtV(s, Y[i])) + '</b>';
+      var left = x(X[i]) / W * box.width, tw = tip.offsetWidth;
+      tip.style.left = Math.max(0, Math.min(box.width - tw, left + (left > box.width / 2 ? -tw - 10 : 10))) + 'px';
+      tip.style.top = Math.max(0, y(Y[i]) / H * box.height - 44) + 'px';
+    }
+    function hide() { hov.setAttribute('visibility', 'hidden'); tip.hidden = true; }
+    svg.addEventListener('pointermove', show); svg.addEventListener('pointerdown', show); svg.addEventListener('pointerleave', hide);
+
+    var recent = D.map(function (d, i) { return [d, Y[i]]; }).slice(-12).reverse();
+    $('chart-table').innerHTML = '<div class="ctable"><div class="ctr c2 th"><span>날짜</span><span>값</span></div>' + recent.map(function (r) {
+      return '<div class="ctr c2"><span>' + label(r[0], true) + '</span><span>' + esc(fmtV(s, r[1])) + '</span></div>';
+    }).join('') + '</div>';
+    $('chart-src').textContent = '출처: ' + (s.source || '') + ' · 최근 1년은 발표된 값 그대로, 그 이전은 주 단위로 줄여 그립니다. 선 위에 마우스를 올리거나 손가락으로 누르면 그 날의 값이 나옵니다.';
+  }
+  $('chart-dialog').addEventListener('click', function (e) {
+    var r = e.target.closest('[data-range]');
+    if (r) { chart.range = r.dataset.range; drawChart(); return; }
+    if (e.target === this || e.target.closest('[data-close]')) this.close();
+  });
+
   // ───────── 화면 조립 ─────────
   function renderTabs() {
     $('tabs').innerHTML = DATA.tabs.map(function (t) {
@@ -534,6 +643,7 @@
     });
     flush();
     $('view').innerHTML = html;
+    if ($('tv')) loadTradingView($('tv'));   // 종목 요약을 열면 차트를 바로 불러온다
   }
   function renderChrome() {
     document.title = DATA.site.title;
@@ -561,6 +671,7 @@
   $('btn-theme').addEventListener('click', function () {
     root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
     store.set('theme', root.dataset.theme); renderButtons();
+    if ($('tv')) loadTradingView($('tv'));
   });
   $('btn-color').addEventListener('click', function () {
     root.dataset.color = root.dataset.color === 'us' ? 'kr' : 'us';
@@ -576,7 +687,8 @@
     if (!DATA) return;
     var b = e.target.closest('[data-market]');
     if (b) { state.market = b.dataset.market; store.set('market', state.market); renderView(); return; }
-    if (e.target.closest('[data-tv]')) { loadTradingView($('tv')); return; }
+    var ch = e.target.closest('[data-chart]');
+    if (ch) { openChart(ch.dataset.chart); return; }
     var mo = e.target.closest('[data-month]'), ki = e.target.closest('[data-kind]');
     if (mo) { state.month = mo.dataset.month; renderView(); return; }
     if (ki) { state.kinds[ki.dataset.kind] = !state.kinds[ki.dataset.kind]; renderView(); return; }
@@ -598,7 +710,8 @@
   });
   $('view').addEventListener('change', function (e) {
     if (!e.target.matches('[data-compare]') || !DATA) return;
-    state.compare = e.target.value; renderView();
+    state.compare = e.target.value;
+    $('strength').innerHTML = strengthChart(DATA.stocks[state.stock]);   // 이 묶음만 다시 그린다
   });
 
   function load() {
