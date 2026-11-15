@@ -24,10 +24,12 @@
       },
       {
         "ticker": "NBIS",
+        "news_keywords": ["Nebius"],
         "name": "네비우스"
       },
       {
         "ticker": "NVDA",
+        "news_keywords": ["Nvidia", "Jensen Huang"],
         "name": "엔비디아"
       },
       {
@@ -36,6 +38,7 @@
       },
       {
         "ticker": "SPCX",
+        "news_keywords": ["SpaceX"],
         "name": "스페이스X"
       },
       {
@@ -58,11 +61,15 @@
     "kr": [
       {
         "ticker": "005930.KS",
+        "news_q": "Samsung Electronics",
         "name": "삼성전자",
         "ir": "https://www.samsung.com/sec/ir/"
       },
       {
         "ticker": "000660.KS",
+        "news_keywords": ["hynix"],
+        "news_q": "SK Hynix",
+        "news_match": ["SKHY"],
         "name": "SK하이닉스"
       }
     ]

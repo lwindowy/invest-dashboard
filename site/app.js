@@ -543,8 +543,16 @@
         }).join('') + '</div></div>' : '<p class="empty">최근 180일 동안 공개시장 매수·매도 신고가 없습니다.</p>'),
         '주식 보상, 옵션 행사, 증여는 빼고 공개시장 거래만 보여 줍니다. 계획 매도는 미리 정해 둔 일정(10b5-1)에 따른 것입니다. 출처: SEC Form 4');
     }
+    var nw = s.news, newsBox = '';
+    if (nw) {
+      newsBox = box('최근 뉴스', nw.items.length ? nw.items.map(function (n) {
+        return '<div class="event"><div class="date"><b>' + md(n.at) + '</b><span>' + esc((n.at || '').slice(11, 16)) + '</span></div><div class="what"><b><a href="' + esc(n.url) +
+          '" target="_blank" rel="noopener">' + esc(n.title) + '</a></b><span>' + esc(n.publisher || '') + '</span></div></div>';
+      }).join('') : '<p class="empty">최근 뉴스가 없습니다.</p>',
+        '제목을 누르면 원문이 열립니다. 기사는 영어이고, 시간은 한국 시간입니다. 출처: ' + esc(nw.source) + ' · ' + md(nw.fetched) + ' ' + esc((nw.fetched || '').slice(11, 16)) + ' 수집' + (nw.stale ? ' (이전 값)' : ''));
+    }
     return head + '<div class="grid2">' + priceBox + tech + '</div>' + check + charts +
-      '<div class="grid2">' + base + val + '</div>' + debtBox + trend + '<div class="grid2">' + earn + analyst + '</div>' + shortBox + (sc ? '<div class="grid2">' + filingsBox + insiderBox + '</div>' : '');
+      '<div class="grid2">' + base + val + '</div>' + debtBox + trend + '<div class="grid2">' + earn + analyst + '</div>' + shortBox + newsBox + (sc ? '<div class="grid2">' + filingsBox + insiderBox + '</div>' : '');
   }
   function issueUrl(action, ticker, name) {
     // 종목 추가·삭제는 GitHub 요청(이슈)으로 보낸다. 저장소의 자동 작업이 받아서 처리한다

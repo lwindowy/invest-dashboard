@@ -34,6 +34,7 @@ FOMC_PAGE = "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
 MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
 SPARK_BY_FREQ = {"D": 63, "W": 104, "M": 36, "Q": 12}  # 추이 그래프에 쓰는 점 개수
 SPARK_DAYS = 63   # 약 3개월
+NEWS_COUNT = 8    # 종목별로 보여 줄 뉴스 수
 MONTH = 21        # 거래일 기준 약 1개월
 
 errors = []
@@ -629,6 +630,43 @@ def fundamentals(ticker, old, today):
     return fund
 
 
+def stock_news(entry, old, long_name=None):
+    """종목별 최근 뉴스(Yahoo 검색).
+    Yahoo의 '관련 종목' 표시는 지나가듯 언급한 기사에도 붙어서, 제목에 회사 이름이나 티커가 들어간 기사를 먼저 고른다.
+    제목에 이름이 들어간 기사가 적으면 관련 종목 표시가 붙은 기사로 채운다.
+    한국 종목은 티커로 검색하면 결과가 없어 설정의 news_q(영문 회사명)로 찾는다."""
+    tickers = {entry["ticker"], *entry.get("news_match", [])}
+    words = {re.sub(r"\.K[SQ]$", "", entry["ticker"]), *entry.get("news_keywords", [])}
+    for name in (entry.get("news_q"), long_name):
+        if name:
+            words.add(name.split()[0])
+    words = {w for w in words if len(w) >= 2 and not w.isdigit()}
+    pattern = re.compile(r"\b(" + "|".join(re.escape(w) for w in words) + r")\b", re.I)
+    try:
+        items = []
+        for count in (20, 10):  # Yahoo가 가끔 많은 수를 요청하면 빈 결과를 돌려줘서 줄여 다시 묻는다
+            items = yf.Search(entry.get("news_q") or entry["ticker"], news_count=count, max_results=0).news or []
+            if items:
+                break
+    except Exception as exc:
+        print(f"[참고] 뉴스 {entry['ticker']}: {exc}", file=sys.stderr)
+        return {**old, "stale": True} if old else None
+    named, related = [], []
+    for n in items:
+        if not n.get("title") or not n.get("link") or n.get("type") not in (None, "STORY", "VIDEO"):
+            continue
+        t = n.get("providerPublishTime")
+        row = {"title": n["title"], "publisher": n.get("publisher"), "url": n["link"],
+               "at": dt.datetime.fromtimestamp(t, KST).isoformat(timespec="minutes") if t else None}
+        if pattern.search(n["title"]):
+            named.append(row)
+        elif tickers & set(n.get("relatedTickers") or []):
+            related.append(row)
+    picked = (named + related)[:NEWS_COUNT] if len(named) < NEWS_COUNT else named[:NEWS_COUNT]
+    picked.sort(key=lambda n: n["at"] or "", reverse=True)
+    return {"source": "Yahoo Finance", "fetched": dt.datetime.now(KST).isoformat(timespec="minutes"), "items": picked}
+
+
 def stock_detail(entry, market, row, ctx, old):
     """종목 한 장 요약에 필요한 값. 가격 계열은 매번, 재무 계열은 하루 한 번 갱신한다."""
     bars = ctx["yahoo"][entry["ticker"]]
@@ -649,6 +687,7 @@ def stock_detail(entry, market, row, ctx, old):
     except Exception as exc:
         warn(f"재무 {entry['ticker']}", exc)
         detail["fund"] = {**old_fund, "stale": True} if old_fund else None
+    detail["news"] = stock_news(entry, (old or {}).get("news"), (detail["fund"] or {}).get("long_name"))
     return detail
 
 
@@ -998,7 +1037,9 @@ def build_brief(data):
         "market": [pick(s) for s in ("sp500", "nasdaq", "sox", "kospi", "vix", "sentiment", "us10y", "hy_spread", "dxy", "usdkrw", "wti", "pe_nasdaq100")],
         "watchlist": [{"ticker": s["ticker"], "name": s["name"], "price": s.get("price"), "change_pct": s.get("change_pct"),
                        "rsi": s.get("rsi"), "from_high_pct": s.get("from_high_pct"), "asof": s.get("asof"),
-                       "next_earnings": ((data["stocks"].get(s["ticker"], {}).get("fund") or {}).get("earnings") or {}).get("next")}
+                       "next_earnings": ((data["stocks"].get(s["ticker"], {}).get("fund") or {}).get("earnings") or {}).get("next"),
+                       "news": [{k: n[k] for k in ("title", "publisher", "at")}
+                                for n in ((data["stocks"].get(s["ticker"], {}).get("news") or {}).get("items") or [])[:3]]}
                       for rows in data["watchlist"].values() for s in rows],
         "events_next_7_days": data["events"],
         "alerts": data["alerts"],
