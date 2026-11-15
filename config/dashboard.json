@@ -508,6 +508,140 @@
       "diff_unit": "배",
       "diff_decimals": 1,
       "help": "forward_per"
+    },
+    "cot_es": {
+      "name": "S&P 500 선물 순포지션",
+      "source": "cot",
+      "code": "13874A",
+      "decimals": 0,
+      "signed": true,
+      "unit": "천 계약",
+      "change": "diff",
+      "diff_unit": "천 계약",
+      "diff_decimals": 0,
+      "help": "cot"
+    },
+    "cot_nq": {
+      "name": "나스닥 100 선물 순포지션",
+      "source": "cot",
+      "code": "209742",
+      "decimals": 0,
+      "signed": true,
+      "unit": "천 계약",
+      "change": "diff",
+      "diff_unit": "천 계약",
+      "diff_decimals": 0,
+      "help": "cot"
+    },
+    "cta_es": {
+      "name": "S&P 500 CTA 포지션 (추정)",
+      "source": "cta",
+      "symbol": "ES=F",
+      "decimals": 0,
+      "signed": true,
+      "change": "diff",
+      "diff_decimals": 0,
+      "help": "cta"
+    },
+    "cta_nq": {
+      "name": "나스닥 100 CTA 포지션 (추정)",
+      "source": "cta",
+      "symbol": "NQ=F",
+      "decimals": 0,
+      "signed": true,
+      "change": "diff",
+      "diff_decimals": 0,
+      "help": "cta"
+    },
+    "tmt_mom": {
+      "name": "기술·통신 섹터 초과 수익률 (3개월)",
+      "source": "relmom",
+      "symbols": [
+        "XLK",
+        "XLC"
+      ],
+      "benchmark": "SPY",
+      "days": 63,
+      "decimals": 1,
+      "signed": true,
+      "unit": "%p",
+      "change": "diff",
+      "diff_unit": "%p",
+      "diff_decimals": 1,
+      "help": "tmt"
+    },
+    "qqq_spy": {
+      "name": "QQQ ÷ SPY 비율",
+      "source": "ratio",
+      "symbols": [
+        "QQQ",
+        "SPY"
+      ],
+      "decimals": 3,
+      "help": "tmt"
+    },
+    "net_liq": {
+      "name": "순유동성",
+      "source": "liquidity",
+      "needs": [
+        "WALCL",
+        "RRPONTSYD",
+        "WTREGEN"
+      ],
+      "decimals": 2,
+      "unit": "조 달러",
+      "change": "diff",
+      "diff_unit": "조 달러",
+      "diff_decimals": 2,
+      "help": "net_liquidity"
+    },
+    "fed_assets": {
+      "name": "연준 총자산",
+      "source": "fred",
+      "id": "WALCL",
+      "freq": "W",
+      "scale": 1e-06,
+      "decimals": 2,
+      "unit": "조 달러",
+      "change": "diff",
+      "diff_unit": "조 달러",
+      "diff_decimals": 3,
+      "help": "net_liquidity",
+      "calendar": false
+    },
+    "rrp": {
+      "name": "역레포 잔고",
+      "source": "fred",
+      "id": "RRPONTSYD",
+      "scale": 10,
+      "decimals": 1,
+      "unit": "억 달러",
+      "change": "diff",
+      "diff_unit": "억 달러",
+      "diff_decimals": 1,
+      "help": "net_liquidity"
+    },
+    "tga": {
+      "name": "재무부 현금 (TGA)",
+      "source": "fred",
+      "id": "WTREGEN",
+      "freq": "W",
+      "scale": 0.01,
+      "decimals": 0,
+      "unit": "억 달러",
+      "change": "diff",
+      "diff_unit": "억 달러",
+      "diff_decimals": 0,
+      "help": "net_liquidity",
+      "calendar": false
+    },
+    "btc": {
+      "name": "비트코인",
+      "source": "yahoo",
+      "symbol": "BTC-USD",
+      "decimals": 0,
+      "prefix": "$",
+      "help": "bitcoin"
     }
   },
   "tabs": [
@@ -695,8 +829,60 @@
     {
       "id": "flows",
       "label": "큰손·유동성",
-      "stage": "2차",
-      "planned": "COT, 연준 유동성, 13F, 외국인·기관 순매수, ETF 자금 흐름, 내부자 매수"
+      "sections": [
+        {
+          "type": "cards",
+          "label": "선물 포지션 (COT)",
+          "heading": true,
+          "items": [
+            "cot_es",
+            "cot_nq"
+          ],
+          "note": "헤지펀드·CTA(Leveraged Funds)가 지수 선물에서 롱과 숏 중 어디에 얼마나 걸었는지입니다. 0 아래로 깊을수록 하락 베팅에 쏠린 것이고, 숏이 극단적으로 쌓이면 분위기가 바뀔 때 숏 정리 매수로 급반등할 수 있습니다. CFTC가 매주 금요일에 화요일 기준 값을 발표합니다. 헤지펀드 전체라서 CTA 포지션의 근사치로 봅니다."
+        },
+        {
+          "type": "cards",
+          "label": "CTA 포지션 추정",
+          "heading": true,
+          "items": [
+            "cta_es",
+            "cta_nq"
+          ],
+          "note": "실제 신고 데이터가 아니라 추정치입니다. 증권사가 계산하는 CTA 포지션은 기관용이라 볼 수 없어서, 공개된 추세추종 규칙(1·3·6·12개월 수익률을 변동성으로 나눈 방향과 강도)으로 선물 가격에서 직접 계산합니다. +100은 전부 롱, −100은 전부 숏입니다. 증권사 수치와 다를 수 있습니다."
+        },
+        {
+          "type": "cards",
+          "label": "기술주 상대 강도",
+          "heading": true,
+          "items": [
+            "tmt_mom",
+            "qqq_spy"
+          ],
+          "note": "TMT 모멘텀 지수는 무료 데이터가 없어 대체 지표로 봅니다. 기술(XLK)·통신(XLC) 섹터 ETF의 3개월 수익률에서 S&P 500(SPY)의 3개월 수익률을 뺀 값과, QQQ÷SPY 비율입니다. 내려가면 기술주 쏠림이 풀리고 있다는 뜻입니다."
+        },
+        {
+          "type": "cards",
+          "label": "연준 유동성",
+          "heading": true,
+          "items": [
+            "net_liq",
+            "fed_assets",
+            "rrp",
+            "tga",
+            "btc"
+          ],
+          "note": "순유동성 = 연준 총자산 − 역레포 잔고 − 재무부 현금(TGA). 늘어나면 시장에 돈이 풀리는 것이고, 줄어들면 위험자산에 부담이 됩니다. 비트코인은 유동성에 민감한 자산이라 함께 봅니다."
+        },
+        {
+          "type": "todo",
+          "label": "아직 없는 것",
+          "items": [
+            "내부자 매수(Form 4)와 13F, 공시 알림: SEC 공시에서 받을 수 있어 다음에 추가합니다.",
+            "ETF 자금 흐름: 무료로 자동 수집할 수 있는 출처를 아직 찾지 못했습니다.",
+            "외국인·기관 순매수(삼성전자, SK하이닉스): 한국거래소 데이터가 필요해 따로 확인이 필요합니다."
+          ]
+        }
+      ]
     },
     {
       "id": "industry",

@@ -225,6 +225,8 @@ dialog.narrow { width: min(520px, calc(100vw - 24px)); }
 
 .facts.wide { grid-template-columns: 1fr; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
 
+.todo { margin: 0; padding-left: 18px; font-size: 14px; color: var(--sub); line-height: 1.8; }
+
 /* 2단 배치: 좁아지면 한 줄로 쌓인다 */
 .cols { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
 .col-main { flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 20px; }

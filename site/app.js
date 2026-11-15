@@ -209,6 +209,10 @@
         rows + '</div></div>' +
         '<p class="src">종목 이름을 누르면 종목 한 장 요약으로 이동합니다. RSI 70 이상은 과매수, 30 이하는 과매도로 표시합니다. 출처: Yahoo Finance · ' + md(asof) + ' 기준 · 주가는 15분가량 지연됩니다.</p></section>';
     },
+    todo: function (sec) {
+      return '<section class="card" aria-label="' + esc(sec.label) + '"><h2>' + esc(sec.label) + '</h2><ul class="todo">' +
+        sec.items.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul></section>';
+    },
     alerts: function (sec) {
       var list = (DATA.alerts || []).slice(0, 8), tone = { good: 'good', warn: 'warn', info: 'none' };
       var body = list.length ? list.map(function (a) {
@@ -703,7 +707,7 @@
       notes.push('일부 항목을 받지 못했습니다: ' + DATA.errors.map(function (e) { return e.where; }).join(', ') + '. 해당 항목은 이전 값이거나 비어 있습니다.');
     }
     $('notice').innerHTML = notes.map(function (n) { return '<p class="notice" role="status">' + esc(n) + '</p>'; }).join('');
-    $('foot').innerHTML = esc(DATA.site.disclaimer) + '<br>출처: Yahoo Finance(주가·환율·지수·원자재·재무), FRED(금리·스프레드·경제지표), 연준(FOMC 일정). 무료 데이터는 개인 용도로만 씁니다.';
+    $('foot').innerHTML = esc(DATA.site.disclaimer) + '<br>출처: Yahoo Finance(주가·환율·지수·원자재·재무), FRED(금리·스프레드·경제지표), 연준(FOMC 일정), CFTC(선물 포지션). 무료 데이터는 개인 용도로만 씁니다.';
   }
   function renderButtons() {
     var dark = root.dataset.theme === 'dark', us = root.dataset.color === 'us';
