@@ -3,13 +3,15 @@
     "title": "나의 투자 대시보드",
     "disclaimer": "모든 신호는 참고용 점검 알림입니다. 매매 판단의 근거로 쓰지 않습니다.",
     "repo": "lwindowy/invest-dashboard",
-    "notion_glossary": "https://app.notion.com/p/40a55bcc61db8102a9a1e7dee45ad49f"
+    "notion_glossary": "https://app.notion.com/p/40a55bcc61db8102a9a1e7dee45ad49f",
+    "notion_company_notes": "https://app.notion.com/p/2ff55bcc61db8031b3cfe0357ca58744"
   },
   "watchlist": {
     "us": [
       {
         "ticker": "IREN",
-        "name": "아이렌"
+        "name": "아이렌",
+        "ir": "https://irisenergy.gcs-web.com/"
       },
       {
         "ticker": "RKLB",
@@ -17,7 +19,8 @@
       },
       {
         "ticker": "CRWV",
-        "name": "코어위브"
+        "name": "코어위브",
+        "ir": "https://investors.coreweave.com/"
       },
       {
         "ticker": "NBIS",
@@ -47,7 +50,8 @@
     "kr": [
       {
         "ticker": "005930.KS",
-        "name": "삼성전자"
+        "name": "삼성전자",
+        "ir": "https://www.samsung.com/sec/ir/"
       },
       {
         "ticker": "000660.KS",

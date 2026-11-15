@@ -69,7 +69,7 @@
     '매출 성장률 (전년 동기 대비)': 'revenue_growth', 'EPS (최근 12개월)': 'eps', 'ROE': 'roe', '예상 대비': 'earnings_surprise',
     'Short Float': 'short_float', 'Short Ratio': 'short_ratio', 'Short Interest': 'short_interest', 'RSI (14)': 'rsi', 'CCI (20)': 'cci',
     '이자보상배율': 'interest_coverage', '순부채 ÷ EBITDA': 'net_debt_ebitda', '부채비율': 'debt_to_equity', '유동비율': 'current_ratio',
-    '52주 고점 대비': 'from_high', '차트 체크리스트': 'chart_checklist', '애널리스트 목표주가': 'target_price',
+    '52주 고점 대비': 'from_high', '신용등급': 'credit_rating', '차트 체크리스트': 'chart_checklist', '애널리스트 목표주가': 'target_price',
     '나스닥 대비 상대 강도와 종목 비교': 'relative_strength', '실적 추이': 'fcf'
   };
 
@@ -347,7 +347,8 @@
     }
     if (s.links && s.links.ir) L.push(['IR 페이지', s.links.ir]);
     else if (f.website && /^https?:\/\//.test(f.website)) L.push(['회사 홈페이지', f.website]);
-    if (s.links && s.links.notion) L.push(['노션 기업분석 노트', s.links.notion]);
+    var note = (s.links && s.links.notion) || DATA.site.notion_company_notes;
+    if (note) L.push(['노션 기업분석 노트', note]);
     return '<div class="links">' + L.map(function (l) { return '<a class="btn link" href="' + esc(l[1]) + '" target="_blank" rel="noopener">' + esc(l[0]) + '</a>'; }).join('') + '</div>';
   }
   function stockDetail(s) {
@@ -379,7 +380,16 @@
       return ' ' + (isBad ? pill('위험', 'bad', true) : isWarn ? pill('주의', 'warn', true) : pill('양호', 'good', true));
     }
     var iq = dm.interest_quarters || [];
-    var debtBox = box('부채와 신용 위험', s.fund && f.debt_metrics && Object.keys(dm).length ? '<div class="facts">' +
+    var rt = s.rating, rtFact;
+    if (rt) {
+      var junk = rt.sp ? /^(BB|B|CCC|CC|C|D)[+-]?$/.test(rt.sp) : /^(Ba|B|Caa|Ca|C)\d?$/.test(rt.moodys || '');
+      var parts = [rt.sp && 'S&P ' + rt.sp.replace('-', '−'), rt.moodys && '무디스 ' + rt.moodys, rt.fitch && '피치 ' + rt.fitch.replace('-', '−')].filter(Boolean);
+      rtFact = fact('신용등급', esc(parts[0]) + ' ' + pill(junk ? '투기등급' : '투자적격', junk ? 'warn' : 'good', true),
+        esc(parts.slice(1).concat([rt.note, md(rt.entered) + ' 입력']).filter(Boolean).join(' · ')));
+    } else {
+      rtFact = fact('신용등급', '확인된 등급 없음', 'S&P·무디스·피치의 회사 등급을 찾지 못했습니다. 등급을 받지 않은 회사일 수 있습니다');
+    }
+    var debtBox = box('부채와 신용 위험', s.fund && f.debt_metrics && Object.keys(dm).length ? '<div class="facts wide">' + rtFact + '</div><div class="facts">' +
       fact('이자보상배율', dm.ebit_ttm != null && dm.ebit_ttm <= 0 ? pill('영업적자', 'bad', true) : dm.interest_coverage == null ? (dm.interest_ttm ? '–' : '이자비용 없음') : fmt(dm.interest_coverage, dm.interest_coverage < 1 ? 2 : 1) + '배' + grade(dm.interest_coverage, R.coverage_bad, R.coverage_warn, true),
         '최근 4분기 EBIT ' + money(dm.ebit_ttm, fc) + ' ÷ 이자비용 ' + money(dm.interest_ttm, fc)) +
       fact('순부채 ÷ EBITDA', f.net_cash >= 0 ? '순현금 ' + pill('양호', 'good', true) : dm.net_debt_to_ebitda == null ? (dm.ebitda != null && dm.ebitda <= 0 ? pill('EBITDA 적자', 'bad', true) : '–') : fmt(dm.net_debt_to_ebitda, 1) + '배' + grade(dm.net_debt_to_ebitda, R.leverage_bad, R.leverage_warn, false),
