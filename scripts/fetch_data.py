@@ -376,7 +376,7 @@ def period_returns(close, fx):
 
 def fundamentals(ticker, old, today):
     """재무 요약·실적·목표주가·공매도. 하루 한 번만 받는다(같은 날에는 이전 결과를 다시 쓴다)."""
-    if old and old.get("fetched") == today.isoformat():
+    if old and old.get("fetched") == today.isoformat() and "debt_metrics" in old:
         return old
     tk = yf.Ticker(ticker)
     info = tk.info or {}
@@ -402,8 +402,31 @@ def fundamentals(ticker, old, today):
         "short": {"float_pct": num(info["shortPercentOfFloat"] * 100, 1) if info.get("shortPercentOfFloat") is not None else None,
                   "ratio": g("shortRatio", 2), "shares": g("sharesShort", 0),
                   "date": day(pd.Timestamp(short_date, unit="s")) if short_date else None},
-        "quarters": [], "earnings": {},
+        "quarters": [], "earnings": {}, "debt_metrics": {},
     }
+    try:  # 부채 지표: 개별 회사채 가격·CDS 대신 재무제표로 보는 신용 위험
+        inc, bal = tk.quarterly_income_stmt, tk.quarterly_balance_sheet
+        cols = sorted(inc.columns)[-4:]
+
+        def ttm(name):   # 최근 4개 분기 합계. 한 분기라도 비면 계산하지 않는다
+            vals = [inc.loc[name, c] for c in cols] if name in inc.index else []
+            return float(sum(vals)) if len(vals) == 4 and all(pd.notna(v) for v in vals) else None
+        ebit, interest, ebitda = ttm("EBIT"), ttm("Interest Expense"), info.get("ebitda")
+        latest = sorted(bal.columns)[-1]
+        short_debt = next((float(bal.loc[n, latest]) for n in ("Current Debt And Capital Lease Obligation", "Current Debt")
+                           if n in bal.index and pd.notna(bal.loc[n, latest])), None)
+        fund["debt_metrics"] = {
+            "debt_to_equity_pct": g("debtToEquity", 1), "current_ratio": g("currentRatio", 2),
+            "net_debt_to_ebitda": num((debt - cash) / ebitda, 2) if ebitda and ebitda > 0 and debt is not None and cash is not None else None,
+            "ebitda": num(ebitda, 0), "ebit_ttm": num(ebit, 0), "interest_ttm": num(interest, 0),
+            "interest_coverage": num(ebit / interest, 2) if ebit is not None and interest and interest > 0 else None,
+            "short_debt": num(short_debt, 0),
+            "cash_to_short_debt": num(cash / short_debt, 2) if cash is not None and short_debt and short_debt > 0 else None,
+            "interest_quarters": [{"period": f"{c.year % 100}.{c.month:02d}", "interest": num(inc.loc["Interest Expense", c], 0)}
+                                  for c in sorted(inc.columns) if "Interest Expense" in inc.index and pd.notna(inc.loc["Interest Expense", c])],
+        }
+    except Exception as exc:
+        print(f"[참고] 부채 지표 {ticker}: {exc}", file=sys.stderr)
     try:  # 분기 실적 추이 (Yahoo 무료 데이터는 최근 4~5개 분기만 제공)
         inc, cf = tk.quarterly_income_stmt, tk.quarterly_cashflow
         row = lambda df, name, col: num(df.loc[name, col], 4) if name in df.index and col in df.columns else None
@@ -746,6 +769,7 @@ def main():
         "events": events_week,
         "events_all": events_all,
         "fomc": ctx["fomc"],
+        "debt_rules": config["debt_rules"],
         "errors": errors,
     }
     out = Path(args.out)

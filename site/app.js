@@ -343,6 +343,25 @@
     var base = box('기본 체력', s.fund ? '<div class="facts">' + fact('시가총액', money(f.market_cap, cur)) + fact('보유 현금', money(f.cash, fc)) + fact('부채', money(f.debt, fc)) +
       fact(f.net_cash < 0 ? '순부채' : '순현금', money(Math.abs(f.net_cash), fc), f.net_cash < 0 ? '부채가 현금보다 많음' : '현금이 부채보다 많음') + '</div>' : none, fsrc);
 
+    var dm = f.debt_metrics || {}, R = DATA.debt_rules || {};
+    function grade(v, bad, warn, lowIsBad) {
+      // 기준선과 비교해 신호등을 붙인다
+      if (v == null) return '';
+      var isBad = lowIsBad ? v < bad : v >= bad, isWarn = lowIsBad ? v < warn : v >= warn;
+      return ' ' + (isBad ? pill('위험', 'bad', true) : isWarn ? pill('주의', 'warn', true) : pill('양호', 'good', true));
+    }
+    var iq = dm.interest_quarters || [];
+    var debtBox = box('부채와 신용 위험', s.fund && f.debt_metrics && Object.keys(dm).length ? '<div class="facts">' +
+      fact('이자보상배율', dm.ebit_ttm != null && dm.ebit_ttm <= 0 ? pill('영업적자', 'bad', true) : dm.interest_coverage == null ? (dm.interest_ttm ? '–' : '이자비용 없음') : fmt(dm.interest_coverage, dm.interest_coverage < 1 ? 2 : 1) + '배' + grade(dm.interest_coverage, R.coverage_bad, R.coverage_warn, true),
+        '최근 4분기 EBIT ' + money(dm.ebit_ttm, fc) + ' ÷ 이자비용 ' + money(dm.interest_ttm, fc)) +
+      fact('순부채 ÷ EBITDA', f.net_cash >= 0 ? '순현금 ' + pill('양호', 'good', true) : dm.net_debt_to_ebitda == null ? (dm.ebitda != null && dm.ebitda <= 0 ? pill('EBITDA 적자', 'bad', true) : '–') : fmt(dm.net_debt_to_ebitda, 1) + '배' + grade(dm.net_debt_to_ebitda, R.leverage_bad, R.leverage_warn, false),
+        '번 돈으로 빚을 갚는 데 걸리는 햇수. EBITDA ' + money(dm.ebitda, fc)) +
+      fact('부채비율', ratio(dm.debt_to_equity_pct, 0, '%'), '총부채 ÷ 자기자본') +
+      fact('유동비율', dm.current_ratio == null ? '–' : fmt(dm.current_ratio, 2) + '배' + (dm.current_ratio < R.current_ratio_warn ? ' ' + pill('주의', 'warn', true) : ''), '1년 안에 현금화할 자산 ÷ 1년 안에 갚을 부채') +
+      fact('1년 내 만기 부채', money(dm.short_debt, fc), dm.cash_to_short_debt == null ? '' : '보유 현금이 ' + fmt(dm.cash_to_short_debt, 1) + '배') +
+      fact('분기 이자비용', iq.length ? money(iq[iq.length - 1].interest, fc) : '–', iq.length > 1 ? iq[0].period + ' 분기 ' + money(iq[0].interest, fc) + '에서 변화' : '') + '</div>' : none,
+      '개별 기업의 CDS와 회사채 가격은 무료 데이터가 없어 재무제표로 계산한 지표로 대신합니다. 기준: 이자보상배율 ' + R.coverage_bad + '배 미만 위험·' + R.coverage_warn + '배 미만 주의, 순부채÷EBITDA ' + R.leverage_bad + '배 이상 위험·' + R.leverage_warn + '배 이상 주의. 등급별 회사채 스프레드는 <a href="#macro">거시경제 탭</a>의 신용 묶음에서 봅니다. ' + fsrc);
+
     var val = box('밸류에이션', s.fund ? '<div class="facts">' +
       fact('PER', ratio(f.per, 1, '배'), f.per == null ? '적자이거나 값 없음' : '') + fact('포워드 PER', ratio(f.forward_per, 1, '배')) + fact('PSR', ratio(f.psr, 1, '배')) + fact('PEG', ratio(f.peg, 2)) +
       fact('매출 성장률 (전년 동기 대비)', f.revenue_growth_pct == null ? '–' : '<span class="' + dir(f.revenue_growth_pct) + '">' + signed(f.revenue_growth_pct, 1, '%') + '</span>', '배수와 나란히 봅니다') +
@@ -392,7 +411,7 @@
         '트레이딩뷰 무료 위젯입니다. 한국 종목은 무료 위젯에서 표시되지 않을 수 있습니다.');
 
     return head + '<div class="grid2">' + priceBox + tech + '</div>' + check + charts +
-      '<div class="grid2">' + base + val + '</div>' + trend + '<div class="grid2">' + earn + analyst + '</div>' + shortBox;
+      '<div class="grid2">' + base + val + '</div>' + debtBox + trend + '<div class="grid2">' + earn + analyst + '</div>' + shortBox;
   }
   function stockList() {
     var html = '';
