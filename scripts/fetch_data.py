@@ -22,6 +22,8 @@ import pandas as pd
 import requests
 import yfinance as yf
 
+import ai_export
+import financials
 import sec
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -1053,6 +1055,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=str(ROOT / "site/data/dashboard.json"))
     ap.add_argument("--prev", help="이전 결과 JSON. 실패한 항목의 값을 여기서 가져온다.")
+    ap.add_argument("--prev-financials", help="이전 장기 재무 JSON. 없으면 --prev 와 같은 폴더의 financials.json 을 찾는다.")
     args = ap.parse_args()
 
     config = json.loads((ROOT / "config/dashboard.json").read_text(encoding="utf-8"))
@@ -1063,6 +1066,13 @@ def main():
             prev = json.loads(Path(args.prev).read_text(encoding="utf-8"))
         except Exception as exc:
             print(f"이전 결과를 읽지 못해 무시합니다: {exc}", file=sys.stderr)
+    prev_fin = None
+    fin_path = Path(args.prev_financials) if args.prev_financials else Path(args.prev).with_name("financials.json") if args.prev else None
+    if fin_path and fin_path.is_file():
+        try:
+            prev_fin = json.loads(fin_path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            print(f"이전 장기 재무를 읽지 못해 무시합니다: {exc}", file=sys.stderr)
 
     # 필요한 심볼·시계열을 설정에서 모아 한 번에 받는다
     series, regime, senti = config["series"], config["regime"], config["sentiment"]
@@ -1159,6 +1169,7 @@ def main():
         "fomc": ctx["fomc"],
         "valuation": ctx["valuation"],
         "sec": sec.build(config, (prev or {}).get("sec"), today, warn),
+        "financials": None,
         "heatmap": build_heatmap(ctx),
         "capex": build_capex(ctx),
         "debt_rules": config["debt_rules"],
@@ -1170,12 +1181,20 @@ def main():
     except Exception as exc:
         warn("알림", exc)
         data["alerts"] = (prev or {}).get("alerts", [])
+    fin = financials.build(config, prev_fin, today, warn)
+    data["financials"] = {"fetched": fin.get("fetched"), "source": fin.get("source"), "tickers": sorted(fin.get("companies") or {})}
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
+    (out.parent / "financials.json").write_text(json.dumps(fin, ensure_ascii=False, separators=(",", ":"), allow_nan=False), encoding="utf-8")
+    try:
+        n_ai = ai_export.write(data, fin, out.parent / "ai")
+    except Exception as exc:
+        warn("AI용 요약 파일", exc)
+        n_ai = 0
     (out.parent / "brief.json").write_text(json.dumps(build_brief(data), ensure_ascii=False, indent=1, allow_nan=False), encoding="utf-8")
     out.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":"), allow_nan=False), encoding="utf-8")
     (out.parent / "history.json").write_text(json.dumps(history, ensure_ascii=False, separators=(",", ":"), allow_nan=False), encoding="utf-8")
-    print(f"저장: {out} · 지표 {len(out_series)}개 · 종목 {sum(len(v) for v in watch.values())}개 · 실패 {len(errors)}건")
+    print(f"저장: {out} · 지표 {len(out_series)}개 · 종목 {sum(len(v) for v in watch.values())}개 · 장기 재무 {len(fin.get('companies') or {})}개 · AI용 파일 {n_ai}개 · 실패 {len(errors)}건")
 
     got_anything = bool(ctx["yahoo"]) or bool(ctx["fred"])
     if not got_anything and prev is None:

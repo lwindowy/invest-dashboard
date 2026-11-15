@@ -303,3 +303,13 @@ dialog.narrow { width: min(520px, calc(100vw - 24px)); }
   .num-card .value { font-size: 21px; }
   .regime-item { flex-basis: 100%; }
 }
+
+/* 장기 재무 (SEC) */
+.ctr.fin { grid-template-columns: 130px repeat(var(--cols), minmax(66px, 120px)); justify-content: start; font-size: 13px; }
+.ctr.fin > :first-child { position: sticky; left: 0; background: var(--card); }
+.sub-head { margin-bottom: 4px; }
+#fin .facts { margin-bottom: 16px; }
+.ai-link { margin-top: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; }
+.ai-link p { margin: 0 0 8px; font-size: 14px; }
+.ai-link p b { margin-right: 6px; }
+.mini h3 .h-sub { font-weight: 400; color: var(--sub); font-size: 13px; margin-left: 4px; }

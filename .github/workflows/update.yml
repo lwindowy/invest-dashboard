@@ -53,6 +53,11 @@ jobs:
           curl -fsSL --retry 5 --retry-delay 10 --retry-all-errors --max-time 30 "${{ steps.pages.outputs.base_url }}/data/dashboard.json" -o "$RUNNER_TEMP/prev.json" \
             || [ "${{ inputs.fresh }}" = "true" ]
 
+      # 장기 재무(SEC)는 하루 한 번만 받는다. 이전 파일이 없으면 새로 받으면 되므로 실패해도 계속한다
+      - name: 이전 장기 재무 받기
+        continue-on-error: true
+        run: curl -fsSL --retry 3 --retry-delay 10 --max-time 60 "${{ steps.pages.outputs.base_url }}/data/financials.json" -o "$RUNNER_TEMP/financials.json"
+
       - name: 데이터 수집
         run: python scripts/fetch_data.py --prev "$RUNNER_TEMP/prev.json"
 

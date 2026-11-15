@@ -25,7 +25,9 @@
       {
         "ticker": "NBIS",
         "news_keywords": ["Nebius"],
-        "name": "네비우스"
+        "name": "네비우스",
+        "sec_since": "2024-01-01",
+        "sec_since_note": "2023년 이전 SEC 재무는 얀덱스(Yandex) 러시아 사업을 매각하기 전후의 숫자(매각한 사업이 현금흐름 등에 섞임)라 뺐습니다. 외국 기업 서식(20-F)이라 분기 자료가 없습니다."
       },
       {
         "ticker": "NVDA",
