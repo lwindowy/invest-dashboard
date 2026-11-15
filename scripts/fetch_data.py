@@ -15,9 +15,11 @@ import math
 import re
 import sys
 import time
+from calendar import monthrange
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+import numpy as np
 import pandas as pd
 import requests
 import yfinance as yf
@@ -241,6 +243,128 @@ def build_curve(ctx):
         return {"date": day(table.index[i]), "values": [num(v, 2) for v in table.iloc[i]]}
     return {"labels": [p[0] for p in points], "now": row(-1), "month": row(-1 - MONTH), "year": row(-253),
             "source": "FRED"}
+
+
+ZQ_CODES = "FGHJKMNQUVXZ"
+
+
+def fedwatch_chain(avg, meetings):
+    """월별 평균 기대 금리(avg[(연, 월)])로 회의마다 회의 전·후 기대 금리를 구한다.
+
+    회의 사이에는 금리가 그대로라고 보고(결정 다음 날부터 새 금리), 각 월물의 한 달 평균이
+    그 달에 적용되는 금리들의 날수 가중 평균과 같도록 모든 월물을 한꺼번에 맞춘다(최소제곱).
+    CME FedWatch처럼 한 달씩 이어 풀면 월말 회의에서 오차가 몇 배로 커져서 이렇게 한다.
+    """
+    keys = sorted(avg)
+    if not keys or not meetings:
+        return []
+    starts = [None] + [m + dt.timedelta(days=1) for m in meetings]   # 구간 i 의 금리가 시작되는 날
+    rows, rhs = [], []
+    for y, mo in keys:
+        n = monthrange(y, mo)[1]
+        w = [0.0] * len(starts)
+        for dd in range(1, n + 1):
+            day_ = dt.date(y, mo, dd)
+            i = sum(1 for s in starts[1:] if s <= day_)
+            w[i] += 1 / n
+        rows.append(w)
+        rhs.append(avg[(y, mo)])
+    A, bvec = np.array(rows), np.array(rhs)
+    used = A.sum(axis=0) > 0
+    if not used[0]:
+        return []
+    k = int(np.argmin(used)) if not used.all() else len(starts)   # 데이터가 닿는 구간까지만
+    sol = np.linalg.lstsq(A[:, :k], bvec, rcond=None)[0]
+    return [{"date": meetings[i].isoformat(), "pre": float(sol[i]), "post": float(sol[i + 1])} for i in range(k - 1)]
+
+
+def step_probs(change, step):
+    """기대 변화 폭을 이웃한 두 결과(step 단위)의 확률로 나눈다. {변화 단계 수: 확률(%)}"""
+    k = change / step
+    lo = math.floor(k + 1e-9)
+    frac = min(max(k - lo, 0.0), 1.0)
+    probs = {lo: round((1 - frac) * 100, 1), lo + 1: round(frac * 100, 1)}
+    return {s: p for s, p in probs.items() if p >= 0.5}
+
+
+def build_fedwatch(ctx):
+    """연방기금금리 선물(Yahoo, ZQ 월물)로 FOMC 회의별 금리 인하·동결·인상 확률을 계산한다."""
+    cfg, today = ctx["config"]["fedwatch"], ctx["today"]
+    step = cfg["step"]
+    meetings = [dt.date.fromisoformat(m["date"]) for m in ctx["fomc"]["meetings"]]
+    horizon = today + dt.timedelta(days=cfg["horizon_days"])
+    meetings = [m for m in meetings if today <= m <= horizon]
+    if not meetings:
+        raise ValueError("앞으로의 FOMC 일정이 없습니다")
+    keys, cur = [], (today.year, today.month)
+    while cur <= (meetings[-1].year + meetings[-1].month // 12, meetings[-1].month % 12 + 1):
+        keys.append(cur)
+        cur = (cur[0] + cur[1] // 12, cur[1] % 12 + 1)
+    symbols = {f"ZQ{ZQ_CODES[m - 1]}{y % 100:02d}.CBT": (y, m) for y, m in keys}
+    df = yf.download(list(symbols), period="3mo", interval="1d", group_by="ticker", auto_adjust=False, progress=False, threads=False)
+    closes = {}
+    for sym, key in symbols.items():
+        try:
+            c = df[sym]["Close"].dropna()
+        except KeyError:
+            continue
+        if len(c):
+            closes[key] = c
+    if len(closes) < 2:
+        raise ValueError("연방기금금리 선물 가격을 받지 못했습니다")
+    asof = max(c.index[-1] for c in closes.values())
+
+    lo_s, hi_s = ctx["fred"].get(cfg["fred_range"][0]), ctx["fred"].get(cfg["fred_range"][1])
+    if lo_s is None or hi_s is None:
+        raise ValueError("현재 기준금리 범위를 받지 못했습니다")
+    rng = [float(lo_s.iloc[-1]), float(hi_s.iloc[-1])]
+
+    def chain_at(when):
+        avg = {k: 100 - float(c[c.index <= when].iloc[-1]) for k, c in closes.items() if (c.index <= when).any()}
+        return fedwatch_chain(avg, meetings)
+
+    def summary(chain):
+        if not chain:
+            return None
+        base = chain[0]["pre"]
+        nxt = step_probs(chain[0]["post"] - chain[0]["pre"], step)
+        year_end = [c for c in chain if c["date"][:4] == chain[0]["date"][:4]] or chain[:1]
+        last_this_year = year_end[-1]
+        return {"next_cut": round(sum(p for s, p in nxt.items() if s < 0), 1),
+                "next_hold": round(nxt.get(0, 0.0), 1),
+                "next_hike": round(sum(p for s, p in nxt.items() if s > 0), 1),
+                "total_bp": round((chain[-1]["post"] - base) * 100, 1),
+                "year_end_bp": round((last_this_year["post"] - base) * 100, 1)}
+
+    chain = chain_at(asof)
+    if not chain:
+        raise ValueError("회의별 기대 금리를 계산하지 못했습니다")
+    base = chain[0]["pre"]
+    rows = []
+    for c in chain:
+        cum = step_probs(c["post"] - base, step)
+        this = step_probs(c["post"] - c["pre"], step)
+        rows.append({
+            "date": c["date"],
+            "sep": next((m.get("sep", False) for m in ctx["fomc"]["meetings"] if m["date"] == c["date"]), False),
+            "implied": round(c["post"], 3),
+            "change_bp": round((c["post"] - c["pre"]) * 100, 1),
+            "cum_bp": round((c["post"] - base) * 100, 1),
+            "cut": round(sum(p for s, p in this.items() if s < 0), 1),
+            "hold": round(this.get(0, 0.0), 1),
+            "hike": round(sum(p for s, p in this.items() if s > 0), 1),
+            "ranges": [{"lo": round(rng[0] + s * step, 2), "hi": round(rng[1] + s * step, 2), "steps": s, "prob": p}
+                       for s, p in sorted(cum.items())],
+        })
+    trading = sorted({d for c in closes.values() for d in c.index if d <= asof})
+    compare = {}
+    for label, back in (("week", 5), ("month", MONTH)):
+        if len(trading) > back:
+            when = trading[-1 - back]
+            compare[label] = {"date": day(when), **(summary(chain_at(when)) or {})}
+    return {"asof": day(asof), "fetched": today.isoformat(), "range": rng, "base": round(base, 3), "step_bp": round(step * 100),
+            "meetings": rows, "now": summary(chain), "compare": compare,
+            "source": "Yahoo Finance (CBOT 연방기금금리 선물) · FRED (목표 범위) · 자체 계산"}
 
 
 def src_sentiment(cfg, ctx):
@@ -1041,6 +1165,10 @@ def build_brief(data):
                        "news": [{k: n[k] for k in ("title", "publisher", "at")}
                                 for n in ((data["stocks"].get(s["ticker"], {}).get("news") or {}).get("items") or [])[:3]]}
                       for rows in data["watchlist"].values() for s in rows],
+        "fomc_odds": None if not data.get("fedwatch") else {
+            "next_meeting": data["fedwatch"]["meetings"][0]["date"], "target_range": data["fedwatch"]["range"],
+            **{k: data["fedwatch"]["meetings"][0][k] for k in ("cut", "hold", "hike")},
+            "week_ago": (data["fedwatch"].get("compare") or {}).get("week"), "asof": data["fedwatch"]["asof"]},
         "events_next_7_days": data["events"],
         "alerts": data["alerts"],
         "site": "https://" + data["site"]["repo"].split("/")[0] + ".github.io/" + data["site"]["repo"].split("/")[1] + "/",
@@ -1078,6 +1206,7 @@ def main():
     fred_ids |= {i for c in series.values() for i in c.get("needs", [])}
     fred_ids |= {regime["rates"]["fred"], regime["credit"]["fred"], senti["fred_hy"]}
     fred_ids |= {sid for _, sid in config["curve"]["points"]}
+    fred_ids |= set(config["fedwatch"]["fred_range"])
 
     today = dt.datetime.now(KST).date()
     ctx = {"config": config, "manual": manual, "prev": prev, "today": today,
@@ -1139,6 +1268,11 @@ def main():
         curve = (prev or {}).get("curve")
     ctx["fomc"] = fetch_fomc(ctx)
     try:
+        fedwatch = build_fedwatch(ctx)
+    except Exception as exc:
+        warn("금리 인하 확률", exc)
+        fedwatch = {**(prev or {}).get("fedwatch"), "stale": True} if (prev or {}).get("fedwatch") else None
+    try:
         events_all, events_week = build_events(ctx, prev, today)
     except Exception as exc:
         warn("일정", exc)
@@ -1157,6 +1291,7 @@ def main():
         "events": events_week,
         "events_all": events_all,
         "fomc": ctx["fomc"],
+        "fedwatch": fedwatch,
         "valuation": ctx["valuation"],
         "sec": sec.build(config, (prev or {}).get("sec"), today, warn),
         "heatmap": build_heatmap(ctx),
