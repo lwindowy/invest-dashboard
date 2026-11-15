@@ -26,6 +26,7 @@ ROOT = Path(__file__).resolve().parent.parent
 KST = ZoneInfo("Asia/Seoul")
 FRED_CSV = "https://fred.stlouisfed.org/graph/fredgraph.csv"
 FRED_PAGE = "https://fred.stlouisfed.org/series/"
+COT_API = "https://publicreporting.cftc.gov/resource/gpe5-46if.json"   # CFTC 금융선물 참가자별 포지션(TFF, 선물만)
 NDX_PAGE = "https://en.wikipedia.org/wiki/List_of_NASDAQ-100_companies"
 FOMC_PAGE = "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
 MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
@@ -355,6 +356,82 @@ def src_valuation(cfg, ctx):
             "source": v["source"], "note": " · ".join(notes), "_history": hist}
 
 
+def src_cot(cfg, ctx):
+    """COT: 지수 선물에서 Leveraged Funds(헤지펀드·CTA)의 순포지션 = 롱 − 숏. 매주 금요일 발표, 화요일 기준."""
+    r = requests.get(COT_API, timeout=40, params={
+        "$select": "report_date_as_yyyy_mm_dd,lev_money_positions_long,lev_money_positions_short,open_interest_all",
+        "$where": f"cftc_contract_market_code='{cfg['code']}'", "$order": "report_date_as_yyyy_mm_dd DESC", "$limit": 160})
+    r.raise_for_status()
+    rows = r.json()
+    if len(rows) < 10:
+        raise ValueError("COT 데이터가 부족합니다")
+    df = pd.DataFrame(rows)
+    df.index = pd.to_datetime(df["report_date_as_yyyy_mm_dd"])
+    df = df.sort_index()
+    net = (pd.to_numeric(df["lev_money_positions_long"]) - pd.to_numeric(df["lev_money_positions_short"])) / 1000   # 천 계약
+    last, prev = float(net.iloc[-1]), float(net.iloc[-2])
+    rank = float((net <= last).mean() * 100)      # 최근 약 3년 중 지금이 아래에서 몇 %인지
+    share = last * 1000 / float(df["open_interest_all"].iloc[-1]) * 100
+    side = "숏 쏠림이 큰 편" if rank <= 15 else "롱 쪽으로 기운 편" if rank >= 85 else "보통 범위"
+    return {"value": num(last, 1), "prev": num(prev, 1), "diff": num(last - prev, 1), "change_pct": None,
+            "asof": day(net.index[-1]), "period": f"{net.index[-1].month}/{net.index[-1].day} 화요일 기준",
+            "spark": spark(net, 104), "source": "CFTC",
+            "note": f"최근 3년 중 {'하위 ' + format(rank, '.0f') if rank <= 50 else '상위 ' + format(100 - rank, '.0f')}% ({side}) · 미결제약정의 {signed(share, 1, '%')}",
+            "_history": net}
+
+
+def src_cta(cfg, ctx):
+    """CTA(추세추종 펀드) 포지션 추정치, −100(전부 숏)~+100(전부 롱). 실제 신고 데이터가 아니라 가격으로 계산한 값이다.
+
+    공개된 추세추종 규칙을 단순화: 여러 기간(1·3·6·12개월)의 수익률을 변동성으로 나눠 방향과 강도를 구하고 평균한다.
+    """
+    close = ctx["yahoo"][cfg["symbol"]]["Close"]
+    vol = close.pct_change().rolling(60).std()
+    parts = [(close.pct_change(k) / (vol * math.sqrt(k))).clip(-4, 4).apply(math.tanh) for k in (21, 63, 126, 252)]
+    score = (pd.concat(parts, axis=1).mean(axis=1, skipna=False) * 100).dropna()
+    last, prev = float(score.iloc[-1]), float(score.iloc[-2])
+    side = "롱 쪽 추정" if last >= 30 else "숏 쪽 추정" if last <= -30 else "중립 부근 추정"
+    return {"value": num(last, 0), "prev": num(prev, 0), "diff": num(round(last) - round(prev), 0), "change_pct": None,
+            "asof": day(score.index[-1]), "spark": [num(v, 1) for v in score.tail(SPARK_DAYS)],
+            "source": "자체 추정 (Yahoo Finance 선물 가격)", "note": side, "_history": score}
+
+
+def src_relmom(cfg, ctx):
+    """묶음(예: 기술·통신 섹터 ETF)의 기준 지수 대비 초과 수익률(%p). TMT 모멘텀 지수의 대체 지표."""
+    y, days = ctx["yahoo"], cfg.get("days", 63)
+    basket = pd.concat([y[t]["Close"].pct_change(days) for t in cfg["symbols"]], axis=1).mean(axis=1, skipna=False)
+    rel = ((basket - y[cfg["benchmark"]]["Close"].pct_change(days)) * 100).dropna()
+    last, prev = float(rel.iloc[-1]), float(rel.iloc[-2])
+    return {"value": num(last, 1), "prev": num(prev, 1), "diff": num(last - prev, 1), "change_pct": None,
+            "asof": day(rel.index[-1]), "spark": spark(rel), "source": "자체 계산 (Yahoo Finance)",
+            "note": "기술주가 시장보다 강함" if last > 0 else "기술주가 시장보다 약함", "_history": rel}
+
+
+def src_ratio(cfg, ctx):
+    """두 종목의 가격 비율(예: QQQ ÷ SPY). 오르면 앞의 것이 상대적으로 강하다."""
+    a, b = (ctx["yahoo"][t]["Close"] for t in cfg["symbols"])
+    ratio = (a / b).dropna()
+    last, prev = float(ratio.iloc[-1]), float(ratio.iloc[-2])
+    month = (last / float(ratio.iloc[-1 - MONTH]) - 1) * 100
+    return {"value": num(last, 4), "prev": num(prev, 4), "diff": num(last - prev, 4), "change_pct": num((last / prev - 1) * 100, 2),
+            "asof": day(ratio.index[-1]), "spark": spark(ratio), "source": "자체 계산 (Yahoo Finance)",
+            "note": f"한 달 {signed(month, 1, '%')}", "_history": ratio}
+
+
+def src_liquidity(cfg, ctx):
+    """순유동성 = 연준 총자산 − 역레포 잔고 − 재무부 현금(TGA). 시장에 풀려 있는 돈의 대략적인 크기(조 달러)."""
+    f = ctx["fred"]
+    assets = f["WALCL"]                                              # 백만 달러, 주간
+    rrp = f["RRPONTSYD"].reindex(assets.index, method="ffill") * 1000   # 십억 → 백만 달러
+    tga = f["WTREGEN"].reindex(assets.index, method="ffill")
+    net = ((assets - rrp - tga) / 1e6).dropna()
+    last, prev = float(net.iloc[-1]), float(net.iloc[-2])
+    month = last - float(net.iloc[-5])
+    return {"value": num(last, 3), "prev": num(prev, 3), "diff": num(last - prev, 3), "change_pct": num((last / prev - 1) * 100, 2),
+            "asof": day(net.index[-1]), "period": f"{net.index[-1].month}/{net.index[-1].day} 주",
+            "spark": spark(net, 104), "source": "자체 계산 (FRED)", "note": f"4주 전 대비 {signed(month, 2, '조 달러')}", "_history": net}
+
+
 def compact_history(s):
     """차트용 이력. 최근 1년은 그대로, 그 이전은 주 단위로 줄여 파일 크기를 줄인다."""
     s = s.dropna()
@@ -364,7 +441,8 @@ def compact_history(s):
     return {"dates": [day(d) for d in s.index], "values": [num(v) for v in s]}
 
 
-SOURCES = {"valuation": src_valuation, "yahoo": src_yahoo, "fred": src_fred, "sentiment": src_sentiment, "manual": src_manual}
+SOURCES = {"cot": src_cot, "cta": src_cta, "relmom": src_relmom, "ratio": src_ratio, "liquidity": src_liquidity,
+           "valuation": src_valuation, "yahoo": src_yahoo, "fred": src_fred, "sentiment": src_sentiment, "manual": src_manual}
 
 
 # ───────────────────────── 관심 종목 ─────────────────────────
@@ -741,7 +819,7 @@ def build_events(ctx, prev, today):
     for sid, cfg in ctx["config"]["series"].items():   # 지표에 event 이름이 있으면 다음 발표일을 일정에 넣는다
         when = (ctx.get("series_out", {}).get(sid) or {}).get("next_release")
         label = cfg.get("event") or cfg["name"].split(" (")[0]
-        if when and (label, when) not in seen:
+        if when and cfg.get("calendar", True) and (label, when) not in seen:
             seen.add((label, when))
             events.append({"date": when, "title": f"{label} 발표", "kind": "경제지표", "source": "FRED 발표 일정 · 미국 날짜",
                            "minor": not cfg.get("event")})
@@ -879,13 +957,15 @@ def main():
 
     # 필요한 심볼·시계열을 설정에서 모아 한 번에 받는다
     series, regime, senti = config["series"], config["regime"], config["sentiment"]
-    symbols = {c["symbol"] for c in series.values() if c["source"] == "yahoo"}
+    symbols = {c["symbol"] for c in series.values() if c.get("symbol")}
+    symbols |= {t for c in series.values() for t in c.get("symbols", [])} | {c["benchmark"] for c in series.values() if c.get("benchmark")}
     symbols |= {e["ticker"] for entries in config["watchlist"].values() for e in entries}
     symbols |= {regime["trend"]["symbol"], regime["vol"]["symbol"], regime["commodity"]["oil"], regime["commodity"]["dollar"]}
     symbols |= set(regime["breadth"]["sectors"]) | set(regime["rotation"]["offense"]) | set(regime["rotation"]["defense"])
     symbols |= {senti[k] for k in ("stock", "bond", "equal_weight", "index", "vix")}
     symbols |= {config["fx_symbol"], config["benchmark"]["symbol"]}
     fred_ids = {c["id"] for c in series.values() if c["source"] == "fred"}
+    fred_ids |= {i for c in series.values() for i in c.get("needs", [])}
     fred_ids |= {regime["rates"]["fred"], regime["credit"]["fred"], senti["fred_hy"]}
     fred_ids |= {sid for _, sid in config["curve"]["points"]}
 
