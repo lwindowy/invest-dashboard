@@ -45,6 +45,10 @@
       {
         "ticker": "IONQ",
         "name": "아이온큐"
+      },
+      {
+        "ticker": "TSLA",
+        "name": "Tesla, Inc."
       }
     ],
     "kr": [
