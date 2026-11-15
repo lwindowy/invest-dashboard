@@ -22,6 +22,8 @@ import pandas as pd
 import requests
 import yfinance as yf
 
+import sec
+
 ROOT = Path(__file__).resolve().parent.parent
 KST = ZoneInfo("Asia/Seoul")
 FRED_CSV = "https://fred.stlouisfed.org/graph/fredgraph.csv"
@@ -951,6 +953,19 @@ def build_alerts(ctx, data, now):
         if sf is not None and sf_old is not None and sf >= rules["short_float"] > sf_old:
             add(t, "공매도", f"{name} Short Float {sf:.1f}%", f"{rules['short_float']}% 이상으로 올라섬", "warn", t)
 
+    # SEC 공시: 최근 이틀 안에 접수된 수시공시·증권 발행·내부자 공개시장 매수만 알린다
+    recent_day = (ctx["today"] - dt.timedelta(days=2)).isoformat()
+    for t, c in ((data.get("sec") or {}).get("companies") or {}).items():
+        name = (data["stocks"].get(t) or {}).get("name", t)
+        for f in c.get("filings", []):
+            if f["date"] >= recent_day and (f["form"] == "8-K" or f["form"].startswith("424B")):
+                what = " · ".join(f["items"]) if f["items"] else f["label"]
+                add(f["acc"], "공시", f"{name} {f['form']}: {what}", f"{f['date']} 접수 (미국 날짜)", "info", t, f["date"])
+        for r in c.get("insider", []):
+            if r["code"] == "P" and r["filed"] >= recent_day:
+                add(r["acc"], "내부자 매수", f"{name} 내부자 매수: {r['owner']} ({r['role']})",
+                    f"{r['shares']:,.0f}주" + (f" · 약 {r['value']:,.0f}달러" if r.get("value") else ""), "good", t, r["filed"])
+
     old_regime = {i["id"]: i["state"] for i in (prev.get("regime") or {}).get("items", [])}
     rank = {"양호": 0, "주의": 1, "위험": 2}
     for i in data["regime"]["items"]:
@@ -1102,6 +1117,7 @@ def main():
         "events_all": events_all,
         "fomc": ctx["fomc"],
         "valuation": ctx["valuation"],
+        "sec": sec.build(config, (prev or {}).get("sec"), today, warn),
         "heatmap": build_heatmap(ctx),
         "capex": build_capex(ctx),
         "debt_rules": config["debt_rules"],

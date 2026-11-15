@@ -69,7 +69,7 @@
     '매출 성장률 (전년 동기 대비)': 'revenue_growth', 'EPS (최근 12개월)': 'eps', 'ROE': 'roe', '예상 대비': 'earnings_surprise',
     'Short Float': 'short_float', 'Short Ratio': 'short_ratio', 'Short Interest': 'short_interest', 'RSI (14)': 'rsi', 'CCI (20)': 'cci',
     '이자보상배율': 'interest_coverage', '순부채 ÷ EBITDA': 'net_debt_ebitda', '부채비율': 'debt_to_equity', '유동비율': 'current_ratio',
-    '52주 고점 대비': 'from_high', '신용등급': 'credit_rating', '차트 체크리스트': 'chart_checklist', '애널리스트 목표주가': 'target_price',
+    '52주 고점 대비': 'from_high', '신용등급': 'credit_rating', '최근 공시': 'filings', '내부자 매매': 'insider', '차트 체크리스트': 'chart_checklist', '애널리스트 목표주가': 'target_price',
     '나스닥 대비 상대 강도와 종목 비교': 'relative_strength', '실적 추이': 'fcf'
   };
 
@@ -247,6 +247,40 @@
       return '<section class="card" aria-label="' + esc(sec.label) + '"><h2>' + esc(sec.label) + q('bigtech_capex') + '</h2>' + lead + chart +
         '<div class="scroll-x"><div class="ctable wide cx-table">' + head + rows + '</div></div>' +
         '<p class="src">단위: 달러. 분기는 끝난 달 기준이고, 회계 분기가 다른 오라클은 가까운 달로 맞췄습니다(8월 말 → 9월). 값이 없는 분기(–)는 무료 데이터에 빠져 있는 것입니다. 출처: ' + esc(cx.source) + ' · ' + md(cx.fetched) + ' 수집</p></section>';
+    },
+    insider: function (sec) {
+      var cs = (DATA.sec || {}).companies || {};
+      var rows = Object.keys(cs).map(function (t) {
+        var c = cs[t], m = c.summary, name = (DATA.stocks[t] || {}).name || t;
+        var last = c.insider[0];
+        return '<div class="ctr ins"><span><a href="#stocks/' + encodeURIComponent(t) + '">' + esc(name) + '</a></span>' +
+          '<span>' + (m.buy_count ? pill(m.buy_count + '건', 'good', true) + ' ' + money(m.buy_value, 'USD') : '없음') + '</span>' +
+          '<span>' + (m.sell_count ? m.sell_count + '건 · ' + money(m.sell_value, 'USD') + (m.sell_planned ? ' <small>(계획 매도 ' + m.sell_planned + '건)</small>' : '') : '없음') + '</span>' +
+          '<span>' + (last ? md(last.date) + ' ' + esc(last.owner) + ' ' + (last.code === 'P' ? '매수' : '매도') : '–') + '</span></div>';
+      }).join('');
+      return '<section class="card" aria-label="' + esc(sec.label) + '"><h2>' + esc(sec.label) + q('insider') + '</h2>' +
+        '<div class="scroll-x"><div class="ctable wide ins-table"><div class="ctr ins th"><span>종목</span><span>공개시장 매수</span><span>공개시장 매도</span><span>가장 최근 거래</span></div>' + rows + '</div></div>' +
+        '<p class="src">임원·이사·10% 이상 주주가 공개시장에서 사고판 것만 셉니다(주식 보상, 옵션 행사, 증여 제외). 계획 매도는 미리 정해 둔 일정(10b5-1)에 따른 매도입니다. 종목을 누르면 거래 내역이 나옵니다. 미국 상장 종목만 해당합니다. 출처: SEC · ' + md((DATA.sec || {}).fetched) + ' 수집</p></section>';
+    },
+    managers: function (sec) {
+      var ms = (DATA.sec || {}).managers || [];
+      if (!ms.length) return '<section class="card"><h2>' + esc(sec.label) + '</h2><p class="empty">데이터를 받지 못했습니다.</p></section>';
+      var cards = ms.map(function (m) {
+        var top = m.top.slice(0, 6).map(function (h) {
+          return '<div class="hold"><span>' + esc(h.issuer) + '</span><span>' + fmt(h.weight_pct, 1) + '%' + (h.change && h.change !== '그대로' ? ' <small>' + esc(h.change) + '</small>' : '') + '</span></div>';
+        }).join('');
+        var watch = m.watch.length ? m.watch.map(function (w) {
+          var tone = /매수|늘림/.test(w.change || '') ? 'good' : /매도|줄임/.test(w.change || '') ? 'warn' : 'none';
+          return '<div class="hold"><span><a href="#stocks/' + encodeURIComponent(w.ticker) + '">' + esc(w.name) + '</a></span><span>' + (w.value ? fmt(w.weight_pct, 1) + '% ' : '') + (w.change ? pill(w.change, tone, true) : '') + '</span></div>';
+        }).join('') : '<p class="empty">내 관심 종목은 보유하고 있지 않습니다.</p>';
+        return '<div class="mgr"><div class="head"><div><h3>' + esc(m.name) + '</h3><span class="sub">' + esc(m.who || '') + '</span></div>' +
+          '<span class="sub">' + esc(m.period.slice(0, 7).replace('-', '.')) + ' 말 기준<br>' + money(m.total, 'USD') + ' · ' + m.count + '개</span></div>' +
+          '<h4>내 관심 종목</h4>' + watch + '<h4>비중 상위</h4>' + top +
+          (m.sold && m.sold.length ? '<p class="src">전부 판 종목: ' + esc(m.sold.join(', ')) + '</p>' : '') +
+          '<a class="src" href="' + esc(m.url) + '" target="_blank" rel="noopener">SEC 원문 보기</a></div>';
+      }).join('');
+      return '<section class="card" aria-label="' + esc(sec.label) + '"><h2>' + esc(sec.label) + q('13f') + '</h2><div class="mgrs">' + cards + '</div>' +
+        '<p class="src">분기 말 기준 미국 주식 보유 목록이고 최대 석 달 반 늦습니다. 옵션은 빼고 주식만 셉니다. 변화는 직전 분기 신고와 주식 수를 비교한 것입니다. 볼 운용사는 config/dashboard.json 의 sec.managers 에서 바꿉니다. 출처: SEC</p></section>';
     },
     todo: function (sec) {
       return '<section class="card" aria-label="' + esc(sec.label) + '"><h2>' + esc(sec.label) + '</h2><ul class="todo">' +
@@ -491,8 +525,26 @@
       box('트레이딩뷰 차트', '<div id="tv" data-symbol="' + esc(s.market === 'kr' ? 'KRX:' + s.ticker.replace(/\.K[SQ]$/, '') : s.ticker) + '"></div>',
         '트레이딩뷰 무료 위젯입니다. 한국 종목은 무료 위젯에서 표시되지 않을 수 있습니다. 차트가 비어 있으면 위의 트레이딩뷰 바로가기를 누르세요.');
 
+    var sc = ((DATA.sec || {}).companies || {})[s.ticker];
+    var filingsBox = '', insiderBox = '';
+    if (sc) {
+      filingsBox = box('최근 공시', sc.filings.length ? sc.filings.map(function (f) {
+        return '<div class="event"><div class="date"><b>' + md(f.date) + '</b><span>' + esc(f.form) + '</span></div><div class="what"><b><a href="' + esc(f.url) + '" target="_blank" rel="noopener">' +
+          esc(f.items.length ? f.items.join(' · ') : f.label) + '</a></b><span>' + esc(f.label) + '</span></div></div>';
+      }).join('') : '<p class="empty">최근 90일 동안 주요 공시가 없습니다.</p>', '최근 90일의 주요 공시입니다. 제목을 누르면 SEC 원문이 열립니다. 출처: SEC · ' + md(DATA.sec.fetched) + ' 수집');
+      var trades = sc.insider.slice(0, 10);
+      insiderBox = box('내부자 매매', '<div class="facts">' +
+        fact('공개시장 매수 (90일)', sc.summary.buy_count ? sc.summary.buy_count + '건 ' + pill('매수 있음', 'good', true) : '없음', sc.summary.buy_count ? money(sc.summary.buy_value, 'USD') : '') +
+        fact('공개시장 매도 (90일)', sc.summary.sell_count ? sc.summary.sell_count + '건' : '없음', sc.summary.sell_count ? money(sc.summary.sell_value, 'USD') + ' · 계획 매도 ' + sc.summary.sell_planned + '건' : '') + '</div>' +
+        (trades.length ? '<div class="scroll-x"><div class="ctable wide"><div class="ctr tr5 th"><span>날짜</span><span>누가</span><span>거래</span><span>주식 수</span><span>금액</span></div>' + trades.map(function (r) {
+          return '<div class="ctr tr5"><span>' + md(r.date) + '</span><span>' + esc(r.owner) + '<br><small>' + esc(r.role) + '</small></span>' +
+            '<span>' + pill(r.code === 'P' ? '매수' : r.planned ? '계획 매도' : '매도', r.code === 'P' ? 'good' : 'none', true) + '</span>' +
+            '<span>' + fmt(r.shares, 0) + '</span><span>' + (r.value ? money(r.value, 'USD') : '–') + '</span></div>';
+        }).join('') + '</div></div>' : '<p class="empty">최근 180일 동안 공개시장 매수·매도 신고가 없습니다.</p>'),
+        '주식 보상, 옵션 행사, 증여는 빼고 공개시장 거래만 보여 줍니다. 계획 매도는 미리 정해 둔 일정(10b5-1)에 따른 것입니다. 출처: SEC Form 4');
+    }
     return head + '<div class="grid2">' + priceBox + tech + '</div>' + check + charts +
-      '<div class="grid2">' + base + val + '</div>' + debtBox + trend + '<div class="grid2">' + earn + analyst + '</div>' + shortBox;
+      '<div class="grid2">' + base + val + '</div>' + debtBox + trend + '<div class="grid2">' + earn + analyst + '</div>' + shortBox + (sc ? '<div class="grid2">' + filingsBox + insiderBox + '</div>' : '');
   }
   function issueUrl(action, ticker, name) {
     // 종목 추가·삭제는 GitHub 요청(이슈)으로 보낸다. 저장소의 자동 작업이 받아서 처리한다
@@ -746,7 +798,7 @@
       notes.push('일부 항목을 받지 못했습니다: ' + DATA.errors.map(function (e) { return e.where; }).join(', ') + '. 해당 항목은 이전 값이거나 비어 있습니다.');
     }
     $('notice').innerHTML = notes.map(function (n) { return '<p class="notice" role="status">' + esc(n) + '</p>'; }).join('');
-    $('foot').innerHTML = esc(DATA.site.disclaimer) + '<br>출처: Yahoo Finance(주가·환율·지수·원자재·재무), FRED(금리·스프레드·경제지표), 연준(FOMC 일정), CFTC(선물 포지션). 무료 데이터는 개인 용도로만 씁니다.';
+    $('foot').innerHTML = esc(DATA.site.disclaimer) + '<br>출처: Yahoo Finance(주가·환율·지수·원자재·재무), FRED(금리·스프레드·경제지표), 연준(FOMC 일정), CFTC(선물 포지션), SEC(공시·내부자 매매·13F). 무료 데이터는 개인 용도로만 씁니다.';
   }
   function renderButtons() {
     var dark = root.dataset.theme === 'dark', us = root.dataset.color === 'us';
