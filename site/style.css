@@ -303,3 +303,14 @@ dialog.narrow { width: min(520px, calc(100vw - 24px)); }
   .num-card .value { font-size: 21px; }
   .regime-item { flex-basis: 100%; }
 }
+
+/* FOMC 금리 확률 */
+.pbars { display: flex; flex-direction: column; gap: 6px; margin: 10px 0 4px; max-width: 560px; }
+.pbar { display: grid; grid-template-columns: minmax(150px, 1.2fr) 2fr 56px; gap: 10px; align-items: center; font-size: 14px; }
+.pbar small { color: var(--sub); font-size: 12px; }
+.pbar .track { height: 10px; background: var(--line); border-radius: 5px; overflow: hidden; }
+.pbar .track span { display: block; height: 100%; background: var(--ink); opacity: 0.75; border-radius: 5px; }
+.pbar b { text-align: right; }
+h3.sub { font-size: 13px; color: var(--sub); font-weight: 700; margin: 14px 0 2px; }
+.ctr.fw { grid-template-columns: 0.9fr 0.9fr 0.9fr 0.9fr 1.5fr 1.7fr; min-width: 640px; }
+.ctr.fwc { grid-template-columns: 1fr 1.8fr 1fr 1.2fr; min-width: 520px; }

@@ -231,6 +231,46 @@
       return '<section class="card" aria-label="' + esc(sec.label) + '"><div class="card-head"><h2>' + esc(sec.label) + q('heatmap') + '</h2><div class="seg wrap">' + buttons + '</div></div>' + body +
         '<p class="src">업종·테마 ETF의 수익률입니다. 수익률이 높은 순으로 놓고, 많이 움직일수록 색이 진합니다. 출처: ' + esc(hm.source) + ' · ' + md(asof) + ' 기준</p></section>';
     },
+    fedwatch: function (sec) {
+      var fw = DATA.fedwatch;
+      if (!fw || !fw.meetings || !fw.meetings.length) return '<section class="card"><h2>' + esc(sec.label) + '</h2><p class="empty">데이터를 받지 못했습니다.</p></section>';
+      function rng(r) { return fmt(r.lo, 2) + '~' + fmt(r.hi, 2) + '%'; }
+      function bp(x) { return signed(x, 0, 'bp'); }
+      function split(m) {
+        var parts = [];
+        if (m.cut >= 0.5) parts.push('인하 ' + fmt(m.cut, 0) + '%');
+        if (m.hold >= 0.5) parts.push('동결 ' + fmt(m.hold, 0) + '%');
+        if (m.hike >= 0.5) parts.push('인상 ' + fmt(m.hike, 0) + '%');
+        return parts.join(' · ');
+      }
+      function moveText(steps) { return steps === 0 ? '동결' : (steps > 0 ? '인상 ' : '인하 ') + Math.abs(steps) * fw.step_bp + 'bp'; }
+      var first = fw.meetings[0];
+      var outcomes = first.ranges.slice().sort(function (a, b) { return b.prob - a.prob; }).map(function (r) { return moveText(r.steps) + ' <b>' + fmt(r.prob, 1) + '%</b>'; }).join(' · ');
+      var lead = '<p class="lead">다음 회의 <b>' + md(first.date) + '</b> · ' + outcomes + '</p>' +
+        '<p class="src">지금 목표 범위 ' + fmt(fw.range[0], 2) + '~' + fmt(fw.range[1], 2) + '% · 막대는 다음 회의 결과별 확률입니다.</p>';
+      var bars = '<div class="pbars">' + first.ranges.map(function (r) {
+        return '<div class="pbar"><span class="k">' + moveText(r.steps) + ' <small>' + rng(r) + '</small></span><span class="track"><span style="width:' + Math.max(r.prob, 1) + '%"></span></span><b>' + fmt(r.prob, 1) + '%</b></div>';
+      }).join('') + '</div>';
+      var cmp = [['지금', fw.now, fw.asof], ['1주 전', (fw.compare || {}).week], ['1개월 전', (fw.compare || {}).month]].filter(function (c) { return c[1]; });
+      var cmpHead = '<div class="ctr fwc th"><span>시점</span><span>다음 회의</span><span>올해 말까지</span><span>' + md(fw.meetings[fw.meetings.length - 1].date) + ' 회의까지</span></div>';
+      var cmpRows = cmp.map(function (c) {
+        var v = c[1], d = c[2] || v.date;
+        return '<div class="ctr fwc"><span>' + c[0] + ' <small>' + md(d) + '</small></span><span>' + split({ cut: v.next_cut, hold: v.next_hold, hike: v.next_hike }) + '</span>' +
+          '<span class="' + dir(v.year_end_bp) + '">' + bp(v.year_end_bp) + '</span><span class="' + dir(v.total_bp) + '">' + bp(v.total_bp) + '</span></div>';
+      }).join('');
+      var head = '<div class="ctr fw th"><span>회의</span><span>기대 금리</span><span>이 회의 변화</span><span>지금 대비 누적</span><span>가장 가능성 높은 범위</span><span>이 회의 확률</span></div>';
+      var rows = fw.meetings.map(function (m) {
+        var t = m.ranges.slice().sort(function (a, b) { return b.prob - a.prob; })[0];
+        return '<div class="ctr fw"><span>' + md(m.date) + (m.sep ? ' <small>전망</small>' : '') + '</span><span>' + fmt(m.implied, 2) + '%</span>' +
+          '<span class="' + dir(m.change_bp) + '">' + bp(m.change_bp) + '</span><span class="' + dir(m.cum_bp) + '">' + bp(m.cum_bp) + '</span>' +
+          '<span>' + rng(t) + ' <small>' + fmt(t.prob, 0) + '%</small></span><span>' + split(m) + '</span></div>';
+      }).join('');
+      return '<section class="card" aria-label="' + esc(sec.label) + '"><h2>' + esc(sec.label) + q('fedwatch') + (fw.stale ? ' <small class="src">(이전 값)</small>' : '') + '</h2>' + lead + bars +
+        '<h3 class="sub">기대가 어떻게 바뀌었나</h3><div class="scroll-x"><div class="ctable wide fwc-table">' + cmpHead + cmpRows + '</div></div>' +
+        '<h3 class="sub">회의별</h3><div class="scroll-x"><div class="ctable wide fw-table">' + head + rows + '</div></div>' +
+        '<p class="src">연방기금금리 선물 가격으로 회의마다 시장이 기대하는 금리를 구하고, 그 금리가 ' + fw.step_bp + 'bp 단위의 이웃한 두 결과 사이 어디쯤인지로 확률을 나눴습니다(CME FedWatch와 같은 원리, 자체 계산). ' +
+        '먼 회의일수록 거래가 적어 값이 거칩니다. "전망"은 경제전망을 함께 내는 회의입니다. 출처: ' + esc(fw.source) + ' · ' + md(fw.asof) + ' 종가 기준</p></section>';
+    },
     capex: function (sec) {
       var cx = DATA.capex;
       if (!cx || !cx.companies || !cx.companies.length) return '<section class="card"><h2>' + esc(sec.label) + '</h2><p class="empty">데이터를 받지 못했습니다.</p></section>';
