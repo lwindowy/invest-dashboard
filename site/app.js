@@ -209,6 +209,45 @@
         rows + '</div></div>' +
         '<p class="src">종목 이름을 누르면 종목 한 장 요약으로 이동합니다. RSI 70 이상은 과매수, 30 이하는 과매도로 표시합니다. 출처: Yahoo Finance · ' + md(asof) + ' 기준 · 주가는 15분가량 지연됩니다.</p></section>';
     },
+    heatmap: function (sec) {
+      var hm = DATA.heatmap, key = state.heat || 'd1';
+      if (!hm) return '';
+      var PERIODS = [['d1', '1일'], ['w1', '1주'], ['m1', '1개월'], ['m3', '3개월'], ['ytd', '연초 이후']];
+      var all = [].concat.apply([], hm.groups.map(function (g) { return g.cells; })).map(function (c) { return Math.abs(c[key] || 0); });
+      var scale = Math.max.apply(null, all) || 1;
+      var buttons = PERIODS.map(function (p) {
+        return '<button type="button" class="btn small" data-heat="' + p[0] + '" aria-pressed="' + (p[0] === key) + '">' + p[1] + '</button>';
+      }).join('');
+      var body = hm.groups.map(function (g) {
+        var cells = g.cells.slice().sort(function (a, b) { return (b[key] || 0) - (a[key] || 0); }).map(function (c) {
+          var v = c[key], strength = v == null ? 0 : Math.round(8 + Math.abs(v) / scale * 37);   // 색은 진해도 글자가 읽히게 45%까지만
+          var color = v > 0 ? 'var(--up)' : v < 0 ? 'var(--down)' : 'var(--sub)';
+          return '<div class="heat" style="background: color-mix(in srgb, ' + color + ' ' + strength + '%, var(--card))">' +
+            '<span class="n">' + esc(c.name) + '</span><b>' + (v == null ? '–' : signed(v, 1, '%')) + '</b><span class="t">' + esc(c.symbol) + '</span></div>';
+        }).join('');
+        return '<div class="heat-group"><h3>' + esc(g.name) + '</h3><div class="heat-grid">' + cells + '</div></div>';
+      }).join('');
+      var asof = hm.groups[0] && hm.groups[0].cells[0] ? hm.groups[0].cells[0].asof : '';
+      return '<section class="card" aria-label="' + esc(sec.label) + '"><div class="card-head"><h2>' + esc(sec.label) + q('heatmap') + '</h2><div class="seg wrap">' + buttons + '</div></div>' + body +
+        '<p class="src">업종·테마 ETF의 수익률입니다. 수익률이 높은 순으로 놓고, 많이 움직일수록 색이 진합니다. 출처: ' + esc(hm.source) + ' · ' + md(asof) + ' 기준</p></section>';
+    },
+    capex: function (sec) {
+      var cx = DATA.capex;
+      if (!cx || !cx.companies || !cx.companies.length) return '<section class="card"><h2>' + esc(sec.label) + '</h2><p class="empty">데이터를 받지 못했습니다.</p></section>';
+      var last = cx.totals[cx.totals.length - 1];
+      var lead = last ? '<p class="lead">' + esc(last.period) + ' 분기 합계 <b>' + money(last.total, 'USD') + '</b>' +
+        (last.yoy_pct != null ? ' · 1년 전 같은 분기 대비 <b class="' + dir(last.yoy_pct) + '">' + signed(last.yoy_pct, 1, '%') + '</b>' : '') + '</p>' : '';
+      var chart = cx.totals.length >= 2 ? '<div class="minis one">' + barChart(cx.totals, 'total', 'USD', '5개 회사 합계 (모두 값이 있는 분기만)', true) + '</div>' : '';
+      var periods = cx.periods.slice(-6);
+      var head = '<div class="ctr cx th" style="--cols:' + periods.length + '"><span>회사</span>' + periods.map(function (p) { return '<span>' + esc(p) + '</span>'; }).join('') + '</div>';
+      var rows = cx.companies.map(function (c) {
+        return '<div class="ctr cx" style="--cols:' + periods.length + '"><span>' + esc(c.name) + '</span>' + periods.map(function (p) {
+          return '<span>' + (c.quarters[p] == null ? '–' : money(c.quarters[p], 'USD', true)) + '</span>'; }).join('') + '</div>';
+      }).join('');
+      return '<section class="card" aria-label="' + esc(sec.label) + '"><h2>' + esc(sec.label) + q('bigtech_capex') + '</h2>' + lead + chart +
+        '<div class="scroll-x"><div class="ctable wide cx-table">' + head + rows + '</div></div>' +
+        '<p class="src">단위: 달러. 분기는 끝난 달 기준이고, 회계 분기가 다른 오라클은 가까운 달로 맞췄습니다(8월 말 → 9월). 값이 없는 분기(–)는 무료 데이터에 빠져 있는 것입니다. 출처: ' + esc(cx.source) + ' · ' + md(cx.fetched) + ' 수집</p></section>';
+    },
     todo: function (sec) {
       return '<section class="card" aria-label="' + esc(sec.label) + '"><h2>' + esc(sec.label) + '</h2><ul class="todo">' +
         sec.items.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul></section>';
@@ -740,6 +779,8 @@
     if (hp) { openHelp(hp.dataset.help); return; }
     var ch = e.target.closest('[data-chart]');
     if (ch) { openChart(ch.dataset.chart); return; }
+    var ht = e.target.closest('[data-heat]');
+    if (ht) { state.heat = ht.dataset.heat; renderView(); return; }
     var mo = e.target.closest('[data-month]'), ki = e.target.closest('[data-kind]');
     if (mo) { state.month = mo.dataset.month; renderView(); return; }
     if (ki) { state.kinds[ki.dataset.kind] = !state.kinds[ki.dataset.kind]; renderView(); return; }

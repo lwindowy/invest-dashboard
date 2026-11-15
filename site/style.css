@@ -227,6 +227,17 @@ dialog.narrow { width: min(520px, calc(100vw - 24px)); }
 
 .todo { margin: 0; padding-left: 18px; font-size: 14px; color: var(--sub); line-height: 1.8; }
 
+/* 섹터 히트맵 */
+.heat-group { display: flex; flex-direction: column; gap: 6px; }
+.heat-group h3 { margin: 0; font-size: 13px; font-weight: 500; color: var(--sub); }
+.heat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 6px; }
+.heat { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.heat .n { font-size: 13px; }
+.heat b { font-size: 18px; font-weight: 700; }
+.heat .t { font-size: 11px; color: var(--sub); }
+.minis.one { grid-template-columns: minmax(0, 420px); }
+.ctr.cx { grid-template-columns: 1.4fr repeat(var(--cols), 1fr); min-width: 520px; }
+
 /* 2단 배치: 좁아지면 한 줄로 쌓인다 */
 .cols { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
 .col-main { flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 20px; }

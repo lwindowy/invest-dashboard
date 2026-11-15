@@ -839,6 +839,59 @@ def build_events(ctx, prev, today):
     return past_and_future, week[:5]
 
 
+# ───────────────────────── 산업 ─────────────────────────
+
+def build_heatmap(ctx):
+    """업종·테마 ETF의 기간별 수익률(%)."""
+    year_start = pd.Timestamp(ctx["today"].year, 1, 1)
+    groups = []
+    for g in ctx["config"]["heatmap"]["groups"]:
+        cells = []
+        for symbol, name in g["items"]:
+            try:
+                close = ctx["yahoo"][symbol]["Close"]
+                ret = lambda days: num((float(close.iloc[-1]) / float(close.iloc[-1 - days]) - 1) * 100, 1) if len(close) > days else None
+                before = close[close.index < year_start]
+                cells.append({"symbol": symbol, "name": name, "asof": day(close.index[-1]),
+                              "d1": ret(1), "w1": ret(5), "m1": ret(21), "m3": ret(63),
+                              "ytd": num((float(close.iloc[-1]) / float(before.iloc[-1]) - 1) * 100, 1) if len(before) else None})
+            except Exception as exc:
+                warn(f"히트맵 {symbol}", exc)
+        groups.append({"name": g["name"], "cells": cells})
+    return {"groups": groups, "source": "Yahoo Finance"}
+
+
+def build_capex(ctx):
+    """빅테크 분기 설비투자. 회사마다 회계 분기가 달라 분기 말 달을 3·6·9·12월로 맞춰 합친다. 하루 한 번만 받는다."""
+    today, old = ctx["today"].isoformat(), (ctx["prev"] or {}).get("capex") or {}
+    if old.get("fetched") == today and old.get("companies"):
+        return old
+    companies = []
+    for ticker, name in ctx["config"]["capex"]["companies"]:
+        try:
+            cf = yf.Ticker(ticker).quarterly_cashflow
+            quarters = {}
+            for col in cf.columns:
+                v = cf.loc["Capital Expenditure", col] if "Capital Expenditure" in cf.index else None
+                if v is not None and pd.notna(v):
+                    end = col + pd.offsets.MonthEnd(0) + pd.DateOffset(months=(3 - col.month % 3) % 3)   # 8월 말 → 9월로
+                    quarters[f"{end.year % 100}.{end.month:02d}"] = num(abs(float(v)), 0)
+            if quarters:
+                companies.append({"ticker": ticker, "name": name, "quarters": quarters})
+        except Exception as exc:
+            warn(f"설비투자 {ticker}", exc)
+    if not companies:
+        return old
+    periods = sorted({p for c in companies for p in c["quarters"]})
+    complete = [p for p in periods if all(p in c["quarters"] for c in companies)]
+    totals = [{"period": p, "total": sum(c["quarters"][p] for c in companies)} for p in complete]
+    for t in totals:   # 1년 전 같은 분기가 있으면 증가율을 붙인다
+        yy, mm = t["period"].split(".")
+        ago = next((x["total"] for x in totals if x["period"] == f"{int(yy) - 1}.{mm}"), None)
+        t["yoy_pct"] = num((t["total"] / ago - 1) * 100, 1) if ago else None
+    return {"fetched": today, "companies": companies, "periods": periods, "totals": totals, "source": "Yahoo Finance"}
+
+
 # ───────────────────────── 알림 ─────────────────────────
 
 def build_alerts(ctx, data, now):
@@ -964,6 +1017,7 @@ def main():
     symbols |= set(regime["breadth"]["sectors"]) | set(regime["rotation"]["offense"]) | set(regime["rotation"]["defense"])
     symbols |= {senti[k] for k in ("stock", "bond", "equal_weight", "index", "vix")}
     symbols |= {config["fx_symbol"], config["benchmark"]["symbol"]}
+    symbols |= {symbol for g in config["heatmap"]["groups"] for symbol, _ in g["items"]}
     fred_ids = {c["id"] for c in series.values() if c["source"] == "fred"}
     fred_ids |= {i for c in series.values() for i in c.get("needs", [])}
     fred_ids |= {regime["rates"]["fred"], regime["credit"]["fred"], senti["fred_hy"]}
@@ -1048,6 +1102,8 @@ def main():
         "events_all": events_all,
         "fomc": ctx["fomc"],
         "valuation": ctx["valuation"],
+        "heatmap": build_heatmap(ctx),
+        "capex": build_capex(ctx),
         "debt_rules": config["debt_rules"],
         "glossary": json.loads((ROOT / "config/glossary.json").read_text(encoding="utf-8"))["terms"],
         "errors": errors,
