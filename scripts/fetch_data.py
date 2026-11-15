@@ -800,7 +800,7 @@ def main():
     ctx["valuation"] = build_valuation(ctx)
     out_series, history = {}, {}
     for sid, cfg in series.items():
-        meta = {k: v for k, v in cfg.items() if k in ("name", "decimals", "unit", "change", "diff_unit", "diff_decimals", "signed", "prefix")}
+        meta = {k: v for k, v in cfg.items() if k in ("name", "decimals", "unit", "change", "diff_unit", "diff_decimals", "signed", "prefix", "help")}
         try:
             item = SOURCES[cfg["source"]]({**cfg, "_key": sid}, ctx)
             hist = item.pop("_history", None)
@@ -869,6 +869,7 @@ def main():
         "fomc": ctx["fomc"],
         "valuation": ctx["valuation"],
         "debt_rules": config["debt_rules"],
+        "glossary": json.loads((ROOT / "config/glossary.json").read_text(encoding="utf-8"))["terms"],
         "errors": errors,
     }
     out = Path(args.out)

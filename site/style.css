@@ -76,7 +76,10 @@ details.rules b { color: var(--ink); font-weight: 500; }
 
 /* 숫자 카드 */
 .cards { display: flex; flex-wrap: wrap; gap: 12px; }
-.num-card { flex: 1 1 180px; min-width: 0; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 6px; }
+.num-wrap { position: relative; flex: 1 1 180px; min-width: 0; display: flex; }
+.num-wrap > .help { position: absolute; top: 10px; right: 10px; }
+.num-wrap .num-card .name { padding-right: 26px; }
+.num-card { flex: 1 1 auto; min-width: 0; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 6px; }
 .num-card .name { font-size: 13px; color: var(--sub); }
 .num-card .value { font-size: 24px; font-weight: 700; letter-spacing: -0.01em; }
 .num-card .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
@@ -204,6 +207,15 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
 .tip b { font-size: 14px; font-weight: 700; }
 .ctr.c2 { grid-template-columns: 1fr 1fr; }
 
+/* 용어 설명 물음표 */
+.help { width: 22px; height: 22px; padding: 0; border: 1px solid var(--line); border-radius: 50%; background: var(--card); color: var(--sub); font: inherit; font-size: 12px; font-weight: 700; line-height: 1; cursor: pointer; vertical-align: middle; margin-left: 6px; flex: none; position: relative; }
+.help::after { content: ''; position: absolute; inset: -11px; }   /* 누르는 영역을 44px로 넓힌다 */
+.help:hover, .help:focus-visible { color: var(--ink); border-color: var(--sub); }
+.help:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+dialog.narrow { width: min(520px, calc(100vw - 24px)); }
+#help-text { font-size: 15px; line-height: 1.7; }
+#help-link { align-self: flex-start; }
+
 /* 2단 배치: 좁아지면 한 줄로 쌓인다 */
 .cols { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
 .col-main { flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 20px; }
@@ -248,7 +260,7 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
   .page { padding: 16px 12px 40px; gap: 16px; }
   .card { padding: 16px; }
   .tab { padding: 0 12px; }
-  .num-card { flex-basis: 140px; }
+  .num-wrap { flex-basis: 140px; }
   .num-card .value { font-size: 21px; }
   .regime-item { flex-basis: 100%; }
 }
