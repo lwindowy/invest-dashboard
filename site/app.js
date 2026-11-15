@@ -170,7 +170,7 @@
       }).join('');
       var list = ordered(state.market);
       var rows = list.map(function (s) {
-        var name = '<div class="stock-name"><a href="#stocks/' + encodeURIComponent(s.ticker) + '"><b>' + (has(prefs.fav, s.ticker) ? '★ ' : '') + esc(s.name) + '</b></a><span>' + esc(s.ticker.replace('.KS', '')) + (s.stale ? ' · 이전 값' : '') + '</span></div>';
+        var name = '<div class="stock-name"><a href="#stocks/' + encodeURIComponent(s.ticker) + '"><b>' + (has(prefs.fav, s.ticker) ? '★ ' : '') + esc(s.name) + '</b></a><span>' + esc(s.ticker.replace(/\.K[SQ]$/, '')) + (s.stale ? ' · 이전 값' : '') + '</span></div>';
         if (s.error || s.price == null) {
           return '<div class="tr">' + name + '<span class="flat">–</span><span></span><span></span><span></span><span class="src">수집 실패</span></div>';
         }
@@ -306,7 +306,7 @@
       '<svg class="curve" role="img" aria-label="' + esc(s.name) + '과 ' + esc(b.name) + '의 기간 수익률 비교. 시작일을 100으로 맞춘 값." viewBox="0 0 ' + W + ' ' + H + '">' + grid + ticks + paths + '</svg>';
   }
   function stockLinks(s) {
-    var t = s.ticker, code = t.replace('.KS', ''), f = s.fund || {}, L = [];
+    var t = s.ticker, code = t.replace(/\.K[SQ]$/, ''), f = s.fund || {}, L = [];
     L.push(['야후 파이낸스', 'https://finance.yahoo.com/quote/' + encodeURIComponent(t)]);
     if (s.market === 'kr') {
       L.push(['네이버 금융', 'https://finance.naver.com/item/main.naver?code=' + code]);
@@ -327,7 +327,7 @@
     var none = '<p class="empty">재무 데이터를 받지 못했습니다.</p>';
     var fsrc = s.fund ? esc(f.source) + ' · ' + md(f.fetched) + ' 수집' + (f.stale ? ' · 수집 실패로 이전 값' : '') : '';
     var head = '<section class="card stock-head"><a class="back" href="#stocks">← 종목 목록</a>' +
-      '<div class="card-head"><div><h2 class="big">' + esc(s.name) + '</h2><p class="sub">' + esc(s.ticker.replace('.KS', '')) + (f.long_name ? ' · ' + esc(f.long_name) : '') + (f.industry ? ' · ' + esc(f.industry) : '') + '</p></div>' +
+      '<div class="card-head"><div><h2 class="big">' + esc(s.name) + '</h2><p class="sub">' + esc(s.ticker.replace(/\.K[SQ]$/, '')) + (f.long_name ? ' · ' + esc(f.long_name) : '') + (f.industry ? ' · ' + esc(f.industry) : '') + '</p></div>' +
       '<div class="quote"><b>' + price(s.price, cur) + '</b><span class="' + d + '">' + signed(s.change_pct, 2, '%') + '</span></div></div>' +
       stockLinks(s) + '<p class="src">' + stamp(s) + ' · 주가는 15분가량 지연됩니다.</p></section>';
 
@@ -407,25 +407,36 @@
     }).join(''), '노션 「차트 분석」의 기준을 자동 점검한 참고용 알림입니다. 기준 숫자는 config/dashboard.json 의 chart_rules 에서 바꿉니다.');
 
     var charts = box('나스닥 대비 상대 강도와 종목 비교', strengthChart(s), '시작일을 100으로 맞춘 값입니다. 비교 종목을 고르면 선이 하나 더 그려집니다.') +
-      box('트레이딩뷰 차트', '<div id="tv" data-symbol="' + esc(s.market === 'kr' ? 'KRX:' + s.ticker.replace('.KS', '') : s.ticker) + '"><button type="button" class="btn" data-tv>트레이딩뷰 차트 불러오기</button></div>',
+      box('트레이딩뷰 차트', '<div id="tv" data-symbol="' + esc(s.market === 'kr' ? 'KRX:' + s.ticker.replace(/\.K[SQ]$/, '') : s.ticker) + '"><button type="button" class="btn" data-tv>트레이딩뷰 차트 불러오기</button></div>',
         '트레이딩뷰 무료 위젯입니다. 한국 종목은 무료 위젯에서 표시되지 않을 수 있습니다.');
 
     return head + '<div class="grid2">' + priceBox + tech + '</div>' + check + charts +
       '<div class="grid2">' + base + val + '</div>' + debtBox + trend + '<div class="grid2">' + earn + analyst + '</div>' + shortBox;
   }
+  function issueUrl(action, ticker, name) {
+    // 종목 추가·삭제는 GitHub 요청(이슈)으로 보낸다. 저장소의 자동 작업이 받아서 처리한다
+    return 'https://github.com/' + DATA.site.repo + '/issues/new?title=' + encodeURIComponent('종목 ' + action + ': ' + ticker) +
+      '&body=' + encodeURIComponent((name ? '이름: ' + name + '\n\n' : '') + '아래 초록색 Create 버튼을 누르면 1~3분 뒤 사이트에 반영됩니다.');
+  }
   function stockList() {
-    var html = '';
+    var html = '<section class="card" aria-label="종목 추가"><h2>종목 추가</h2>' +
+      '<form class="add" data-add><label>티커<input name="ticker" required maxlength="12" pattern="[A-Za-z0-9.\\-]+" placeholder="TSLA 또는 005930" autocomplete="off" autocapitalize="characters"></label>' +
+      '<label>화면에 보일 이름 (선택)<input name="name" maxlength="30" placeholder="테슬라" autocomplete="off"></label>' +
+      '<button type="submit" class="btn" aria-pressed="true">추가 요청 열기</button></form>' +
+      '<p class="src">버튼을 누르면 GitHub 요청 화면이 새 탭으로 열립니다. 거기서 초록색 Create 버튼을 누르면 1~3분 뒤 모든 지표가 반영됩니다. ' +
+      '미국 종목은 티커, 한국 종목은 숫자 6자리를 적습니다. 삭제는 아래 목록 편집에서 합니다. GitHub에 로그인돼 있어야 합니다.</p></section>';
     [['us', '미국'], ['kr', '한국']].forEach(function (m) {
       var list = ordered(m[0], state.edit);
       var rows = list.map(function (s, i) {
         var hid = has(prefs.hidden, s.ticker), fav = has(prefs.fav, s.ticker), t = esc(s.ticker);
-        var name = '<div class="stock-name"><a href="#stocks/' + encodeURIComponent(s.ticker) + '"><b>' + (fav ? '★ ' : '') + esc(s.name) + '</b></a><span>' + esc(s.ticker.replace('.KS', '')) + (hid ? ' · 숨김' : '') + '</span></div>';
+        var name = '<div class="stock-name"><a href="#stocks/' + encodeURIComponent(s.ticker) + '"><b>' + (fav ? '★ ' : '') + esc(s.name) + '</b></a><span>' + esc(s.ticker.replace(/\.K[SQ]$/, '')) + (hid ? ' · 숨김' : '') + '</span></div>';
         if (state.edit) {
           return '<div class="tr edit' + (hid ? ' dim' : '') + '">' + name + '<div class="tools">' +
             '<button type="button" class="btn" data-act="fav" data-t="' + t + '" aria-pressed="' + fav + '">★ 즐겨찾기</button>' +
             '<button type="button" class="btn" data-act="up" data-m="' + m[0] + '" data-t="' + t + '" aria-label="' + esc(s.name) + ' 위로"' + (i === 0 ? ' disabled' : '') + '>↑</button>' +
             '<button type="button" class="btn" data-act="down" data-m="' + m[0] + '" data-t="' + t + '" aria-label="' + esc(s.name) + ' 아래로"' + (i === list.length - 1 ? ' disabled' : '') + '>↓</button>' +
-            '<button type="button" class="btn" data-act="hide" data-t="' + t + '" aria-pressed="' + hid + '">' + (hid ? '다시 보이기' : '숨기기') + '</button></div></div>';
+            '<button type="button" class="btn" data-act="hide" data-t="' + t + '" aria-pressed="' + hid + '">' + (hid ? '다시 보이기' : '숨기기') + '</button>' +
+            '<a class="btn link del" href="' + esc(issueUrl('삭제', s.ticker)) + '" target="_blank" rel="noopener">삭제 요청</a></div></div>';
         }
         if (s.error || s.price == null) return '<div class="tr">' + name + '<span class="flat">–</span><span></span><span></span><span></span><span class="src">수집 실패</span></div>';
         var d = dir(s.change_pct), det = DATA.stocks[s.ticker] || {}, f = det.fund || {};
@@ -439,7 +450,7 @@
         '<div class="scroll-x"><div class="table">' + (state.edit ? '' : '<div class="tr th"><span>종목</span><span>현재가</span><span>등락률</span><span>RSI(14)</span><span>52주 고점 대비</span><span>시가총액</span></div>') +
         (rows || '<p class="empty">표시할 종목이 없습니다. 목록 편집에서 숨긴 종목을 다시 보이게 할 수 있습니다.</p>') + '</div></div></section>';
     });
-    return html + '<p class="src">종목 이름을 누르면 종목 한 장 요약이 열립니다. 숨기기·순서·즐겨찾기는 이 브라우저에만 저장됩니다. 종목 추가와 삭제는 config/dashboard.json 에서 합니다.</p>';
+    return html + '<p class="src">종목 이름을 누르면 종목 한 장 요약이 열립니다. 숨기기·순서·즐겨찾기는 이 브라우저에만 저장됩니다. 숨기기는 화면에서만 가리고, 삭제 요청은 수집 대상에서 완전히 뺍니다.</p>';
   }
   SECTIONS.stocks = function () {
     if (state.stock) {
@@ -577,6 +588,13 @@
     else if (act === 'hide') { toggle(prefs.hidden, t); savePrefs(); }
     else if (act === 'up' || act === 'down') move(a.dataset.m, t, act === 'up' ? -1 : 1);
     renderView();
+  });
+  $('view').addEventListener('submit', function (e) {
+    var form = e.target.closest('[data-add]');
+    if (!form || !DATA) return;
+    e.preventDefault();
+    var ticker = form.ticker.value.trim().toUpperCase();
+    if (ticker) window.open(issueUrl('추가', ticker, form.name.value.trim()), '_blank', 'noopener');
   });
   $('view').addEventListener('change', function (e) {
     if (!e.target.matches('[data-compare]') || !DATA) return;

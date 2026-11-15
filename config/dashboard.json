@@ -1,7 +1,8 @@
 {
   "site": {
     "title": "나의 투자 대시보드",
-    "disclaimer": "모든 신호는 참고용 점검 알림입니다. 매매 판단의 근거로 쓰지 않습니다."
+    "disclaimer": "모든 신호는 참고용 점검 알림입니다. 매매 판단의 근거로 쓰지 않습니다.",
+    "repo": "lwindowy/invest-dashboard"
   },
   "watchlist": {
     "us": [

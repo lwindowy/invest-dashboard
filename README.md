@@ -14,6 +14,8 @@ config/manual.json      직접 입력하는 값과 일정
 scripts/fetch_data.py   설정을 읽어 데이터를 받고 site/data/dashboard.json 으로 저장
 site/                   화면 (index.html, style.css, app.js). 저장된 JSON만 읽습니다
 .github/workflows/update.yml   30분마다 수집 → GitHub Pages 배포
+.github/workflows/watchlist.yml   종목 추가·삭제 요청 처리
+scripts/watchlist.py    요청 제목을 읽어 관심 종목을 고침
 ```
 
 흐름: 설정 파일 → 수집 스크립트 → `site/data/dashboard.json` → 화면. 수집 결과는 저장소에 올리지 않고 배포할 때마다 새로 만듭니다.
@@ -33,7 +35,7 @@ site/                   화면 (index.html, style.css, app.js). 저장된 JSON�
 
 ## 자주 하는 수정
 
-- **종목 추가·삭제**: `config/dashboard.json` 의 `watchlist` 에 한 줄을 넣거나 지웁니다. 한국 종목은 `005930.KS` 처럼 `.KS` 를 붙입니다.
+- **종목 추가·삭제**: 사이트 종목 탭의 "종목 추가" 칸에 티커를 적고 요청을 보내면 1~3분 뒤 반영됩니다(삭제는 목록 편집의 "삭제 요청"). 요청은 GitHub 이슈로 만들어지고, `.github/workflows/watchlist.yml` 이 저장소 주인의 요청만 받아 `scripts/watchlist.py` 로 설정 파일을 고친 뒤 다시 배포합니다. 직접 고치려면 `config/dashboard.json` 의 `watchlist` 에 한 줄을 넣거나 지웁니다(한국 종목은 `005930.KS`, 코스닥은 `.KQ`).
 - **지표 추가**: `series` 에 한 줄을 넣고(`"source": "yahoo"` 는 `symbol`, `"source": "fred"` 는 `id`), 보여줄 탭의 `sections[].items` 에 그 이름을 넣습니다. FRED 지표는 `freq`(M·Q·W)와 `transform`(`yoy` 전년 대비, `mom_pct` 전월 대비 %, `mom_diff` 전월 대비 증감)을 쓸 수 있고, `event` 를 적으면 다음 발표일이 일정에 들어갑니다.
 - **직접 입력 값**: `config/manual.json` 의 `values` 에 값과 입력한 날짜(`entered`)를 적습니다.
 - **국면 판단 기준 변경**: `regime` 의 숫자를 고칩니다. 화면의 "판단 기준 보기"에 그대로 반영됩니다.
@@ -79,11 +81,9 @@ site/                   화면 (index.html, style.css, app.js). 저장된 JSON�
 
 ### 1차에서 남은 것
 
-- 종목 추가·삭제를 화면에서 요청하기 (GitHub 요청으로 1~3분 뒤 반영)
 - 나스닥 포워드 PER (구성 종목을 하루 한 번 받아 계산, 매일 값을 저장해 자체 추이 쌓기)
 - 지표 이름 옆 물음표 설명 (노션 「용어·지표」 연결)
 - 신용등급 직접 입력, 한국은행 기준금리 값 입력(또는 ECOS API 키로 자동화), 종목별 IR·노션 노트 링크
-- 60일 무변경 시 예약 실행이 꺼지는 것 막기
 
 ### 그다음
 
@@ -113,4 +113,4 @@ python -m http.server 8000 --directory site
 
 ## 배포
 
-`main` 브랜치에서 `.github/workflows/update.yml` 이 매시 7분과 37분에 실행됩니다. 저장소 Settings → Pages → Source 가 "GitHub Actions" 여야 합니다. GitHub 예약 실행은 몇 분에서 수십 분 늦을 수 있고, 공개 저장소는 60일 동안 변경이 없으면 예약 실행이 꺼지므로 그때는 Actions 탭에서 다시 켭니다.
+`main` 브랜치에서 `.github/workflows/update.yml` 이 매시 7분과 37분에 실행됩니다. 저장소 Settings → Pages → Source 가 "GitHub Actions" 여야 합니다. GitHub 예약 실행은 몇 분에서 수십 분 늦을 수 있습니다. 공개 저장소는 60일 동안 변경이 없으면 예약 실행이 꺼지는데, 이를 막으려고 예약 실행 때마다 워크플로를 "켜기"로 다시 지정합니다. 그래도 꺼졌다면 Actions 탭에서 다시 켭니다.
