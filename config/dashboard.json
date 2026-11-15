@@ -1,7 +1,8 @@
 {
   "site": {
     "title": "나의 투자 대시보드",
-    "disclaimer": "모든 신호는 참고용 점검 알림입니다. 매매 판단의 근거로 쓰지 않습니다."
+    "disclaimer": "모든 신호는 참고용 점검 알림입니다. 매매 판단의 근거로 쓰지 않습니다.",
+    "repo": "lwindowy/invest-dashboard"
   },
   "watchlist": {
     "us": [
@@ -380,6 +381,46 @@
       "change": "diff",
       "diff_unit": "%p",
       "diff_decimals": 1
+    },
+    "ig_spread": {
+      "name": "투자등급 스프레드",
+      "source": "fred",
+      "id": "BAMLC0A0CM",
+      "decimals": 2,
+      "unit": "%p",
+      "change": "diff",
+      "diff_unit": "%p",
+      "diff_decimals": 2
+    },
+    "bbb_spread": {
+      "name": "BBB 등급 스프레드",
+      "source": "fred",
+      "id": "BAMLC0A4CBBB",
+      "decimals": 2,
+      "unit": "%p",
+      "change": "diff",
+      "diff_unit": "%p",
+      "diff_decimals": 2
+    },
+    "bb_spread": {
+      "name": "BB 등급 스프레드",
+      "source": "fred",
+      "id": "BAMLH0A1HYBB",
+      "decimals": 2,
+      "unit": "%p",
+      "change": "diff",
+      "diff_unit": "%p",
+      "diff_decimals": 2
+    },
+    "b_spread": {
+      "name": "B 등급 스프레드",
+      "source": "fred",
+      "id": "BAMLH0A2HYB",
+      "decimals": 2,
+      "unit": "%p",
+      "change": "diff",
+      "diff_unit": "%p",
+      "diff_decimals": 2
     }
   },
   "tabs": [
@@ -454,9 +495,14 @@
           "label": "신용",
           "heading": true,
           "items": [
-            "hy_spread",
-            "ccc_spread"
-          ]
+            "ig_spread",
+            "bbb_spread",
+            "bb_spread",
+            "b_spread",
+            "ccc_spread",
+            "hy_spread"
+          ],
+          "note": "회사채 금리가 같은 만기 국채보다 얼마나 높은지입니다. 벌어질수록 시장이 부도 위험을 크게 본다는 뜻입니다. 개별 기업의 CDS·회사채 가격은 무료 데이터가 없어 등급별 스프레드로 봅니다. 하이일드는 BB 이하 전체입니다."
         },
         {
           "type": "cards",
@@ -535,8 +581,12 @@
     {
       "id": "calendar",
       "label": "캘린더",
-      "stage": "1차",
-      "planned": "실적 발표일, 경제지표 발표일, FOMC, 옵션·선물 만기일, 직접 적는 이벤트"
+      "sections": [
+        {
+          "type": "calendar",
+          "label": "캘린더"
+        }
+      ]
     },
     {
       "id": "flows",
@@ -689,5 +739,12 @@
     "recent_days": 10,
     "near_ma20_pct": 2,
     "far_ma20_pct": 15
+  },
+  "debt_rules": {
+    "coverage_bad": 1.5,
+    "coverage_warn": 3,
+    "leverage_warn": 2.5,
+    "leverage_bad": 4,
+    "current_ratio_warn": 1
   }
 }

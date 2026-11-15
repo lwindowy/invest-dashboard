@@ -9,7 +9,7 @@
     get: function (k, d) { try { return localStorage.getItem(k) || d; } catch (e) { return d; } },
     set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
   };
-  var state = { tab: 'home', stock: null, market: store.get('market', 'us'), edit: false, compare: '' };
+  var state = { tab: 'home', stock: null, market: store.get('market', 'us'), edit: false, compare: '', month: null, kinds: {} };
   function route() {
     var h = (location.hash || '#home').slice(1).split('/');
     state.tab = h[0] || 'home';
@@ -170,7 +170,7 @@
       }).join('');
       var list = ordered(state.market);
       var rows = list.map(function (s) {
-        var name = '<div class="stock-name"><a href="#stocks/' + encodeURIComponent(s.ticker) + '"><b>' + (has(prefs.fav, s.ticker) ? '★ ' : '') + esc(s.name) + '</b></a><span>' + esc(s.ticker.replace('.KS', '')) + (s.stale ? ' · 이전 값' : '') + '</span></div>';
+        var name = '<div class="stock-name"><a href="#stocks/' + encodeURIComponent(s.ticker) + '"><b>' + (has(prefs.fav, s.ticker) ? '★ ' : '') + esc(s.name) + '</b></a><span>' + esc(s.ticker.replace(/\.K[SQ]$/, '')) + (s.stale ? ' · 이전 값' : '') + '</span></div>';
         if (s.error || s.price == null) {
           return '<div class="tr">' + name + '<span class="flat">–</span><span></span><span></span><span></span><span class="src">수집 실패</span></div>';
         }
@@ -199,7 +199,7 @@
           '<div class="what"><b>' + esc(e.title) + '</b><span>' + esc(e.kind) + ' · ' + esc(e.source || '') + '</span></div></div>';
       }).join('') : '<p class="empty">앞으로 30일 안에 잡힌 일정이 없습니다.</p>';
       return '<section class="card" aria-label="' + esc(sec.label) + '"><h2>' + esc(sec.label) + '</h2>' + body +
-        '<p class="src">경제지표 발표일은 캘린더 탭을 만들 때 추가합니다. 실적일은 회사 확정 전에는 바뀔 수 있습니다.</p></section>';
+        '<p class="src">전체 일정은 <a href="#calendar">캘린더 탭</a>에서 봅니다. 실적일은 회사 확정 전에는 바뀔 수 있습니다.</p></section>';
     },
     rows: function (sec) {
       var rows = sec.items.map(function (id) {
@@ -306,7 +306,7 @@
       '<svg class="curve" role="img" aria-label="' + esc(s.name) + '과 ' + esc(b.name) + '의 기간 수익률 비교. 시작일을 100으로 맞춘 값." viewBox="0 0 ' + W + ' ' + H + '">' + grid + ticks + paths + '</svg>';
   }
   function stockLinks(s) {
-    var t = s.ticker, code = t.replace('.KS', ''), f = s.fund || {}, L = [];
+    var t = s.ticker, code = t.replace(/\.K[SQ]$/, ''), f = s.fund || {}, L = [];
     L.push(['야후 파이낸스', 'https://finance.yahoo.com/quote/' + encodeURIComponent(t)]);
     if (s.market === 'kr') {
       L.push(['네이버 금융', 'https://finance.naver.com/item/main.naver?code=' + code]);
@@ -327,7 +327,7 @@
     var none = '<p class="empty">재무 데이터를 받지 못했습니다.</p>';
     var fsrc = s.fund ? esc(f.source) + ' · ' + md(f.fetched) + ' 수집' + (f.stale ? ' · 수집 실패로 이전 값' : '') : '';
     var head = '<section class="card stock-head"><a class="back" href="#stocks">← 종목 목록</a>' +
-      '<div class="card-head"><div><h2 class="big">' + esc(s.name) + '</h2><p class="sub">' + esc(s.ticker.replace('.KS', '')) + (f.long_name ? ' · ' + esc(f.long_name) : '') + (f.industry ? ' · ' + esc(f.industry) : '') + '</p></div>' +
+      '<div class="card-head"><div><h2 class="big">' + esc(s.name) + '</h2><p class="sub">' + esc(s.ticker.replace(/\.K[SQ]$/, '')) + (f.long_name ? ' · ' + esc(f.long_name) : '') + (f.industry ? ' · ' + esc(f.industry) : '') + '</p></div>' +
       '<div class="quote"><b>' + price(s.price, cur) + '</b><span class="' + d + '">' + signed(s.change_pct, 2, '%') + '</span></div></div>' +
       stockLinks(s) + '<p class="src">' + stamp(s) + ' · 주가는 15분가량 지연됩니다.</p></section>';
 
@@ -342,6 +342,25 @@
 
     var base = box('기본 체력', s.fund ? '<div class="facts">' + fact('시가총액', money(f.market_cap, cur)) + fact('보유 현금', money(f.cash, fc)) + fact('부채', money(f.debt, fc)) +
       fact(f.net_cash < 0 ? '순부채' : '순현금', money(Math.abs(f.net_cash), fc), f.net_cash < 0 ? '부채가 현금보다 많음' : '현금이 부채보다 많음') + '</div>' : none, fsrc);
+
+    var dm = f.debt_metrics || {}, R = DATA.debt_rules || {};
+    function grade(v, bad, warn, lowIsBad) {
+      // 기준선과 비교해 신호등을 붙인다
+      if (v == null) return '';
+      var isBad = lowIsBad ? v < bad : v >= bad, isWarn = lowIsBad ? v < warn : v >= warn;
+      return ' ' + (isBad ? pill('위험', 'bad', true) : isWarn ? pill('주의', 'warn', true) : pill('양호', 'good', true));
+    }
+    var iq = dm.interest_quarters || [];
+    var debtBox = box('부채와 신용 위험', s.fund && f.debt_metrics && Object.keys(dm).length ? '<div class="facts">' +
+      fact('이자보상배율', dm.ebit_ttm != null && dm.ebit_ttm <= 0 ? pill('영업적자', 'bad', true) : dm.interest_coverage == null ? (dm.interest_ttm ? '–' : '이자비용 없음') : fmt(dm.interest_coverage, dm.interest_coverage < 1 ? 2 : 1) + '배' + grade(dm.interest_coverage, R.coverage_bad, R.coverage_warn, true),
+        '최근 4분기 EBIT ' + money(dm.ebit_ttm, fc) + ' ÷ 이자비용 ' + money(dm.interest_ttm, fc)) +
+      fact('순부채 ÷ EBITDA', f.net_cash >= 0 ? '순현금 ' + pill('양호', 'good', true) : dm.net_debt_to_ebitda == null ? (dm.ebitda != null && dm.ebitda <= 0 ? pill('EBITDA 적자', 'bad', true) : '–') : fmt(dm.net_debt_to_ebitda, 1) + '배' + grade(dm.net_debt_to_ebitda, R.leverage_bad, R.leverage_warn, false),
+        '번 돈으로 빚을 갚는 데 걸리는 햇수. EBITDA ' + money(dm.ebitda, fc)) +
+      fact('부채비율', ratio(dm.debt_to_equity_pct, 0, '%'), '총부채 ÷ 자기자본') +
+      fact('유동비율', dm.current_ratio == null ? '–' : fmt(dm.current_ratio, 2) + '배' + (dm.current_ratio < R.current_ratio_warn ? ' ' + pill('주의', 'warn', true) : ''), '1년 안에 현금화할 자산 ÷ 1년 안에 갚을 부채') +
+      fact('1년 내 만기 부채', money(dm.short_debt, fc), dm.cash_to_short_debt == null ? '' : '보유 현금이 ' + fmt(dm.cash_to_short_debt, 1) + '배') +
+      fact('분기 이자비용', iq.length ? money(iq[iq.length - 1].interest, fc) : '–', iq.length > 1 ? iq[0].period + ' 분기 ' + money(iq[0].interest, fc) + '에서 변화' : '') + '</div>' : none,
+      '개별 기업의 CDS와 회사채 가격은 무료 데이터가 없어 재무제표로 계산한 지표로 대신합니다. 기준: 이자보상배율 ' + R.coverage_bad + '배 미만 위험·' + R.coverage_warn + '배 미만 주의, 순부채÷EBITDA ' + R.leverage_bad + '배 이상 위험·' + R.leverage_warn + '배 이상 주의. 등급별 회사채 스프레드는 <a href="#macro">거시경제 탭</a>의 신용 묶음에서 봅니다. ' + fsrc);
 
     var val = box('밸류에이션', s.fund ? '<div class="facts">' +
       fact('PER', ratio(f.per, 1, '배'), f.per == null ? '적자이거나 값 없음' : '') + fact('포워드 PER', ratio(f.forward_per, 1, '배')) + fact('PSR', ratio(f.psr, 1, '배')) + fact('PEG', ratio(f.peg, 2)) +
@@ -388,25 +407,36 @@
     }).join(''), '노션 「차트 분석」의 기준을 자동 점검한 참고용 알림입니다. 기준 숫자는 config/dashboard.json 의 chart_rules 에서 바꿉니다.');
 
     var charts = box('나스닥 대비 상대 강도와 종목 비교', strengthChart(s), '시작일을 100으로 맞춘 값입니다. 비교 종목을 고르면 선이 하나 더 그려집니다.') +
-      box('트레이딩뷰 차트', '<div id="tv" data-symbol="' + esc(s.market === 'kr' ? 'KRX:' + s.ticker.replace('.KS', '') : s.ticker) + '"><button type="button" class="btn" data-tv>트레이딩뷰 차트 불러오기</button></div>',
+      box('트레이딩뷰 차트', '<div id="tv" data-symbol="' + esc(s.market === 'kr' ? 'KRX:' + s.ticker.replace(/\.K[SQ]$/, '') : s.ticker) + '"><button type="button" class="btn" data-tv>트레이딩뷰 차트 불러오기</button></div>',
         '트레이딩뷰 무료 위젯입니다. 한국 종목은 무료 위젯에서 표시되지 않을 수 있습니다.');
 
     return head + '<div class="grid2">' + priceBox + tech + '</div>' + check + charts +
-      '<div class="grid2">' + base + val + '</div>' + trend + '<div class="grid2">' + earn + analyst + '</div>' + shortBox;
+      '<div class="grid2">' + base + val + '</div>' + debtBox + trend + '<div class="grid2">' + earn + analyst + '</div>' + shortBox;
+  }
+  function issueUrl(action, ticker, name) {
+    // 종목 추가·삭제는 GitHub 요청(이슈)으로 보낸다. 저장소의 자동 작업이 받아서 처리한다
+    return 'https://github.com/' + DATA.site.repo + '/issues/new?title=' + encodeURIComponent('종목 ' + action + ': ' + ticker) +
+      '&body=' + encodeURIComponent((name ? '이름: ' + name + '\n\n' : '') + '아래 초록색 Create 버튼을 누르면 1~3분 뒤 사이트에 반영됩니다.');
   }
   function stockList() {
-    var html = '';
+    var html = '<section class="card" aria-label="종목 추가"><h2>종목 추가</h2>' +
+      '<form class="add" data-add><label>티커<input name="ticker" required maxlength="12" pattern="[A-Za-z0-9.\\-]+" placeholder="TSLA 또는 005930" autocomplete="off" autocapitalize="characters"></label>' +
+      '<label>화면에 보일 이름 (선택)<input name="name" maxlength="30" placeholder="테슬라" autocomplete="off"></label>' +
+      '<button type="submit" class="btn" aria-pressed="true">추가 요청 열기</button></form>' +
+      '<p class="src">버튼을 누르면 GitHub 요청 화면이 새 탭으로 열립니다. 거기서 초록색 Create 버튼을 누르면 1~3분 뒤 모든 지표가 반영됩니다. ' +
+      '미국 종목은 티커, 한국 종목은 숫자 6자리를 적습니다. 삭제는 아래 목록 편집에서 합니다. GitHub에 로그인돼 있어야 합니다.</p></section>';
     [['us', '미국'], ['kr', '한국']].forEach(function (m) {
       var list = ordered(m[0], state.edit);
       var rows = list.map(function (s, i) {
         var hid = has(prefs.hidden, s.ticker), fav = has(prefs.fav, s.ticker), t = esc(s.ticker);
-        var name = '<div class="stock-name"><a href="#stocks/' + encodeURIComponent(s.ticker) + '"><b>' + (fav ? '★ ' : '') + esc(s.name) + '</b></a><span>' + esc(s.ticker.replace('.KS', '')) + (hid ? ' · 숨김' : '') + '</span></div>';
+        var name = '<div class="stock-name"><a href="#stocks/' + encodeURIComponent(s.ticker) + '"><b>' + (fav ? '★ ' : '') + esc(s.name) + '</b></a><span>' + esc(s.ticker.replace(/\.K[SQ]$/, '')) + (hid ? ' · 숨김' : '') + '</span></div>';
         if (state.edit) {
           return '<div class="tr edit' + (hid ? ' dim' : '') + '">' + name + '<div class="tools">' +
             '<button type="button" class="btn" data-act="fav" data-t="' + t + '" aria-pressed="' + fav + '">★ 즐겨찾기</button>' +
             '<button type="button" class="btn" data-act="up" data-m="' + m[0] + '" data-t="' + t + '" aria-label="' + esc(s.name) + ' 위로"' + (i === 0 ? ' disabled' : '') + '>↑</button>' +
             '<button type="button" class="btn" data-act="down" data-m="' + m[0] + '" data-t="' + t + '" aria-label="' + esc(s.name) + ' 아래로"' + (i === list.length - 1 ? ' disabled' : '') + '>↓</button>' +
-            '<button type="button" class="btn" data-act="hide" data-t="' + t + '" aria-pressed="' + hid + '">' + (hid ? '다시 보이기' : '숨기기') + '</button></div></div>';
+            '<button type="button" class="btn" data-act="hide" data-t="' + t + '" aria-pressed="' + hid + '">' + (hid ? '다시 보이기' : '숨기기') + '</button>' +
+            '<a class="btn link del" href="' + esc(issueUrl('삭제', s.ticker)) + '" target="_blank" rel="noopener">삭제 요청</a></div></div>';
         }
         if (s.error || s.price == null) return '<div class="tr">' + name + '<span class="flat">–</span><span></span><span></span><span></span><span class="src">수집 실패</span></div>';
         var d = dir(s.change_pct), det = DATA.stocks[s.ticker] || {}, f = det.fund || {};
@@ -420,7 +450,7 @@
         '<div class="scroll-x"><div class="table">' + (state.edit ? '' : '<div class="tr th"><span>종목</span><span>현재가</span><span>등락률</span><span>RSI(14)</span><span>52주 고점 대비</span><span>시가총액</span></div>') +
         (rows || '<p class="empty">표시할 종목이 없습니다. 목록 편집에서 숨긴 종목을 다시 보이게 할 수 있습니다.</p>') + '</div></div></section>';
     });
-    return html + '<p class="src">종목 이름을 누르면 종목 한 장 요약이 열립니다. 숨기기·순서·즐겨찾기는 이 브라우저에만 저장됩니다. 종목 추가와 삭제는 config/dashboard.json 에서 합니다.</p>';
+    return html + '<p class="src">종목 이름을 누르면 종목 한 장 요약이 열립니다. 숨기기·순서·즐겨찾기는 이 브라우저에만 저장됩니다. 숨기기는 화면에서만 가리고, 삭제 요청은 수집 대상에서 완전히 뺍니다.</p>';
   }
   SECTIONS.stocks = function () {
     if (state.stock) {
@@ -437,6 +467,42 @@
       style: '1', locale: 'kr', allow_symbol_change: false, hide_side_toolbar: true, support_host: 'https://www.tradingview.com' });
     holder.innerHTML = ''; holder.className = 'tv-on'; w.appendChild(inner); w.appendChild(sc); holder.appendChild(w);
   }
+
+  // ───────── 캘린더 탭 ─────────
+  var KINDS = ['실적', '경제지표', 'FOMC', '만기', '내 이벤트'];
+  function kstToday() { return new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Seoul' }).format(new Date()); }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  SECTIONS.calendar = function () {
+    var today = kstToday();
+    var ym = state.month || today.slice(0, 7), y = Number(ym.slice(0, 4)), m = Number(ym.slice(5, 7));
+    var events = (DATA.events_all || []).filter(function (e) { return !state.kinds[KINDS.indexOf(e.kind) < 0 ? '내 이벤트' : e.kind]; });
+    var inMonth = events.filter(function (e) { return e.date.slice(0, 7) === ym; });
+    var byDay = {};
+    inMonth.forEach(function (e) { (byDay[e.date] = byDay[e.date] || []).push(e); });
+    function shift(step) { var d = new Date(y, m - 1 + step, 1); return d.getFullYear() + '-' + pad(d.getMonth() + 1); }
+    var nav = '<div class="seg"><button type="button" class="btn" data-month="' + shift(-1) + '" aria-label="이전 달">←</button>' +
+      '<button type="button" class="btn" data-month="' + today.slice(0, 7) + '">이번 달</button>' +
+      '<button type="button" class="btn" data-month="' + shift(1) + '" aria-label="다음 달">→</button></div>';
+    var filters = '<div class="seg wrap">' + KINDS.map(function (k) {
+      return '<button type="button" class="btn small" data-kind="' + k + '" aria-pressed="' + !state.kinds[k] + '">' + k + '</button>';
+    }).join('') + '</div>';
+    var first = new Date(y, m - 1, 1).getDay(), days = new Date(y, m, 0).getDate(), cells = '';
+    for (var i = 0; i < first; i++) cells += '<div class="day off"></div>';
+    for (var d = 1; d <= days; d++) {
+      var iso = ym + '-' + pad(d), list = byDay[iso] || [];
+      cells += '<div class="day' + (iso === today ? ' today' : '') + (iso < today ? ' past' : '') + '"><span class="n">' + d + '</span>' +
+        list.map(function (e) { return '<span class="chip k' + KINDS.indexOf(e.kind) + '" title="' + esc(e.title) + '">' + esc(e.title.replace(' 발표', '')) + '</span>'; }).join('') + '</div>';
+    }
+    var grid = '<div class="cal" aria-hidden="true"><div class="dow">' + '일월화수목금토'.split('').map(function (w) { return '<span>' + w + '</span>'; }).join('') + '</div><div class="days">' + cells + '</div></div>';
+    var list = inMonth.length ? inMonth.map(function (e) {
+      return '<div class="event' + (e.date < today ? ' past' : '') + '"><div class="date' + (e.date === today ? ' today' : '') + '"><b>' + md(e.date) + '</b><span>' + weekday(e.date) + '</span></div>' +
+        '<div class="what"><b>' + esc(e.title) + '</b><span>' + esc(e.kind) + ' · ' + esc(e.source || '') + '</span></div></div>';
+    }).join('') : '<p class="empty">이 달에 잡힌 일정이 없습니다. 실적일과 경제지표 발표일은 다음 한 건씩만 미리 알 수 있어, 먼 달은 FOMC와 만기일만 보입니다.</p>';
+    return '<section class="card" aria-label="캘린더"><div class="card-head"><h2>' + y + '년 ' + m + '월</h2>' + nav + '</div>' + filters + grid + '</section>' +
+      '<section class="card" aria-label="' + m + '월 일정 목록"><h2>' + m + '월 일정 ' + inMonth.length + '건</h2>' + list +
+      '<p class="src">실적일은 한국 시간, 경제지표와 FOMC는 미국 날짜 기준입니다(FOMC 결과는 한국 시간으로 다음 날 새벽). 실적일은 회사 확정 전에는 바뀔 수 있습니다. ' +
+      '직접 적는 일정은 config/manual.json 의 events 에 넣습니다. 출처: Yahoo Finance, FRED, 연준' + (DATA.fomc && DATA.fomc.fetched ? ' (FOMC ' + md(DATA.fomc.fetched) + ' 확인)' : '') + '</p></section>';
+  };
 
   // ───────── 화면 조립 ─────────
   function renderTabs() {
@@ -482,7 +548,7 @@
       notes.push('일부 항목을 받지 못했습니다: ' + DATA.errors.map(function (e) { return e.where; }).join(', ') + '. 해당 항목은 이전 값이거나 비어 있습니다.');
     }
     $('notice').innerHTML = notes.map(function (n) { return '<p class="notice" role="status">' + esc(n) + '</p>'; }).join('');
-    $('foot').innerHTML = esc(DATA.site.disclaimer) + '<br>출처: Yahoo Finance(주가·환율·지수·원자재), FRED(금리·스프레드·경제지표). 무료 데이터는 개인 용도로만 씁니다.';
+    $('foot').innerHTML = esc(DATA.site.disclaimer) + '<br>출처: Yahoo Finance(주가·환율·지수·원자재·재무), FRED(금리·스프레드·경제지표), 연준(FOMC 일정). 무료 데이터는 개인 용도로만 씁니다.';
   }
   function renderButtons() {
     var dark = root.dataset.theme === 'dark', us = root.dataset.color === 'us';
@@ -511,6 +577,9 @@
     var b = e.target.closest('[data-market]');
     if (b) { state.market = b.dataset.market; store.set('market', state.market); renderView(); return; }
     if (e.target.closest('[data-tv]')) { loadTradingView($('tv')); return; }
+    var mo = e.target.closest('[data-month]'), ki = e.target.closest('[data-kind]');
+    if (mo) { state.month = mo.dataset.month; renderView(); return; }
+    if (ki) { state.kinds[ki.dataset.kind] = !state.kinds[ki.dataset.kind]; renderView(); return; }
     var a = e.target.closest('[data-act]');
     if (!a) return;
     var act = a.dataset.act, t = a.dataset.t;
@@ -519,6 +588,13 @@
     else if (act === 'hide') { toggle(prefs.hidden, t); savePrefs(); }
     else if (act === 'up' || act === 'down') move(a.dataset.m, t, act === 'up' ? -1 : 1);
     renderView();
+  });
+  $('view').addEventListener('submit', function (e) {
+    var form = e.target.closest('[data-add]');
+    if (!form || !DATA) return;
+    e.preventDefault();
+    var ticker = form.ticker.value.trim().toUpperCase();
+    if (ticker) window.open(issueUrl('추가', ticker, form.name.value.trim()), '_blank', 'noopener');
   });
   $('view').addEventListener('change', function (e) {
     if (!e.target.matches('[data-compare]') || !DATA) return;
