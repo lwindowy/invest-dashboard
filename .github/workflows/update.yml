@@ -47,6 +47,10 @@ jobs:
       - name: 데이터 수집
         run: python scripts/fetch_data.py --prev "$RUNNER_TEMP/prev.json"
 
+      # 브라우저가 예전 화면 파일을 붙잡고 있지 않도록, 파일 주소에 이번 커밋 번호를 붙인다
+      - name: 화면 파일에 버전 붙이기
+        run: sed -i -E "s/(style\.css|app\.js)\"/\1?v=${GITHUB_SHA::8}\"/" site/index.html && grep -E "style.css|app.js" site/index.html
+
       # 공개 저장소는 60일 동안 변경이 없으면 예약 실행이 꺼진다.
       # 워크플로를 '켜기'로 다시 지정하면 그 기한이 새로 시작된다. 실패해도 배포는 계속한다.
       - name: 예약 실행이 꺼지지 않게 하기
