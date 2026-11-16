@@ -21,7 +21,7 @@ import yfinance as yf
 FACTS = "https://data.sec.gov/api/xbrl/companyfacts/CIK{:010d}.json"
 RELEASE_CHARS = 60000   # AI용 파일에 넣을 실적 보도자료 본문 길이(글자)
 YEARS = 15              # 연간 표에 남길 햇수
-QUARTERS = 20           # 분기 표에 남길 분기 수
+QUARTERS = 28           # 분기 표에 남길 분기 수 (밸류에이션 5년 퍼센타일에 최근 4분기 합계가 필요해 7년치)
 
 # 항목마다 회사가 쓸 수 있는 XBRL 이름. 앞에 있는 이름을 먼저 쓰고, 그 기간에 값이 없으면 다음 이름으로 채운다.
 FLOW = {   # 기간 값 (손익·현금흐름)
@@ -44,6 +44,11 @@ FLOW = {   # 기간 값 (손익·현금흐름)
     "capex": ["us-gaap:PaymentsToAcquirePropertyPlantAndEquipment", "us-gaap:PaymentsToAcquireProductiveAssets",
               "ifrs-full:PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities"],
     "sbc": ["us-gaap:ShareBasedCompensation", "us-gaap:AllocatedShareBasedCompensationExpense"],
+    "sga": ["us-gaap:SellingGeneralAndAdministrativeExpense", "ifrs-full:SellingGeneralAndAdministrativeExpense"],
+    "selling": ["us-gaap:SellingAndMarketingExpense", "us-gaap:SellingExpense"],          # 판관비를 나눠 적는 회사용
+    "admin": ["us-gaap:GeneralAndAdministrativeExpense"],
+    "dna": ["us-gaap:DepreciationDepletionAndAmortization", "us-gaap:DepreciationAndAmortization", "us-gaap:DepreciationAmortizationAndAccretionNet",
+            "us-gaap:Depreciation", "ifrs-full:DepreciationAndAmortisationExpense"],
     "buyback": ["us-gaap:PaymentsForRepurchaseOfCommonStock"],
     "dividends": ["us-gaap:PaymentsOfDividendsCommonStock", "us-gaap:PaymentsOfDividends"],
 }
@@ -66,13 +71,21 @@ STOCK = {  # 시점 값 (재무상태표)
     "debt_current": ["us-gaap:LongTermDebtCurrent", "us-gaap:DebtCurrent", "us-gaap:NotesPayableCurrent", "us-gaap:ShortTermBorrowings",
                      "ifrs-full:CurrentPortionOfNoncurrentBorrowings", "ifrs-full:CurrentBorrowings"],
     "inventory": ["us-gaap:InventoryNet", "ifrs-full:Inventories"],
+    "receivables": ["us-gaap:AccountsReceivableNetCurrent", "us-gaap:ReceivablesNetCurrent", "ifrs-full:TradeAndOtherCurrentReceivables"],
+    "ppe": ["us-gaap:PropertyPlantAndEquipmentNet", "us-gaap:PropertyPlantAndEquipmentAndFinanceLeaseRightOfUseAssetAfterAccumulatedDepreciationAndAmortization",
+            "ifrs-full:PropertyPlantAndEquipment"],
+    "retained_earnings": ["us-gaap:RetainedEarningsAccumulatedDeficit", "ifrs-full:RetainedEarnings"],
+    "liab_and_equity": ["us-gaap:LiabilitiesAndStockholdersEquity", "ifrs-full:EquityAndLiabilities"],   # 총부채를 따로 적지 않는 회사용
+    "equity_total": ["us-gaap:StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest", "us-gaap:StockholdersEquity", "ifrs-full:Equity"],
 }
+SHARES_OUT = ["us-gaap:CommonStockSharesOutstanding", "ifrs-full:NumberOfSharesOutstanding"]   # 기말 발행주식 수 (시점 값, 주식 수 단위)
 # 항목 설명 (AI용 파일의 안내문에 그대로 들어간다)
 LABELS = {
     "revenue": "매출", "cost_of_revenue": "매출원가", "gross_profit": "매출총이익", "rnd": "연구개발비", "op_income": "영업이익",
     "pretax_income": "세전이익", "income_tax": "법인세", "net_income": "순이익", "eps_diluted": "희석 EPS (주당 순이익)",
     "shares_diluted": "희석 가중평균 주식 수", "ocf": "영업현금흐름", "capex": "설비투자 (유형자산 취득, 양수로 적음)",
-    "fcf": "잉여현금흐름 = 영업현금흐름 − 설비투자", "sbc": "주식보상비용", "buyback": "자사주 매입", "dividends": "배당 지급",
+    "fcf": "잉여현금흐름 = 영업현금흐름 − 설비투자", "sbc": "주식보상비용", "sga": "판매관리비", "dna": "감가상각비 (상각 포함)",
+    "receivables": "매출채권", "selling": "판매비", "admin": "관리비", "liab_and_equity": "부채와 자본 합계", "equity_total": "자본 합계 (비지배지분 포함)", "ppe": "유형자산 (순액)", "retained_earnings": "이익잉여금 (결손금이면 음수)", "shares_out": "기말 발행주식 수", "buyback": "자사주 매입", "dividends": "배당 지급",
     "cash": "현금성 자산", "short_investments": "단기 투자자산", "total_assets": "총자산", "current_assets": "유동자산",
     "current_liabilities": "유동부채", "total_liabilities": "총부채", "equity": "자기자본", "debt_long": "장기 차입금",
     "debt_current": "1년 내 만기 차입금", "debt_total": "차입금 합계 (회사가 적은 값)",
@@ -93,6 +106,7 @@ METHOD = [
     "분기 ROE·ROIC는 최근 4개 분기 합계로 계산한다. 차입금에는 리스 부채가 들어가지 않는다. 차입금 값이 없으면 ROIC 계산에서 0으로 본다.",
     "주식 분할: 옛 공시의 EPS와 주식 수는 그 공시를 낸 뒤에 있었던 분할(Yahoo 분할 이력)만큼 나누거나 곱해 지금 주식 기준으로 맞춘다. splits 가 null 이면 보정하지 못한 것이다.",
     "EPS와 주식 수는 더할 수 없는 값이라 4분기 값을 만들지 않는다(4분기 EPS는 비어 있다).",
+    "총부채를 따로 적지 않은 회사는 '부채와 자본 합계 − 자본 합계(비지배지분 포함)'로, 판관비를 나눠 적은 회사는 '판매비 + 관리비'로 채운다.",
     "회사가 쓰는 XBRL 항목 이름이 기간마다 달라 일부 칸이 비어 있을 수 있다. 빈 칸은 계산하지 않는다(0으로 보지 않는다).",
 ]
 
@@ -197,6 +211,11 @@ def build_rows(periods, flows, stocks, quarterly):
             row[k] = vals.get(e)
         rows.append(row)
     for row in rows:
+        # 회사가 합계를 적지 않은 항목은 나눠 적은 값으로 만든다
+        if row.get("total_liabilities") is None and row.get("liab_and_equity") is not None and row.get("equity_total") is not None:
+            row["total_liabilities"] = row["liab_and_equity"] - row["equity_total"]
+        if row.get("sga") is None and row.get("selling") is not None and row.get("admin") is not None:
+            row["sga"] = row["selling"] + row["admin"]
         if row["gross_profit"] is None and row["revenue"] is not None and row["cost_of_revenue"] is not None:
             row["gross_profit"] = row["revenue"] - row["cost_of_revenue"]
         row["fcf"] = row["ocf"] - row["capex"] if row["ocf"] is not None and row["capex"] is not None else None
@@ -265,6 +284,7 @@ def statements(cik, since=None, splits=None):
         flows[k], _ = merged(gaap, names, money, False, currency if money else None, None if money else splits)
     for k, names in STOCK.items():
         stocks[k], _ = merged(gaap, names, True, True, currency)
+    stocks["shares_out"], _ = merged(gaap, SHARES_OUT, False, True, None, splits)
     split = {k: split_periods(v) for k, v in flows.items()}
     # EPS와 주식 수는 누적값의 차이로 분기를 만들 수 없다(합산이 안 되는 값). 분기 값이 직접 있는 것만 쓴다
     for k in ("eps_diluted", "shares_diluted"):
@@ -341,6 +361,25 @@ def earnings_release(cik, old):
             "chars": len(text), "text": text[:RELEASE_CHARS], "truncated": len(text) > RELEASE_CHARS}
 
 
+def weekly_prices(tickers):
+    """밸류에이션 5년 위치 계산용 주간 종가 6년치 (Yahoo, 주식 분할 반영). 실패하면 빈 사전."""
+    if not tickers:
+        return {}
+    try:
+        df = yf.download(tickers, period="6y", interval="1wk", auto_adjust=False, progress=False, threads=False, group_by="ticker")
+    except Exception as exc:
+        print(f"[참고] 주간 주가: {exc}", file=sys.stderr)
+        return {}
+    out = {}
+    for t in tickers:
+        try:
+            close = (df[t] if len(tickers) > 1 else df)["Close"].dropna()
+            out[t] = [[d.date().isoformat(), round(float(v), 4)] for d, v in close.items()]
+        except Exception:
+            continue
+    return out
+
+
 def build(config, prev, today, warn):
     """하루 한 번 관심 종목(미국)의 장기 재무와 실적 보도자료를 모은다. prev 는 이전 결과(financials.json).
     같은 날 다시 돌면 이미 받은 종목은 그대로 두고, 새로 추가된 종목만 받는다."""
@@ -362,6 +401,7 @@ def build(config, prev, today, warn):
     except Exception as exc:
         warn("SEC 종목 목록 (재무)", exc)
         return {**prev, "companies": {t: c for t, c in old.items() if t in keep}} if not same_day else result
+    weekly = weekly_prices([e["ticker"] for e in todo if e["ticker"] in ciks])
     for entry in todo:
         t = entry["ticker"]
         if t not in ciks:
@@ -377,6 +417,7 @@ def build(config, prev, today, warn):
                 splits = None
             st = statements(cik, entry.get("sec_since"), splits)
             st["splits"] = [{"date": d, "ratio": v} for d, v in splits] if splits is not None else None
+            st["price_weekly"] = weekly.get(t)
             companies[t] = {"cik": int(cik), "name": entry["name"], **st, "since": entry.get("sec_since"), "since_note": entry.get("sec_since_note"),
                             "source_url": f"https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK={int(cik)}&type=10-"}
         except Exception as exc:
@@ -392,3 +433,51 @@ def build(config, prev, today, warn):
     result["fetched"] = today.isoformat()
     result["not_on_sec"] = sorted(not_on_sec & keep)
     return result
+
+
+def ltm_rows(quarterly, keep=16):
+    """분기 표 → 분기 말마다 최근 12개월(4개 분기 합계) 표. 분기가 빠지면 그 칸은 만들지 않는다.
+    손익·현금흐름은 4개 분기 합계, 재무상태(순현금 등)와 ROE·ROIC는 그 분기 값을 쓴다."""
+    flows = ("revenue", "gross_profit", "op_income", "net_income", "ocf", "capex", "fcf", "sbc", "rnd", "eps_diluted")
+    out = []
+    for i in range(3, len(quarterly)):
+        w = quarterly[i - 3:i + 1]
+        if abs(days(w[0]["start"], w[-1]["end"]) - 365) > 20:
+            continue
+        q = w[-1]
+        row = {"start": w[0]["start"], "end": q["end"]}
+        for k in flows:
+            vals = [x.get(k) for x in w]
+            row[k] = r(sum(vals)) if all(v is not None for v in vals) else None
+        for k in ("net_cash", "roe_pct", "roic_pct", "shares_diluted", "cash", "debt"):
+            row[k] = q.get(k)
+        if row["eps_diluted"] is None and row["net_income"] is not None:   # 4분기 EPS가 없으면 순이익 ÷ 최근 희석 주식 수로 근사
+            sh = next((x.get("shares_diluted") for x in reversed(w) if x.get("shares_diluted")), None)
+            if sh:
+                row["eps_diluted"], row["eps_approx"] = r(row["net_income"] / sh), True
+        rev = row["revenue"]
+        for k, src in (("gross_margin_pct", "gross_profit"), ("op_margin_pct", "op_income"), ("net_margin_pct", "net_income"), ("fcf_margin_pct", "fcf"),
+                       ("rnd_pct", "rnd"), ("sbc_pct", "sbc"), ("capex_pct", "capex")):
+            row[k] = pct(row[src], rev) if rev and rev > 0 else None
+        out.append(row)
+    by_end = {x["end"]: x for x in out}
+    for x in out:   # 성장률: 1년 전 LTM과 비교
+        prev = next((by_end[e] for e in by_end if abs(days(e, x["end"]) - 365) <= 20), None)
+        for k, src in (("revenue_growth_pct", "revenue"), ("op_income_growth_pct", "op_income"), ("eps_growth_pct", "eps_diluted"), ("fcf_growth_pct", "fcf")):
+            x[k] = growth(x[src], prev[src]) if prev else None
+        x["share_change_pct"] = growth(x["shares_diluted"], prev["shares_diluted"]) if prev else None
+    return out[-keep:]
+
+
+def cagr(annual):
+    """연평균 성장률(CAGR) 3·5·10년: 시작과 끝 값이 모두 양수일 때만 계산한다."""
+    out = {}
+    for k in ("revenue", "op_income", "net_income", "eps_diluted", "fcf"):
+        out[k] = {}
+        for n in (3, 5, 10):
+            if len(annual) > n:
+                a, b = annual[-1 - n].get(k), annual[-1].get(k)
+                out[k][str(n)] = round(((b / a) ** (1 / n) - 1) * 100, 1) if a and b and a > 0 and b > 0 else None
+            else:
+                out[k][str(n)] = None
+    return out

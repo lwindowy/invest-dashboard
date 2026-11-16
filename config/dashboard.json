@@ -711,7 +711,7 @@
         },
         {
           "type": "briefing",
-          "label": "오늘 바뀐 것",
+          "label": "오늘의 뉴스",
           "column": "main"
         },
         {

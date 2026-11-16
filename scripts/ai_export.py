@@ -5,6 +5,12 @@
 - 개인 정보(보유 수량 등)는 넣지 않는다. 저장소와 사이트가 공개다.
 """
 import json
+
+import datetime as dt
+
+import financials
+import quality
+import valuation_hist
 import re
 
 
@@ -72,6 +78,8 @@ def stock_file(data, fin_all, ticker):
         if fund else None,
         "credit_rating": s.get("rating"),
         "valuation_calc": valuation(fund, fin),
+        "quality": quality.build(fin, fund, s.get("price")) if fin else None,
+        "valuation_history": valuation_hist.build(fin, (fin or {}).get("price_weekly"), dt.date.fromisoformat(data["generated_at"][:10])) if fin else None,
         "financials": None,
         "earnings_release": None,
         "sec_filings_90d": (sec_co or {}).get("filings"),
@@ -88,7 +96,8 @@ def stock_file(data, fin_all, ticker):
             "sec_filings": fin.get("source_url"), "since": fin.get("since"), "since_note": fin.get("since_note"), "stale": fin.get("stale"),
             "splits": fin.get("splits"),
             "fields": fin_all.get("labels"), "method": fin_all.get("method"),
-            "ttm": fin.get("ttm"), "annual": fin.get("annual"), "quarterly": fin.get("quarterly"),
+            "ttm": fin.get("ttm"), "annual": fin.get("annual"), "quarterly": (fin.get("quarterly") or [])[-20:],
+            "ltm": financials.ltm_rows(fin.get("quarterly") or []), "cagr_pct": financials.cagr(fin.get("annual") or []),
         }
         rel = fin.get("release")
         if rel:

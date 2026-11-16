@@ -26,6 +26,7 @@ import yfinance as yf
 
 import ai_export
 import briefing
+import earnings
 import news_ai
 import financials
 import sec
@@ -680,7 +681,8 @@ def period_returns(close, fx):
 
 def fundamentals(ticker, old, today):
     """재무 요약·실적·목표주가·공매도. 하루 한 번만 받는다(같은 날에는 이전 결과를 다시 쓴다)."""
-    if old and old.get("fetched") == today.isoformat() and "debt_metrics" in old:
+    if old and old.get("fetched") == today.isoformat() and "debt_metrics" in old \
+            and (old.get("earnings") or {}).get("v") == earnings.VERSION:
         return old
     tk = yf.Ticker(ticker)
     info = tk.info or {}
@@ -743,18 +745,8 @@ def fundamentals(ticker, old, today):
                 fund["quarters"].append(q)
     except Exception as exc:
         print(f"[참고] 분기 실적 {ticker}: {exc}", file=sys.stderr)
-    try:  # 다음 실적 발표일과 지난 분기 예상 대비 실제 EPS
-        ed = tk.earnings_dates
-        if ed is not None and len(ed):
-            ed = ed.sort_index()
-            future = ed[ed["Reported EPS"].isna() & (ed.index.tz_convert(KST).date >= today)]
-            past = ed[ed["Reported EPS"].notna()]
-            if len(future):
-                fund["earnings"]["next"] = day(future.index[0].tz_convert(KST))
-            if len(past):
-                last = past.iloc[-1]
-                fund["earnings"]["last"] = {"date": day(past.index[-1].tz_convert(KST)), "eps_estimate": num(last.get("EPS Estimate"), 2),
-                                            "eps_actual": num(last.get("Reported EPS"), 2), "surprise_pct": num(last.get("Surprise(%)"), 1)}
+    try:  # 다음 실적 발표 일정과 지난 실적 기록(예상 대비 EPS, 발표 후 주가 반응)
+        fund["earnings"] = earnings.build(tk, ticker, today, KST)
     except Exception as exc:
         print(f"[참고] 실적 발표일 {ticker}: {exc}", file=sys.stderr)
     return fund
@@ -934,10 +926,14 @@ def earnings_events(ctx):
     for entries in ctx["config"]["watchlist"].values():
         for entry in entries:
             fund = (ctx["stocks_out"].get(entry["ticker"]) or {}).get("fund") or {}
-            when = (fund.get("earnings") or {}).get("next")
+            earn = fund.get("earnings") or {}
+            when, nd = earn.get("next"), earn.get("next_detail") or {}
             if when:
+                local = (("한국 " if earn.get("market") == "KR" else "미국 ") + nd["date"][5:].replace("-", "/") +
+                         (" " + nd["time"] if nd.get("time") else "")) if nd.get("date") else None
                 events.append({"date": when, "title": f"{entry['name']} 실적 발표", "kind": "실적",
-                               "ticker": entry["ticker"], "source": "Yahoo Finance"})
+                               "ticker": entry["ticker"], "source": "Yahoo Finance",
+                               "timing": nd.get("timing"), "local": local})
     return events
 
 
