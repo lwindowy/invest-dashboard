@@ -666,6 +666,8 @@
   }
   // ───────── 장기 재무 (SEC) — 종목별 AI용 파일(data/ai/티커.json)을 읽어 그린다 ─────────
   var AIF = {};
+  var FINP = (function () { try { return JSON.parse(store.get('finPrefs', '{}')); } catch (e) { return {}; } })();   // 연간·분기·LTM, 증감, 매출 대비 — 종목을 바꿔도 유지
+  function saveFinP() { store.set('finPrefs', JSON.stringify(FINP)); }
   var FIN_ROWS = [
     ['매출', 'revenue', 'money'], ['매출 성장률', 'revenue_growth_pct', 'growth'], ['매출총이익률', 'gross_margin_pct', 'pct'],
     ['영업이익', 'op_income', 'money'], ['영업이익률', 'op_margin_pct', 'pct'], ['순이익률', 'net_margin_pct', 'pct'],
@@ -762,23 +764,40 @@
     return Math.abs(v) >= 1000 ? '<span title="' + fmt(v, 1) + '%">' + (v < 0 ? '−' : '') + '1000%+</span>' : fmt(v, 1) + '%';
   }
   function finBody(j) {
-    var F = j.financials, view = state.finView || 'annual';
+    var F = j.financials, view = FINP.view || 'annual', mode = FINP.mode || 'value', common = !!FINP.common;
+    if (view !== 'quarterly' && mode === 'qoq') mode = 'yoy';
+    if (view === 'ltm' && !(F && F.ltm && F.ltm.length)) view = 'annual';
     var link = '<div class="ai-link"><p><b>AI 분석용 파일</b> 이 종목의 장기 재무, 밸류에이션, 실적 보도자료 본문, 공시, 알림을 한 파일에 모았습니다. 주소를 Claude 앱에 붙여 넣고 분석을 요청하면 됩니다.</p>' +
       '<div class="links"><a class="btn link" href="' + esc(aiUrl(j.ticker)) + '" target="_blank" rel="noopener">파일 열기</a>' +
       '<button type="button" class="btn small" data-copy="' + esc(aiAbsUrl(j.ticker)) + '">주소 복사</button></div></div>';
     if (!F) return '<p class="empty">' + (j.market === 'kr' ? '한국 종목은 SEC 자료가 없어 장기 재무가 없습니다. 금융감독원 DART의 API 키(무료)를 받으면 붙일 수 있습니다. AI용 파일에는 Yahoo의 최근 분기 실적만 들어 있습니다.'
       : 'SEC 장기 재무를 받지 못했습니다.') + '</p>' + link;
     var cur = F.currency === 'USD' ? 'USD' : F.currency, unitName = F.currency === 'USD' ? '달러' : F.currency;
-    var rows = (view === 'annual' ? F.annual.slice(-10) : F.quarterly.slice(-12)).map(function (r) {
+    var src = view === 'annual' ? F.annual : view === 'ltm' ? F.ltm : F.quarterly;
+    var rows = src.map(function (r) {
       var y = r.end.slice(2, 4);
       return Object.assign({ period: view === 'annual' ? 'FY' + y : y + '.' + r.end.slice(5, 7) }, r);
     });
+    var lagOf = function (i) {   // 비교할 기간: 전년(연간 1칸, 분기·LTM 1년 전) 또는 전 분기
+      var target = mode === 'qoq' ? 91 : 365;
+      for (var k = i - 1; k >= 0; k--) {
+        var d = (Date.parse(full[i].end) - Date.parse(full[k].end)) / 864e5;
+        if (Math.abs(d - target) <= 20) return full[k];
+        if (d > target + 20) break;
+      }
+      return null;
+    };
+    var full = rows;
+    rows = rows.slice(view === 'annual' ? -10 : -12);
+    var offset = full.length - rows.length;
     var tt = F.ttm, vc = j.valuation_calc || {}, tl = '최근 4분기';
     if (!tt && F.annual.length) { tt = F.annual[F.annual.length - 1]; tl = 'FY' + tt.end.slice(2, 4); }
     tt = tt || {};
-    var seg = '<div class="seg">' + [['annual', '연간'], ['quarterly', '분기']].map(function (v) {
-      return '<button type="button" class="btn small" data-fin="' + v[0] + '" aria-pressed="' + (v[0] === view) + '">' + v[1] + '</button>';
-    }).join('') + '</div>';
+    var btn = function (attr, val, label, on) { return '<button type="button" class="btn small" data-' + attr + '="' + val + '" aria-pressed="' + on + '">' + label + '</button>'; };
+    var seg = '<div class="fin-tools"><div class="seg">' + [['annual', '연간'], ['quarterly', '분기'], ['ltm', '최근 12개월']].map(function (v) { return btn('fin', v[0], v[1], v[0] === view); }).join('') + '</div>' +
+      '<div class="seg">' + [['value', '값'], ['yoy', '전년 대비'], ['qoq', '전 분기 대비']].filter(function (v) { return v[0] !== 'qoq' || view === 'quarterly'; })
+        .map(function (v) { return btn('finmode', v[0], v[1], v[0] === mode); }).join('') + '</div>' +
+      '<div class="seg">' + btn('fincommon', '1', '매출 대비 %', common) + '</div></div>';
     var facts = '<div class="facts">' +
       fact('매출 (' + tl + ')', money(tt.revenue, cur), tt.end ? md(tt.end) + (F.ttm ? ' 분기까지' : ' 끝난 회계연도') : '') +
       fact('영업이익률 (' + tl + ')', tt.op_margin_pct == null ? '–' : finCell(tt.op_margin_pct, 'pct')) +
@@ -788,18 +807,39 @@
       fact('EV ÷ 매출', vc.ev_sales == null ? '–' : fmt(vc.ev_sales, 1) + '배', vc.ev == null ? '' : 'EV ' + money(vc.ev, cur)) + '</div>';
     var charts = rows.length ? '<div class="minis">' + barChart(rows, 'revenue', cur, '매출', true) + barChart(rows, 'fcf', cur, 'FCF', true) +
       barChart(rows, 'op_margin_pct', cur, '영업이익률', false, '%') + '</div>' : '';
+    var MONEY_OF_REV = { revenue: 1, op_income: 1, fcf: 1, net_cash: 1 };
+    function cell(m, r, i) {
+      var v = r[m[1]], kind = m[2];
+      if (mode === 'value') {
+        if (common && kind === 'money' && MONEY_OF_REV[m[1]]) return v == null || !r.revenue ? '–' : fmt(v / r.revenue * 100, 1) + '%';
+        var t = finCell(v, kind, cur);
+        return kind === 'eps' && r.eps_approx && v != null ? '≈' + t : t;
+      }
+      if (kind === 'growth') return '<span class="flat">·</span>';
+      var p = lagOf(i + offset), pv = p ? p[m[1]] : null;
+      if (v == null || pv == null) return '–';
+      if (kind === 'pct') { var d = v - pv; return '<span class="' + dir(d) + '">' + signed(d, 1, '%p') + '</span>'; }
+      if (pv === 0) return '–';
+      var g = (v - pv) / Math.abs(pv) * 100;
+      return '<span class="' + dir(g) + '">' + (Math.abs(g) >= 1000 ? (g > 0 ? '+' : '−') + '999%↑' : signed(g, 1, '%')) + '</span>';
+    }
     var n = rows.length, style = ' style="--cols:' + n + ';min-width:' + (130 + n * 74) + 'px"';
     var table = n ? '<div class="scroll-x"><div class="ctable wide"><div class="ctr fin th"' + style + '><span>항목</span>' + rows.map(function (r) { return '<span>' + esc(r.period) + '</span>'; }).join('') + '</div>' +
       FIN_ROWS.map(function (m) {
-        return '<div class="ctr fin"' + style + '><span>' + esc(m[0]) + '</span>' + rows.map(function (r) { return '<span>' + finCell(r[m[1]], m[2], cur) + '</span>'; }).join('') + '</div>';
-      }).join('') + '</div></div>' : '<p class="empty">' + (view === 'quarterly' ? '분기 자료가 없습니다. 외국 기업(20-F)은 연간 자료만 SEC에 냅니다.' : '연간 자료가 없습니다. 상장한 지 1년이 안 됐을 수 있습니다.') + '</p>';
+        var label = common && mode === 'value' && m[2] === 'money' && MONEY_OF_REV[m[1]] ? m[0] + ' ÷ 매출' : m[0];
+        return '<div class="ctr fin"' + style + '><span>' + esc(label) + '</span>' + rows.map(function (r, i) { return '<span>' + cell(m, r, i) + '</span>'; }).join('') + '</div>';
+      }).join('') + '</div></div>' : '<p class="empty">' + (view === 'annual' ? '연간 자료가 없습니다. 상장한 지 1년이 안 됐을 수 있습니다.' : '분기 자료가 없습니다. 외국 기업(20-F)은 연간 자료만 SEC에 냅니다.') + '</p>';
+    var CG = F.cagr_pct || {}, CGN = [['revenue', '매출'], ['op_income', '영업이익'], ['net_income', '순이익'], ['eps_diluted', 'EPS'], ['fcf', 'FCF']];
+    var cagrHtml = '<div class="ctable cagr"><div class="ctr th"><span>연평균 성장률 (CAGR)</span><span>3년</span><span>5년</span><span>10년</span></div>' + CGN.map(function (c) {
+      return '<div class="ctr"><span>' + c[1] + '</span>' + ['3', '5', '10'].map(function (y) { var v = (CG[c[0]] || {})[y]; return '<span>' + (v == null ? '–' : '<span class="' + dir(v) + '">' + signed(v, 1, '%') + '</span>') + '</span>'; }).join('') + '</div>';
+    }).join('') + '</div><p class="src">CAGR은 최근 회계연도와 3·5·10년 전 회계연도 값으로 계산합니다. 시작이나 끝 값이 0 이하(적자)이거나 그만큼 오래된 자료가 없으면 비워 둡니다.</p>';
     var rel = j.earnings_release;
     var relHtml = rel ? '<div class="event"><div class="date"><b>' + md(rel.date) + '</b><span>' + esc(rel.date.slice(0, 4)) + '</span></div><div class="what"><b><a href="' + esc(rel.url) + '" target="_blank" rel="noopener">최근 실적 보도자료 (SEC 원문)</a></b>' +
       '<span>본문 ' + fmt(rel.chars, 0) + '자를 AI용 파일에 넣었습니다' + (rel.truncated ? ' (긴 부분은 앞쪽만)' : '') + '</span></div></div>' : '';
     var note = [F.since_note, F.stale ? '오늘 수집에 실패해 이전 값입니다.' : ''].filter(Boolean).join(' ');
-    return '<div class="card-head sub-head">' + seg + '</div>' + (note ? '<p class="notice">' + esc(note) + '</p>' : '') + facts + charts + table + relHtml + link +
+    return '<div class="card-head sub-head">' + seg + '</div>' + (note ? '<p class="notice">' + esc(note) + '</p>' : '') + facts + charts + table + cagrHtml + relHtml + link +
       '<p class="src">단위: ' + esc(unitName) + '. 회사가 SEC에 낸 10-K·10-Q 숫자로 계산합니다. 연도는 회계연도(FY, 끝난 해)이고 분기는 끝난 달입니다. ' +
-      '현금흐름 분기 값은 누적값의 차이로, 4분기는 연간에서 9개월 누적을 빼서 만듭니다. 4분기 EPS는 계산하지 않습니다. ' +
+      '현금흐름 분기 값은 누적값의 차이로, 4분기는 연간에서 9개월 누적을 빼서 만듭니다. 4분기 EPS는 계산하지 않습니다. 최근 12개월(LTM)은 4개 분기 합계이고, 4분기 EPS가 없으면 순이익 ÷ 최근 희석 주식 수로 근사해 ≈를 붙입니다. 증감 보기에서 비율 항목은 %p(퍼센트포인트) 차이입니다. ' +
       'ROIC는 세후 영업이익 ÷ (자기자본 + 차입금 − 현금·단기 투자)의 기초·기말 평균으로, 대시보드가 정한 방식입니다. 현금이 많아 투하자본이 총자산의 10%도 안 되면 값이 수백 %로 튀어 비워 둡니다. ' +
       'P/FCF·EV는 Yahoo 시가총액과 SEC 값을 함께 씁니다. 출처: SEC XBRL · ' + md(F.fetched) + ' 수집</p>';
   }
@@ -1141,7 +1181,14 @@
     var ch = e.target.closest('[data-chart]');
     if (ch) { openChart(ch.dataset.chart); return; }
     var fv = e.target.closest('[data-fin]');
-    if (fv) { state.finView = fv.dataset.fin; var key = $('fin').dataset.t + DATA.generated_at; if (AIF[key]) fillAi(AIF[key]); return; }
+    var fm = e.target.closest('[data-finmode]'), fc = e.target.closest('[data-fincommon]');
+    if (fv || fm || fc) {
+      if (fv) FINP.view = fv.dataset.fin;
+      if (fm) { FINP.mode = fm.dataset.finmode; if (FINP.mode !== 'value') FINP.common = false; }
+      if (fc) { FINP.common = !FINP.common; if (FINP.common) FINP.mode = 'value'; }
+      saveFinP();
+      var key = $('fin').dataset.t + DATA.generated_at; if (AIF[key]) fillAi(AIF[key]); return;
+    }
     var cp = e.target.closest('[data-copy]');
     if (cp) {
       var done = function () { cp.textContent = '복사했습니다'; setTimeout(function () { cp.textContent = '주소 복사'; }, 2000); };

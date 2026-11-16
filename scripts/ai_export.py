@@ -8,6 +8,7 @@ import json
 
 import datetime as dt
 
+import financials
 import quality
 import valuation_hist
 import re
@@ -95,7 +96,8 @@ def stock_file(data, fin_all, ticker):
             "sec_filings": fin.get("source_url"), "since": fin.get("since"), "since_note": fin.get("since_note"), "stale": fin.get("stale"),
             "splits": fin.get("splits"),
             "fields": fin_all.get("labels"), "method": fin_all.get("method"),
-            "ttm": fin.get("ttm"), "annual": fin.get("annual"), "quarterly": fin.get("quarterly"),
+            "ttm": fin.get("ttm"), "annual": fin.get("annual"), "quarterly": (fin.get("quarterly") or [])[-20:],
+            "ltm": financials.ltm_rows(fin.get("quarterly") or []), "cagr_pct": financials.cagr(fin.get("annual") or []),
         }
         rel = fin.get("release")
         if rel:

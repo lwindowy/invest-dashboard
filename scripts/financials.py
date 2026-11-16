@@ -433,3 +433,51 @@ def build(config, prev, today, warn):
     result["fetched"] = today.isoformat()
     result["not_on_sec"] = sorted(not_on_sec & keep)
     return result
+
+
+def ltm_rows(quarterly, keep=16):
+    """분기 표 → 분기 말마다 최근 12개월(4개 분기 합계) 표. 분기가 빠지면 그 칸은 만들지 않는다.
+    손익·현금흐름은 4개 분기 합계, 재무상태(순현금 등)와 ROE·ROIC는 그 분기 값을 쓴다."""
+    flows = ("revenue", "gross_profit", "op_income", "net_income", "ocf", "capex", "fcf", "sbc", "rnd", "eps_diluted")
+    out = []
+    for i in range(3, len(quarterly)):
+        w = quarterly[i - 3:i + 1]
+        if abs(days(w[0]["start"], w[-1]["end"]) - 365) > 20:
+            continue
+        q = w[-1]
+        row = {"start": w[0]["start"], "end": q["end"]}
+        for k in flows:
+            vals = [x.get(k) for x in w]
+            row[k] = r(sum(vals)) if all(v is not None for v in vals) else None
+        for k in ("net_cash", "roe_pct", "roic_pct", "shares_diluted", "cash", "debt"):
+            row[k] = q.get(k)
+        if row["eps_diluted"] is None and row["net_income"] is not None:   # 4분기 EPS가 없으면 순이익 ÷ 최근 희석 주식 수로 근사
+            sh = next((x.get("shares_diluted") for x in reversed(w) if x.get("shares_diluted")), None)
+            if sh:
+                row["eps_diluted"], row["eps_approx"] = r(row["net_income"] / sh), True
+        rev = row["revenue"]
+        for k, src in (("gross_margin_pct", "gross_profit"), ("op_margin_pct", "op_income"), ("net_margin_pct", "net_income"), ("fcf_margin_pct", "fcf"),
+                       ("rnd_pct", "rnd"), ("sbc_pct", "sbc"), ("capex_pct", "capex")):
+            row[k] = pct(row[src], rev) if rev and rev > 0 else None
+        out.append(row)
+    by_end = {x["end"]: x for x in out}
+    for x in out:   # 성장률: 1년 전 LTM과 비교
+        prev = next((by_end[e] for e in by_end if abs(days(e, x["end"]) - 365) <= 20), None)
+        for k, src in (("revenue_growth_pct", "revenue"), ("op_income_growth_pct", "op_income"), ("eps_growth_pct", "eps_diluted"), ("fcf_growth_pct", "fcf")):
+            x[k] = growth(x[src], prev[src]) if prev else None
+        x["share_change_pct"] = growth(x["shares_diluted"], prev["shares_diluted"]) if prev else None
+    return out[-keep:]
+
+
+def cagr(annual):
+    """연평균 성장률(CAGR) 3·5·10년: 시작과 끝 값이 모두 양수일 때만 계산한다."""
+    out = {}
+    for k in ("revenue", "op_income", "net_income", "eps_diluted", "fcf"):
+        out[k] = {}
+        for n in (3, 5, 10):
+            if len(annual) > n:
+                a, b = annual[-1 - n].get(k), annual[-1].get(k)
+                out[k][str(n)] = round(((b / a) ** (1 / n) - 1) * 100, 1) if a and b and a > 0 and b > 0 else None
+            else:
+                out[k][str(n)] = None
+    return out
