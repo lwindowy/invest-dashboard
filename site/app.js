@@ -405,7 +405,7 @@
       var ev = DATA.events || [];
       var body = ev.length ? ev.map(function (e) {
         return '<div class="event"><div class="date"><b>' + md(e.date) + '</b><span>' + weekday(e.date) + '</span></div>' +
-          '<div class="what"><b>' + esc(e.title) + '</b><span>' + esc(e.kind) + ' · ' + esc(e.source || '') + '</span></div></div>';
+          '<div class="what"><b>' + esc(e.title) + (e.timing ? ' <small>' + esc(e.timing) + '</small>' : '') + '</b><span>' + esc(e.kind) + (e.local ? ' · ' + esc(e.local) : '') + ' · ' + esc(e.source || '') + '</span></div></div>';
       }).join('') : '<p class="empty">앞으로 30일 안에 잡힌 일정이 없습니다.</p>';
       return '<section class="card" aria-label="' + esc(sec.label) + '"><h2>' + esc(sec.label) + '</h2>' + body +
         '<p class="src">전체 일정은 <a href="#calendar">캘린더 탭</a>에서 봅니다. 실적일은 회사 확정 전에는 바뀔 수 있습니다.</p></section>';
@@ -443,6 +443,36 @@
   function ratio(v, digits, unit) { return v == null ? '–' : fmt(v, digits == null ? 2 : digits) + (unit || ''); }
   function fact(label, val, sub) {
     return '<div class="fact"><span class="k">' + esc(label) + q(HELP_BY_LABEL[label]) + '</span><b>' + val + '</b>' + (sub ? '<span class="s">' + sub + '</span>' : '') + '</div>';
+  }
+  // 실적 발표: 다음 일정, 지난 12번의 예상 대비 EPS와 발표 후 주가 반응
+  function earnWhen(x, market) {
+    var where = market === 'KR' ? '한국' : '미국';
+    return where + ' ' + md(x.date) + (x.time ? ' ' + x.time : '') + ' · ' + x.timing;
+  }
+  function dday(iso) {
+    var n = Math.round((new Date(iso + 'T00:00:00') - new Date(kstToday() + 'T00:00:00')) / 864e5);
+    return n === 0 ? '오늘' : n > 0 ? 'D-' + n : null;
+  }
+  function earnBox(e, fc, fsrc) {
+    var nd = e.next_detail, h = e.history || [], sm = e.summary, mk = e.market;
+    var pc = function (v) { return v == null ? '<span class="flat">–</span>' : '<span class="' + dir(v) + '">' + signed(v, 1, '%') + '</span>'; };
+    var dd = e.next ? dday(e.next) : null;
+    var facts = '<div class="facts">' +
+      fact('다음 발표일', e.next ? md(e.next) + ' (' + weekday(e.next) + ')' + (dd ? ' ' + pill(dd, dd === '오늘' || Number(dd.slice(2)) <= 7 ? 'warn' : '', true) : '') : '–',
+        nd ? '한국 시간 · ' + esc(earnWhen(nd, mk)) : e.next ? '한국 시간' : '') +
+      (nd ? fact('예상 EPS', price(nd.eps_estimate, fc)) : '') +
+      (sm && sm.count ? fact('최근 ' + sm.count + '번 예상 대비', '상회 ' + sm.beat + ' · 하회 ' + sm.miss + (sm.inline ? ' · 부합 ' + sm.inline : '')) +
+        fact('발표 후 주가', sm.moves ? '상승 ' + sm.up + ' · 하락 ' + sm.down : '–', sm.avg_abs_move != null ? '평균 움직임 ±' + fmt(sm.avg_abs_move, 1) + '%' : '') : '') + '</div>';
+    var table = h.length ? '<h3 class="sub">지난 실적 발표</h3><div class="scroll-x"><div class="ctable wide"><div class="ctr er th"><span>발표 (현지)</span><span>예상 EPS</span><span>실제 EPS</span><span>차이</span><span>다음 날 주가</span><span>' + esc(e.index_name || '시장') + '</span><span>시장 대비</span></div>' +
+      h.map(function (x) {
+        var res = x.result ? pill(x.result, x.result === '상회' ? 'good' : x.result === '하회' ? 'bad' : '', true) : '';
+        return '<div class="ctr er"><span>' + x.date.slice(2).replace(/-/g, '.') + '<small>' + esc(x.timing) + '</small></span><span>' + price(x.eps_estimate, fc) + '</span><span>' + price(x.eps_actual, fc) + '</span>' +
+          '<span>' + pc(x.surprise_pct) + ' ' + res + '</span><span title="' + (x.base_day ? esc(x.base_day + ' 종가 → ' + x.react_day + ' 종가') : '') + '">' + pc(x.move_pct) + '</span><span>' + pc(x.market_pct) + '</span><span>' + pc(x.excess_pct) + '</span></div>';
+      }).join('') + '</div></div>' : '<p class="empty">지난 실적 기록을 받지 못했습니다(데이터 없음).</p>';
+    var src = '다음 날 주가 = 발표 직전 거래일 종가 → 발표 후 첫 거래일 종가. 장 마감 후 발표는 발표일 종가에서, 그 밖에는 전날 종가에서 잽니다. ' +
+      '발표 시점은 Yahoo가 준 현지 시각 기준이라 회사 공지와 다를 수 있습니다. 차이 ±1% 안은 \'부합\'으로 봅니다(대시보드가 정한 값). ' +
+      '매출 예상치는 무료 데이터가 없어 EPS만 비교합니다. 휴대폰 화면에서는 시장 지수 칸을 숨깁니다.' + (mk === 'KR' ? ' 한국 종목 EPS는 Yahoo 값 그대로이며 다른 출처와 대조하지 못했습니다.' : '') + ' ' + fsrc;
+    return box('실적 발표', facts + table, src);
   }
   function box(title, body, src) {
     return '<section class="card" aria-label="' + esc(title) + '"><h2>' + esc(title) + q(HELP_BY_LABEL[title]) + '</h2>' + body + (src ? '<p class="src">' + src + '</p>' : '') + '</section>';
@@ -598,11 +628,7 @@
       }).join('') + '</div>' : '<p class="empty">분기 실적을 받지 못했습니다.</p>',
       '단위: ' + (fc === 'KRW' ? '원' : '달러') + '. 무료 데이터는 최근 4~5개 분기만 제공합니다. ' + fsrc);
 
-    var last = e.last;
-    var earn = box('실적 발표', '<div class="facts">' + fact('다음 발표일', e.next ? md(e.next) + ' (' + weekday(e.next) + ')' : '–', e.next ? e.next.slice(0, 4) + '년 · 한국 시간' : '') +
-      (last ? fact('지난 발표 EPS', price(last.eps_actual, fc), '예상 ' + price(last.eps_estimate, fc) + ' · ' + md(last.date) + ' 발표') +
-        fact('예상 대비', last.surprise_pct == null ? '–' : '<span class="' + dir(last.surprise_pct) + '">' + signed(last.surprise_pct, 1, '%') + '</span>') : '') + '</div>',
-      '매출 예상치 대비 실제는 무료 데이터가 없어 표시하지 않습니다. ' + fsrc);
+    var earn = earnBox(e, fc, fsrc);
 
     var up = tg.mean && s.price ? (tg.mean / s.price - 1) * 100 : null;
     var analyst = box('애널리스트 목표주가', tg.mean ? rangeBar(Math.min(tg.low, s.price), Math.max(tg.high, s.price), s.price, cur, '현재') +
@@ -662,7 +688,7 @@
     }
     newsBox = monthBox(s) + newsBox;
     return head + '<div id="qwarn"></div><div class="grid2">' + priceBox + tech + '</div>' + check + charts +
-      '<div class="grid2">' + base + val + '</div>' + valHistBox + qualityBox + finBox + debtBox + trend + '<div class="grid2">' + earn + analyst + '</div>' + shortBox + newsBox + (sc ? '<div class="grid2">' + filingsBox + insiderBox + '</div>' : '');
+      '<div class="grid2">' + base + val + '</div>' + valHistBox + qualityBox + finBox + debtBox + trend + earn + analyst + shortBox + newsBox + (sc ? '<div class="grid2">' + filingsBox + insiderBox + '</div>' : '');
   }
   // ───────── 장기 재무 (SEC) — 종목별 AI용 파일(data/ai/티커.json)을 읽어 그린다 ─────────
   var AIF = {};
@@ -953,6 +979,30 @@
   var KINDS = ['실적', '경제지표', 'FOMC', '만기', '내 이벤트'];
   function kstToday() { return new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Seoul' }).format(new Date()); }
   function pad(n) { return (n < 10 ? '0' : '') + n; }
+  // 이번 주·다음 주 실적 발표 (월~일, 한국 날짜)
+  function earnWeeks(today) {
+    var t = new Date(today + 'T00:00:00'), mon = new Date(t); mon.setDate(t.getDate() - (t.getDay() + 6) % 7);
+    var iso = function (d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
+    var weeks = [0, 1].map(function (w) {
+      var a = new Date(mon); a.setDate(mon.getDate() + 7 * w); var b = new Date(a); b.setDate(a.getDate() + 6);
+      return { label: w ? '다음 주' : '이번 주', from: iso(a), to: iso(b) };
+    });
+    var ev = (DATA.events_all || []).filter(function (e) { return e.kind === '실적'; });
+    var body = weeks.map(function (w) {
+      var list = ev.filter(function (e) { return e.date >= w.from && e.date <= w.to; }).sort(function (a, b) { return a.date < b.date ? -1 : 1; });
+      var rows = list.length ? list.map(function (e) {
+        var st = DATA.stocks[e.ticker] || {}, f = st.fund || {}, er = f.earnings || {}, nd = er.next_detail || {}, sm = er.summary;
+        var dd = dday(e.date), cur = f.currency || st.currency;
+        return '<div class="event' + (e.date < today ? ' past' : '') + '"><div class="date' + (e.date === today ? ' today' : '') + '"><b>' + md(e.date) + '</b><span>' + weekday(e.date) + '</span></div>' +
+          '<div class="what"><b><a href="#stocks/' + encodeURIComponent(e.ticker) + '">' + esc(st.name || e.ticker) + '</a> ' + (nd.timing ? pill(nd.timing, '', true) : '') + (dd ? ' ' + pill(dd, 'warn', true) : '') + '</b>' +
+          '<span>' + (e.local ? esc(e.local) + ' · ' : '') + '예상 EPS ' + price(nd.eps_estimate, cur) +
+          (sm && sm.count ? ' · 최근 ' + sm.count + '번 상회 ' + sm.beat + ' · 발표 후 평균 ±' + fmt(sm.avg_abs_move, 1) + '%' : '') + '</span></div></div>';
+      }).join('') : '<p class="empty">관심 종목 실적 발표가 없습니다.</p>';
+      return '<h3 class="sub">' + w.label + ' <small>' + md(w.from) + '~' + md(w.to) + '</small></h3>' + rows;
+    }).join('');
+    return '<section class="card" aria-label="실적 발표 2주"><h2>실적 발표 · 2주</h2>' + body +
+      '<p class="src">날짜는 한국 시간이고, "미국"·"한국" 뒤에 붙은 시각은 그 나라 현지 시각입니다. 장 전·장 마감 후 구분은 Yahoo 시각 기준이라 회사 공지와 다를 수 있습니다. 종목을 누르면 지난 12번의 실적과 발표 후 주가 반응을 봅니다. 출처: Yahoo Finance</p></section>';
+  }
   SECTIONS.calendar = function () {
     var today = kstToday();
     var ym = state.month || today.slice(0, 7), y = Number(ym.slice(0, 4)), m = Number(ym.slice(5, 7));
@@ -977,9 +1027,9 @@
     var grid = '<div class="cal" aria-hidden="true"><div class="dow">' + '일월화수목금토'.split('').map(function (w) { return '<span>' + w + '</span>'; }).join('') + '</div><div class="days">' + cells + '</div></div>';
     var list = inMonth.length ? inMonth.map(function (e) {
       return '<div class="event' + (e.date < today ? ' past' : '') + '"><div class="date' + (e.date === today ? ' today' : '') + '"><b>' + md(e.date) + '</b><span>' + weekday(e.date) + '</span></div>' +
-        '<div class="what"><b>' + esc(e.title) + '</b><span>' + esc(e.kind) + ' · ' + esc(e.source || '') + '</span></div></div>';
+        '<div class="what"><b>' + esc(e.title) + (e.timing ? ' <small>' + esc(e.timing) + '</small>' : '') + '</b><span>' + esc(e.kind) + (e.local ? ' · ' + esc(e.local) : '') + ' · ' + esc(e.source || '') + '</span></div></div>';
     }).join('') : '<p class="empty">이 달에 잡힌 일정이 없습니다. 실적일과 경제지표 발표일은 다음 한 건씩만 미리 알 수 있어, 먼 달은 FOMC와 만기일만 보입니다.</p>';
-    return '<section class="card" aria-label="캘린더"><div class="card-head"><h2>' + y + '년 ' + m + '월</h2>' + nav + '</div>' + filters + grid + '</section>' +
+    return earnWeeks(today) + '<section class="card" aria-label="캘린더"><div class="card-head"><h2>' + y + '년 ' + m + '월</h2>' + nav + '</div>' + filters + grid + '</section>' +
       '<section class="card" aria-label="' + m + '월 일정 목록"><h2>' + m + '월 일정 ' + inMonth.length + '건</h2>' + list +
       '<p class="src">실적일은 한국 시간, 경제지표와 FOMC는 미국 날짜 기준입니다(FOMC 결과는 한국 시간으로 다음 날 새벽). 실적일은 회사 확정 전에는 바뀔 수 있습니다. ' +
       '직접 적는 일정은 config/manual.json 의 events 에 넣습니다. 출처: Yahoo Finance, FRED, 연준' + (DATA.fomc && DATA.fomc.fetched ? ' (FOMC ' + md(DATA.fomc.fetched) + ' 확인)' : '') + '</p></section>';

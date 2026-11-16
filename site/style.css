@@ -387,3 +387,13 @@ h3.sub { font-size: 13px; color: var(--sub); font-weight: 700; margin: 14px 0 2p
 
 .fin-tools { display: flex; flex-wrap: wrap; gap: 8px 14px; }
 .ctable.cagr { margin-top: 14px; max-width: 520px; }
+
+/* 실적 발표 기록 */
+.ctr.er { grid-template-columns: 1.1fr repeat(2, 0.9fr) 1.3fr repeat(3, 0.9fr); min-width: 640px; }
+.ctr.er small { display: block; }
+@media (max-width: 600px) {
+  .ctr.er { grid-template-columns: 0.9fr 1fr 1fr 0.9fr 0.8fr; min-width: 0; font-size: 12px; gap: 4px; }
+  .ctr.er > span { white-space: nowrap; }
+  .ctr.er > :nth-child(4) .pill { display: table; margin: 2px 0 0 auto; }
+  .ctr.er > :nth-child(n+6) { display: none; }
+}
