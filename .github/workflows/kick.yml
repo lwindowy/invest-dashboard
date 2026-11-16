@@ -1,11 +1,11 @@
 name: 분류 결과 반영
 
-# 예약 작업이 news_ai.json 을 올리면 main 의 '데이터 갱신과 배포'를 바로 실행해 화면에 붙인다.
+# 예약 작업이 news_ai.json·profiles.json 을 올리면 main 의 '데이터 갱신과 배포'를 바로 실행해 화면에 붙인다.
 # (GitHub 예약 실행은 몇 시간씩 밀릴 때가 있어서 기다리지 않는다.)
 on:
   push:
     branches: [ai-results]
-    paths: [news_ai.json]
+    paths: [news_ai.json, profiles.json]
 
 permissions:
   actions: write
