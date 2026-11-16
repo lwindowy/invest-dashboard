@@ -380,18 +380,21 @@ def weekly_prices(tickers):
     return out
 
 
+VERSION = 2   # 저장 형식이 바뀌면 올린다. 다르면 같은 날이라도 전부 다시 받는다
+
+
 def build(config, prev, today, warn):
     """하루 한 번 관심 종목(미국)의 장기 재무와 실적 보도자료를 모은다. prev 는 이전 결과(financials.json).
     같은 날 다시 돌면 이미 받은 종목은 그대로 두고, 새로 추가된 종목만 받는다."""
     prev = prev or {}
     old = prev.get("companies") or {}
     entries = config["watchlist"].get("us", [])
-    same_day = prev.get("fetched") == today.isoformat()
+    same_day = prev.get("fetched") == today.isoformat() and prev.get("v") == VERSION
     not_on_sec = set(prev.get("not_on_sec") or []) if same_day else set()
     todo = [e for e in entries if not same_day or (e["ticker"] not in old and e["ticker"] not in not_on_sec)]
     keep = {e["ticker"] for e in entries}
     companies = {t: c for t, c in old.items() if same_day and t in keep}   # 오늘 이미 받은 종목 (목록에서 뺀 종목은 버린다)
-    result = {"fetched": today.isoformat() if same_day or todo else prev.get("fetched"), "source": "SEC EDGAR XBRL (companyfacts)",
+    result = {"v": VERSION, "fetched": today.isoformat() if same_day or todo else prev.get("fetched"), "source": "SEC EDGAR XBRL (companyfacts)",
               "labels": LABELS, "method": METHOD, "companies": companies, "not_on_sec": sorted(not_on_sec & keep)}
     if not todo:
         return result
