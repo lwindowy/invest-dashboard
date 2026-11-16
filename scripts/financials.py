@@ -342,20 +342,30 @@ def earnings_release(cik, old):
 
 
 def build(config, prev, today, warn):
-    """하루 한 번 관심 종목(미국)의 장기 재무와 실적 보도자료를 모은다. prev 는 이전 결과(financials.json)."""
+    """하루 한 번 관심 종목(미국)의 장기 재무와 실적 보도자료를 모은다. prev 는 이전 결과(financials.json).
+    같은 날 다시 돌면 이미 받은 종목은 그대로 두고, 새로 추가된 종목만 받는다."""
     prev = prev or {}
-    if prev.get("fetched") == today.isoformat():
-        return prev
+    old = prev.get("companies") or {}
+    entries = config["watchlist"].get("us", [])
+    same_day = prev.get("fetched") == today.isoformat()
+    not_on_sec = set(prev.get("not_on_sec") or []) if same_day else set()
+    todo = [e for e in entries if not same_day or (e["ticker"] not in old and e["ticker"] not in not_on_sec)]
+    keep = {e["ticker"] for e in entries}
+    companies = {t: c for t, c in old.items() if same_day and t in keep}   # 오늘 이미 받은 종목 (목록에서 뺀 종목은 버린다)
+    result = {"fetched": today.isoformat() if same_day or todo else prev.get("fetched"), "source": "SEC EDGAR XBRL (companyfacts)",
+              "labels": LABELS, "method": METHOD, "companies": companies, "not_on_sec": sorted(not_on_sec & keep)}
+    if not todo:
+        return result
     try:
         listing = sec.get("https://www.sec.gov/files/company_tickers.json").json().values()
         ciks = {row["ticker"]: row["cik_str"] for row in listing}
     except Exception as exc:
         warn("SEC 종목 목록 (재무)", exc)
-        return prev
-    companies, old = {}, prev.get("companies") or {}
-    for entry in config["watchlist"].get("us", []):
+        return {**prev, "companies": {t: c for t, c in old.items() if t in keep}} if not same_day else result
+    for entry in todo:
         t = entry["ticker"]
         if t not in ciks:
+            not_on_sec.add(t)
             continue
         cik = ciks[t]
         try:
@@ -379,4 +389,6 @@ def build(config, prev, today, warn):
         except Exception as exc:
             print(f"[참고] 실적 보도자료 {t}: {exc}", file=sys.stderr)
             companies[t]["release"] = (old.get(t) or {}).get("release")
-    return {"fetched": today.isoformat(), "source": "SEC EDGAR XBRL (companyfacts)", "labels": LABELS, "method": METHOD, "companies": companies}
+    result["fetched"] = today.isoformat()
+    result["not_on_sec"] = sorted(not_on_sec & keep)
+    return result
