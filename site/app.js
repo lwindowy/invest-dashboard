@@ -687,8 +687,7 @@
       newsBox = box('최근 뉴스', newsFilters() + (nw.items.length ? newsRows(nw.items, false) : '<p class="empty">최근 뉴스가 없습니다.</p>'),
         '제목을 누르면 원문이 열립니다. 기사는 영어이고, 시간은 한국 시간입니다. 출처: ' + esc(nw.source) + ' · ' + md(nw.fetched) + ' ' + esc((nw.fetched || '').slice(11, 16)) + ' 수집' + (nw.stale ? ' (이전 값)' : '') + '. ' + aiStamp());
     }
-    newsBox = monthBox(s) + newsBox;
-    return head + '<div id="qwarn"></div><div class="grid2">' + priceBox + tech + '</div>' + check + charts +
+    return head + profileBox(s) + monthBox(s) + '<div id="qwarn"></div><div class="grid2">' + priceBox + tech + '</div>' + check + charts +
       '<div class="grid2">' + base + val + '</div>' + valHistBox + calcBox + qualityBox + finBox + debtBox + trend + earn + analyst + shortBox + newsBox + (sc ? '<div class="grid2">' + filingsBox + insiderBox + '</div>' : '');
   }
   // ───────── 장기 재무 (SEC) — 종목별 AI용 파일(data/ai/티커.json)을 읽어 그린다 ─────────
@@ -1019,6 +1018,36 @@
     var a = DATA.news_ai || {};
     return a.updated_at ? 'AI 분류: ' + esc(a.by || 'Claude') + ' · ' + md(a.updated_at) + ' ' + esc(a.updated_at.slice(11, 16)) + ' 기준. 제목만 보고 판단한 참고용입니다.'
       : 'AI 분류 결과가 아직 없습니다(미분류).';
+  }
+  // 회사 소개: AI(Claude 예약 작업)가 공시·회사 자료를 읽고 정리. 문장마다 출처 번호.
+  function profileBox(s) {
+    var p = s.profile;
+    if (!p) return box('회사 소개', '<p class="empty">아직 소개를 쓰지 않았습니다. 예약 작업이 공시를 읽고 곧 채웁니다.</p>');
+    var ref = function (ids) {
+      return ' <small class="ref">' + (ids || []).map(function (i) {
+        var x = p.sources[i - 1];
+        return x ? '<a href="' + esc(x.url) + '" target="_blank" rel="noopener" title="' + esc(x.title) + '">[' + i + ']</a>' : '';
+      }).join('') + '</small>';
+    };
+    var list = function (title, rows) {
+      return rows && rows.length ? '<div class="pf-part"><h3 class="sub">' + title + '</h3><ul class="pf-list">' + rows.map(function (r) { return '<li>' + esc(r.text) + ref(r.src) + '</li>'; }).join('') + '</ul></div>' : '';
+    };
+    var rv = p.revenue || {}, segs = rv.segments || [];
+    var rev = segs.length ? '<div class="pf-part"><h3 class="sub">돈을 어디서 버나' + (rv.period ? ' <small>' + esc(rv.period) + '</small>' : '') + '</h3>' + segs.map(function (g) {
+      var w = g.share_pct != null ? Math.max(2, g.share_pct) : 0;
+      return '<div class="pf-seg"><div class="pf-seg-h"><b>' + esc(g.name) + '</b><span>' + (g.share_pct != null ? fmt(g.share_pct, 1) + '%' : '') + ref(g.src) + '</span></div>' +
+        (g.share_pct != null ? '<div class="pf-bar"><i style="width:' + w + '%"></i></div>' : '') + (g.note ? '<small>' + esc(g.note) + '</small>' : '') + '</div>';
+    }).join('') + (rv.note ? '<p class="hint">' + esc(rv.note) + '</p>' : '') + '</div>' : '';
+    var mg = (p.management || []).length ? '<div class="pf-part"><h3 class="sub">경영진</h3><ul class="pf-list pf-mg">' + p.management.map(function (m) {
+      return '<li><b>' + esc(m.name) + '</b> <span>' + esc(m.role) + '</span>' + ref(m.src) + (m.note ? '<small>' + esc(m.note) + '</small>' : '') + '</li>';
+    }).join('') + '</ul></div>' : '';
+    var srcs = '<details class="pf-src"><summary>출처 ' + p.sources.length + '개</summary><ol>' + p.sources.map(function (x) {
+      return '<li><a href="' + esc(x.url) + '" target="_blank" rel="noopener">' + esc(x.title) + '</a>' + (x.date ? ' <small>' + esc(x.date) + '</small>' : '') + '</li>';
+    }).join('') + '</ol></details>';
+    return '<section class="card pf" aria-label="회사 소개"><h2>회사 소개</h2><p class="pf-one">' + esc(p.one_liner.text) + ref(p.one_liner.src) + '</p>' +
+      '<div class="pf-grid">' + list('무엇을 하나', p.business) + rev + mg + list('앞으로의 방향', p.vision) + list('강점', p.strengths) + list('위험 요인', p.risks) + '</div>' + srcs +
+      '<p class="src">AI(Claude)가 위 출처(공시·회사 자료)를 읽고 한국어로 정리했습니다. 문장 끝 [번호]를 누르면 근거가 열립니다. 출처가 없는 문장은 넣지 않습니다. ' +
+      md(p.updated) + ' 작성' + (p.basis ? ' · 기준: ' + esc(p.basis) : '') + '. 새 정기 보고서가 나오면 다시 씁니다. 투자 권유가 아닙니다.</p></section>';
   }
   function monthBox(s) {
     var m = s.news_month;

@@ -425,3 +425,22 @@ h3.sub { font-size: 13px; color: var(--sub); font-weight: 700; margin: 14px 0 2p
   .sf input { width: 62px; }
   .sf .btn.small { padding: 4px 8px; }
 }
+
+/* 회사 소개 */
+.pf-one { font-size: 16px; font-weight: 600; margin: 4px 0 10px; line-height: 1.5; }
+.pf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 28px; }
+@media (max-width: 760px) { .pf-grid { grid-template-columns: 1fr; } }
+.pf-list { margin: 4px 0; padding-left: 18px; font-size: 14px; line-height: 1.55; }
+.pf-list li { margin: 3px 0; }
+.pf-mg { list-style: none; padding-left: 0; }
+.pf-mg span { color: var(--sub); font-size: 13px; }
+.pf-mg small:not(.ref) { display: block; color: var(--sub); font-size: 12px; }
+.ref a { font-size: 11px; margin-left: 1px; text-decoration: none; }
+.pf-seg { margin: 6px 0; font-size: 14px; }
+.pf-seg-h { display: flex; justify-content: space-between; gap: 8px; }
+.pf-seg > small { color: var(--sub); font-size: 12px; }
+.pf-bar { height: 6px; background: var(--line); border-radius: 3px; margin: 3px 0; }
+.pf-bar i { display: block; height: 100%; background: #3b82f6; border-radius: 3px; }
+.pf-src { margin-top: 8px; font-size: 13px; }
+.pf-src ol { padding-left: 22px; margin: 6px 0; }
+.pf-src li { margin: 2px 0; word-break: break-all; }
