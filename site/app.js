@@ -652,6 +652,7 @@
         }).join('') + '</div></div>' : '<p class="empty">최근 180일 동안 공개시장 매수·매도 신고가 없습니다.</p>'),
         '주식 보상, 옵션 행사, 증여는 빼고 공개시장 거래만 보여 줍니다. 계획 매도는 미리 정해 둔 일정(10b5-1)에 따른 것입니다. 출처: SEC Form 4');
     }
+    var valHistBox = box('밸류에이션 5년 위치', '<div id="valhist"><p class="empty">불러오는 중입니다…</p></div>');
     var qualityBox = box('퀄리티 점수', '<div id="quality"><p class="empty">불러오는 중입니다…</p></div>');
     var finBox = box('장기 재무', '<div id="fin" data-t="' + esc(s.ticker) + '"><p class="empty">불러오는 중입니다…</p></div>');
     var nw = s.news, newsBox = '';
@@ -661,7 +662,7 @@
     }
     newsBox = monthBox(s) + newsBox;
     return head + '<div id="qwarn"></div><div class="grid2">' + priceBox + tech + '</div>' + check + charts +
-      '<div class="grid2">' + base + val + '</div>' + qualityBox + finBox + debtBox + trend + '<div class="grid2">' + earn + analyst + '</div>' + shortBox + newsBox + (sc ? '<div class="grid2">' + filingsBox + insiderBox + '</div>' : '');
+      '<div class="grid2">' + base + val + '</div>' + valHistBox + qualityBox + finBox + debtBox + trend + '<div class="grid2">' + earn + analyst + '</div>' + shortBox + newsBox + (sc ? '<div class="grid2">' + filingsBox + insiderBox + '</div>' : '');
   }
   // ───────── 장기 재무 (SEC) — 종목별 AI용 파일(data/ai/티커.json)을 읽어 그린다 ─────────
   var AIF = {};
@@ -678,6 +679,7 @@
     if ($('fin') && $('fin').dataset.t === j.ticker) { $('fin').innerHTML = finBody(j); finScroll(); }
     if ($('quality')) $('quality').innerHTML = qualityBody(j);
     if ($('qwarn')) $('qwarn').innerHTML = qualityWarn(j);
+    if ($('valhist')) $('valhist').innerHTML = valHistBody(j);
   }
   function loadFin() {
     var holder = $('fin');
@@ -688,8 +690,39 @@
       .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .then(function (j) { AIF[key] = j; fillAi(j); })
       .catch(function (err) {
-        ['fin', 'quality'].forEach(function (id) { if ($(id)) $(id).innerHTML = '<p class="empty">데이터를 불러오지 못했습니다 (' + esc(err.message) + ').</p>'; });
+        ['fin', 'quality', 'valhist'].forEach(function (id) { if ($(id)) $(id).innerHTML = '<p class="empty">데이터를 불러오지 못했습니다 (' + esc(err.message) + ').</p>'; });
       });
+  }
+  // ───────── 밸류에이션 5년 위치 (AI 아님) ─────────
+  function valChart(m) {
+    var s = m.series, n = s.length;
+    if (n < 2) return '';
+    var W = 300, H = 90, T = 6, B = 16, vals = s.map(function (p) { return p[1]; });
+    var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals), span = (hi - lo) || 1;
+    function x(i) { return i * W / (n - 1); }
+    function y(v) { return T + (hi - v) / span * (H - T - B); }
+    var pts = s.map(function (p, i) { return x(i).toFixed(1) + ',' + y(p[1]).toFixed(1); }).join(' ');
+    var med = m.median != null ? '<line class="grid" x1="0" x2="' + W + '" y1="' + y(m.median).toFixed(1) + '" y2="' + y(m.median).toFixed(1) + '"></line>' : '';
+    return '<svg class="valc" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(m.name) + ' 5년 추이">' + med +
+      '<polyline points="' + pts + '"></polyline><circle cx="' + x(n - 1).toFixed(1) + '" cy="' + y(vals[n - 1]).toFixed(1) + '" r="3.5"></circle>' +
+      '<text class="axis" x="0" y="' + (H - 2) + '">' + esc(s[0][0].slice(0, 7)) + '</text><text class="axis" x="' + W + '" y="' + (H - 2) + '" text-anchor="end">' + esc(s[n - 1][0].slice(0, 7)) + '</text></svg>';
+  }
+  function valHistBody(j) {
+    var v = j.valuation_history;
+    if (!v) return '<p class="empty">' + (j.market === 'kr' ? '커버리지 밖: 한국 종목은 SEC 분기 재무가 없어 계산하지 않습니다(DART 미연결).' :
+      '분기 재무 자료가 없어 계산하지 않습니다(외국 기업 서식 20-F는 연간만 있거나, 상장 직후일 수 있음).') + '</p>';
+    var unit = function (m, x) { return x == null ? '–' : m.key === 'fcf_yield' ? fmt(x, 2) + '%' : fmt(x, 1) + '배'; };
+    var cards = v.metrics.map(function (m) {
+      var head = '<div class="vh-head"><b title="' + esc(m.formula) + '">' + esc(m.name) + '</b><b class="qval">' + unit(m, m.current) + '</b></div>';
+      if (m.percentile == null) return '<div class="vh">' + head + '<p class="empty">' + esc(m.why_missing || '') + '</p></div>';
+      var tone = m.reading === '5년 중 싼 편' ? 'good' : m.reading === '5년 중 비싼 편' ? 'warn' : 'none';
+      return '<div class="vh">' + head +
+        '<div class="range"><div class="track"><span class="mark" style="left:' + m.percentile + '%"></span></div>' +
+        '<div class="ends"><span>' + unit(m, m.min) + '</span><span>' + m.percentile + '퍼센타일 · 중앙값 ' + unit(m, m.median) + '</span><span>' + unit(m, m.max) + '</span></div></div>' +
+        pill(m.reading, tone, true) + (m.high_is_expensive ? '' : ' <small class="sub">높을수록 싼 지표</small>') + valChart(m) + '</div>';
+    }).join('');
+    return '<div class="vh-grid">' + cards + '</div><p class="src">지난 ' + v.years + '년 주간 값 중 지금보다 낮거나 같은 값의 비율(퍼센타일)입니다. P/E·EV/EBITDA·P/S는 20 이하면 싼 편·80 이상이면 비싼 편, FCF 수익률은 반대로 봅니다(구간은 대시보드가 정한 값). ' +
+      '이익은 SEC 분기 값의 최근 4개 분기 합계이고, 분기가 끝나고 ' + v.lag_days + '일 뒤부터 그 분기 숫자를 씁니다(공시 시점 근사). 적자 기간은 건너뜁니다. 차트의 가로선은 중앙값입니다. 이름에 마우스를 올리면 계산식이 보입니다. 출처: Yahoo 주간 종가, SEC 분기 재무.</p>';
   }
   // ───────── 퀄리티 점수 (재무제표로 직접 계산, AI 아님) ─────────
   var ZONE = { '안전': 'good', '주의': 'warn', '위험': 'bad', '데이터 부족': 'none', '해당 없음': 'none' };

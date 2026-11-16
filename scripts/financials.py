@@ -361,6 +361,25 @@ def earnings_release(cik, old):
             "chars": len(text), "text": text[:RELEASE_CHARS], "truncated": len(text) > RELEASE_CHARS}
 
 
+def weekly_prices(tickers):
+    """밸류에이션 5년 위치 계산용 주간 종가 6년치 (Yahoo, 주식 분할 반영). 실패하면 빈 사전."""
+    if not tickers:
+        return {}
+    try:
+        df = yf.download(tickers, period="6y", interval="1wk", auto_adjust=False, progress=False, threads=False, group_by="ticker")
+    except Exception as exc:
+        print(f"[참고] 주간 주가: {exc}", file=sys.stderr)
+        return {}
+    out = {}
+    for t in tickers:
+        try:
+            close = (df[t] if len(tickers) > 1 else df)["Close"].dropna()
+            out[t] = [[d.date().isoformat(), round(float(v), 4)] for d, v in close.items()]
+        except Exception:
+            continue
+    return out
+
+
 def build(config, prev, today, warn):
     """하루 한 번 관심 종목(미국)의 장기 재무와 실적 보도자료를 모은다. prev 는 이전 결과(financials.json).
     같은 날 다시 돌면 이미 받은 종목은 그대로 두고, 새로 추가된 종목만 받는다."""
@@ -382,6 +401,7 @@ def build(config, prev, today, warn):
     except Exception as exc:
         warn("SEC 종목 목록 (재무)", exc)
         return {**prev, "companies": {t: c for t, c in old.items() if t in keep}} if not same_day else result
+    weekly = weekly_prices([e["ticker"] for e in todo if e["ticker"] in ciks])
     for entry in todo:
         t = entry["ticker"]
         if t not in ciks:
@@ -397,6 +417,7 @@ def build(config, prev, today, warn):
                 splits = None
             st = statements(cik, entry.get("sec_since"), splits)
             st["splits"] = [{"date": d, "ratio": v} for d, v in splits] if splits is not None else None
+            st["price_weekly"] = weekly.get(t)
             companies[t] = {"cik": int(cik), "name": entry["name"], **st, "since": entry.get("sec_since"), "since_note": entry.get("sec_since_note"),
                             "source_url": f"https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK={int(cik)}&type=10-"}
         except Exception as exc:

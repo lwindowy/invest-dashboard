@@ -6,7 +6,10 @@
 """
 import json
 
+import datetime as dt
+
 import quality
+import valuation_hist
 import re
 
 
@@ -75,6 +78,7 @@ def stock_file(data, fin_all, ticker):
         "credit_rating": s.get("rating"),
         "valuation_calc": valuation(fund, fin),
         "quality": quality.build(fin, fund, s.get("price")) if fin else None,
+        "valuation_history": valuation_hist.build(fin, (fin or {}).get("price_weekly"), dt.date.fromisoformat(data["generated_at"][:10])) if fin else None,
         "financials": None,
         "earnings_release": None,
         "sec_filings_90d": (sec_co or {}).get("filings"),
