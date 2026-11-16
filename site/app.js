@@ -209,6 +209,56 @@
         rows + '</div></div>' +
         '<p class="src">종목 이름을 누르면 종목 한 장 요약으로 이동합니다. RSI 70 이상은 과매수, 30 이하는 과매도로 표시합니다. 출처: Yahoo Finance · ' + md(asof) + ' 기준 · 주가는 15분가량 지연됩니다.</p></section>';
     },
+    briefing: function (sec) {
+      var b = DATA.briefing;
+      if (!b) return '';
+      var R = b.rules, sort = state.bsort || { key: null, dir: -1 };
+      var COLS = [['d1', '1일'], ['w1', '1주'], ['m1', '1개월']];
+      function cmp(a, c) {
+        if (sort.key) return ((a[sort.key] == null ? -1e9 : a[sort.key]) - (c[sort.key] == null ? -1e9 : c[sort.key])) * sort.dir;
+        return Math.abs(c.d1 || 0) - Math.abs(a.d1 || 0);   // 기본: 하루 변동이 큰 순
+      }
+      function pct(v) { return v == null ? '<span class="flat">–</span>' : '<span class="' + dir(v) + '">' + signed(v, 1, '%') + '</span>'; }
+      function row(r) {
+        var link = '<a href="#stocks/' + encodeURIComponent(r.ticker) + '"><b>' + esc(r.name) + '</b></a>';
+        var name = '<div class="stock-name">' + link + '<span>' + esc(r.ticker.replace(/\.K[SQ]$/, '')) + (r.stale ? ' · 이전 값' : '') + '</span></div>';
+        if (r.error) return '<div class="br-item"><div class="br-row">' + name + '<span class="src">가격 수집 실패</span></div></div>';
+        var earn = r.next_earnings ? md(r.next_earnings) + (r.earnings_in_days != null && r.earnings_in_days <= 7 ? ' ' + pill('D-' + r.earnings_in_days, 'warn', true) : '') : '–';
+        var why = r.reasons.map(function (x) {
+          var src = x.url ? '<a href="' + esc(x.url) + '" target="_blank" rel="noopener">' + esc(x.source) + '</a>' : esc(x.source);
+          return '<li>' + pill(x.level === 'red' ? '즉시' : '참고', x.level === 'red' ? 'bad' : 'warn', true) + ' <b>' + esc(x.text) + '</b>' +
+            '<small>왜: ' + esc(x.why) + ' · 출처: ' + src + '</small></li>';
+        }).join('');
+        var news = r.news ? '<li class="news">' + pill('뉴스', 'none', true) + ' <a href="' + esc(r.news.url) + '" target="_blank" rel="noopener">' + esc(r.news.title) + '</a>' +
+          '<small>' + esc(r.news.publisher || '') + ' · ' + md(r.news.at) + ' ' + esc((r.news.at || '').slice(11, 16)) + ' · 중요도는 아직 분류하지 않음</small></li>' : '';
+        var cov = r.coverage && !r.coverage.sec ? '<li class="cov">' + pill('커버리지 밖', 'none', true) + ' <small>공시·내부자 매매: ' + esc(r.coverage.sec_reason) + '</small></li>' : '';
+        return '<div class="br-item ' + r.level + '"><div class="br-row">' + name +
+          '<span class="price">' + (r.currency === 'KRW' ? fmt(r.price, 0) + '원' : '$' + fmt(r.price, 2)) + '</span>' +
+          pct(r.d1) + pct(r.w1) + '<span class="c-m1">' + pct(r.m1) + '</span>' +
+          '<span class="c-spark">' + sparkline(r.spark, dir(r.m1), 88, 26) + '</span><span class="c-earn">' + earn + '</span></div>' +
+          (why || news || cov ? '<ul class="br-why">' + why + news + cov + '</ul>' : '') + '</div>';
+      }
+      var head = '<div class="br-row th"><span>종목</span><span>현재가</span>' + COLS.map(function (c) {
+        var on = sort.key === c[0];
+        return '<button type="button" class="sort' + (c[0] === 'm1' ? ' c-m1' : '') + '" data-bsort="' + c[0] + '" aria-pressed="' + on + '" title="누르면 정렬">' + c[1] + (on ? (sort.dir < 0 ? ' ▼' : ' ▲') : '') + '</button>';
+      }).join('') + '<span class="c-spark">3개월</span><span class="c-earn">다음 실적</span></div>';
+      var GROUPS = [['red', '🔴 즉시 확인'], ['yellow', '🟡 참고'], ['none', '⚪ 변화 없음']];
+      var body = GROUPS.map(function (g) {
+        var rows = b.rows.filter(function (r) { return r.level === g[0]; }).sort(cmp);
+        if (!rows.length) return '';
+        var inner = rows.map(row).join('');
+        return g[0] === 'none' ? '<details class="br-group"><summary>' + g[1] + ' ' + rows.length + '개 (눌러서 펼치기)</summary>' + inner + '</details>'
+          : '<div class="br-group"><h3>' + g[1] + ' ' + rows.length + '개</h3>' + inner + '</div>';
+      }).join('');
+      var rules = '<details class="rules"><summary>분류 기준 보기</summary><ul>' +
+        '<li><b>즉시 확인</b>: 하루 ±' + R.move_pct + '% 이상 변동, 실적 발표 오늘·내일, 어제·오늘 실적 발표</li>' +
+        '<li><b>참고</b>: 5거래일 ±' + R.week_move_pct + '% 이상, 실적 발표 ' + R.earnings_soon_days + '일 이내, 최근 ' + R.filing_days + '일 안의 새 공시(SEC), 내부자 매수, RSI 70·30 진입, 200일선 돌파·이탈, 골든·데드크로스, 52주 신고가·신저가, Short Float 20% 돌파</li>' +
+        '<li><b>뉴스</b>는 아직 중요도를 분류하지 않아(AI 뉴스 분류 단계에서 추가) 기준에 쓰지 않고, 제목에 회사 이름이 들어간 ' + R.news_hours + '시간 이내 기사만 참고로 보여 줍니다.</li>' +
+        '<li>기준 숫자는 대시보드가 정한 값이며 config/dashboard.json 의 briefing·alerts 에서 바꿉니다.</li></ul></details>';
+      return '<section class="card" aria-label="' + esc(sec.label) + '"><div class="card-head"><h2>' + esc(sec.label) + '</h2><span class="src">' + md(b.generated_at) + ' ' + esc(b.generated_at.slice(11, 16)) + ' 기준</span></div>' +
+        '<div class="br">' + head + body + '</div>' + rules +
+        '<p class="src">수익률 머리글(1일·1주·1개월)을 누르면 묶음 안에서 정렬됩니다. 1주는 5거래일, 1개월은 21거래일 전 종가 대비입니다. 주가 출처: Yahoo Finance(약 15분 지연).</p></section>';
+    },
     heatmap: function (sec) {
       var hm = DATA.heatmap, key = state.heat || 'd1';
       if (!hm) return '';
@@ -964,6 +1014,12 @@
       if (navigator.clipboard) navigator.clipboard.writeText(cp.dataset.copy).then(done, function () { window.prompt('주소를 복사하세요', cp.dataset.copy); });
       else window.prompt('주소를 복사하세요', cp.dataset.copy);
       return;
+    }
+    var bs = e.target.closest('[data-bsort]');
+    if (bs) {   // 같은 머리글을 누를 때마다 큰 순 → 작은 순 → 기본 순서
+      var k = bs.dataset.bsort, cur = state.bsort || {};
+      state.bsort = cur.key !== k ? { key: k, dir: -1 } : cur.dir < 0 ? { key: k, dir: 1 } : null;
+      renderView(); return;
     }
     var ht = e.target.closest('[data-heat]');
     if (ht) { state.heat = ht.dataset.heat; renderView(); return; }

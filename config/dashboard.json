@@ -710,8 +710,8 @@
           ]
         },
         {
-          "type": "watchlist",
-          "label": "관심 종목",
+          "type": "briefing",
+          "label": "오늘 바뀐 것",
           "column": "main"
         },
         {
@@ -1191,6 +1191,12 @@
         ]
       }
     ]
+  },
+  "briefing": {
+    "week_move_pct": 10,
+    "earnings_soon_days": 7,
+    "filing_days": 2,
+    "news_hours": 48
   },
   "alerts": {
     "move_pct": 5,

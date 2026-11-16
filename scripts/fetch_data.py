@@ -25,6 +25,7 @@ import requests
 import yfinance as yf
 
 import ai_export
+import briefing
 import financials
 import sec
 
@@ -584,6 +585,8 @@ def stock_row(entry, market, ctx):
     return {"ticker": entry["ticker"], "name": entry["name"], "market": market,
             "currency": "KRW" if market == "kr" else "USD",
             "price": num(last), "change_pct": num((last / prev - 1) * 100, 2),
+            "w1_pct": num((last / float(close.iloc[-6]) - 1) * 100, 2) if len(close) > 6 else None,     # 5거래일 전 대비
+            "m1_pct": num((last / float(close.iloc[-22]) - 1) * 100, 2) if len(close) > 22 else None,   # 21거래일 전 대비
             "rsi": num(rsi(close), 1), "from_high_pct": num((last / high52 - 1) * 100, 1),
             "history_days": len(close), "asof": day(close.index[-1]), "spark": spark(close),
             "source": "Yahoo Finance"}
@@ -785,7 +788,7 @@ def stock_news(entry, old, long_name=None):
         row = {"title": n["title"], "publisher": n.get("publisher"), "url": n["link"],
                "at": dt.datetime.fromtimestamp(t, KST).isoformat(timespec="minutes") if t else None}
         if pattern.search(n["title"]):
-            named.append(row)
+            named.append({**row, "named": True})   # 제목에 회사 이름·티커가 들어간 기사
         elif tickers & set(n.get("relatedTickers") or []):
             related.append(row)
     picked = (named + related)[:NEWS_COUNT] if len(named) < NEWS_COUNT else named[:NEWS_COUNT]
@@ -1173,6 +1176,8 @@ def build_brief(data):
             "week_ago": (data["fedwatch"].get("compare") or {}).get("week"), "asof": data["fedwatch"]["asof"]},
         "events_next_7_days": data["events"],
         "alerts": data["alerts"],
+        "changes": [{"ticker": r["ticker"], "name": r["name"], "level": r["level"],
+                     "reasons": [x["text"] for x in r["reasons"]]} for r in (data.get("briefing") or {}).get("rows", []) if r["level"] != "none"],
         "site": "https://" + data["site"]["repo"].split("/")[0] + ".github.io/" + data["site"]["repo"].split("/")[1] + "/",
     }
 
@@ -1316,6 +1321,11 @@ def main():
     except Exception as exc:
         warn("알림", exc)
         data["alerts"] = (prev or {}).get("alerts", [])
+    try:
+        data["briefing"] = briefing.build(data, config, today, dt.datetime.now(KST))
+    except Exception as exc:
+        warn("아침 브리핑", exc)
+        data["briefing"] = (prev or {}).get("briefing")
     fin = financials.build(config, prev_fin, today, warn)
     data["financials"] = {"fetched": fin.get("fetched"), "source": fin.get("source"), "tickers": sorted(fin.get("companies") or {})}
     out = Path(args.out)
