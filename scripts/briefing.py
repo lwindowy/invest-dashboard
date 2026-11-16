@@ -4,7 +4,7 @@
 - 🟡 참고(yellow): 일주일 ±10% 이상, 실적 7일 이내, 새 공시, 기술적 신호(RSI·200일선·크로스·52주), 공매도, 내부자 매수
 - ⚪ 변화 없음(none): 위에 해당 없음
 기준 숫자는 config/dashboard.json 의 briefing 에서 바꾼다. 이유마다 출처와 기준일을 붙인다.
-뉴스는 아직 중요도를 모르므로(Phase 2에서 AI로 분류) 분류에는 쓰지 않고, 제목에 회사 이름이 들어간 최근 기사 하나만 함께 보여 준다.
+뉴스는 AI가 중요도 1~2로 분류한 기사만 🔴 즉시 확인으로 올린다(news_ai.py). 그 밖에는 제목에 회사 이름이 들어간 최근 기사 하나만 함께 보여 준다.
 """
 import datetime as dt
 
@@ -74,11 +74,20 @@ def build(data, config, today, now):
             for a in data.get("alerts", []):
                 if a.get("ticker") == t and a["kind"] in ALERT_KINDS and a["id"][:10] >= since_alert:
                     add("yellow", a["title"], a["detail"], "자체 계산 (Yahoo Finance 주가)", date=a["id"][:10])
-            news = None
-            for n in ((s.get("news") or {}).get("items") or []):
-                if n.get("named") and n.get("at") and dt.datetime.fromisoformat(n["at"]) >= news_floor:
-                    news = {k: n.get(k) for k in ("title", "url", "publisher", "at")}
-                    break
+            # AI가 중요도 1~2로 분류한 최근 기사는 즉시 확인으로 올린다 (같은 사건 기사는 하나만, 중요한 것부터)
+            recent = [n for n in ((s.get("news") or {}).get("items") or [])
+                      if not n.get("dup_of") and n.get("at") and dt.datetime.fromisoformat(n["at"]) >= news_floor]
+            recent.sort(key=lambda n: (n.get("importance") or 3.5, -dt.datetime.fromisoformat(n["at"]).timestamp()))
+            shown = set()
+            for n in recent:
+                if n.get("importance") in (1, 2):
+                    shown.add(n["url"])
+                    add("red", f"[중요도 {n['importance']} · {n['type']}] {n['title']}", f"AI가 중요도 1~2로 분류한 {rules['news_hours']}시간 이내 뉴스"
+                        + (f" — {n['reason']}" if n.get("reason") else ""), f"{n.get('publisher') or '뉴스'} · AI 분류", n["url"], (n["at"] or "")[:10])
+            # 참고로 보여 줄 기사 하나: 제목에 회사 이름이 있고, 위에서 이미 보인 기사가 아니며, 일상 기사(중요도 5)가 아닌 것 중 가장 중요한 것.
+            # 아직 분류하지 않은 기사는 중요도 3과 4 사이로 본다
+            news = next(({k: n.get(k) for k in ("title", "url", "publisher", "at", "importance", "type")} for n in recent
+                         if n.get("named") and n["url"] not in shown and n.get("importance") != 5), None)
             level = "red" if any(r["level"] == "red" for r in reasons) else "yellow" if reasons else "none"
             reasons.sort(key=lambda r: r["level"] != "red")
             rows.append({

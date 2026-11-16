@@ -349,3 +349,12 @@ h3.sub { font-size: 13px; color: var(--sub); font-weight: 700; margin: 14px 0 2p
   .br-row .price { font-size: 13px; white-space: nowrap; }
   .br-row .c-spark, .br-row .c-earn { display: none; }
 }
+
+/* AI 뉴스 분류 */
+.news-filter { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-bottom: 8px; }
+.news-filter .pick { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--sub); }
+.nhead { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+.nhead .nname { font-size: 13px; font-weight: 700; color: var(--ink); }
+.month-sum { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+.month-sum li { font-size: 14px; line-height: 1.5; }
+.month-sum small a { color: var(--blue); text-decoration: none; }

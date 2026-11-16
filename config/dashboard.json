@@ -715,6 +715,11 @@
           "column": "main"
         },
         {
+          "type": "newsfeed",
+          "label": "관심 종목 뉴스",
+          "column": "main"
+        },
+        {
           "type": "alerts",
           "label": "최근 알림",
           "column": "side"

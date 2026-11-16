@@ -209,6 +209,21 @@
         rows + '</div></div>' +
         '<p class="src">종목 이름을 누르면 종목 한 장 요약으로 이동합니다. RSI 70 이상은 과매수, 30 이하는 과매도로 표시합니다. 출처: Yahoo Finance · ' + md(asof) + ' 기준 · 주가는 15분가량 지연됩니다.</p></section>';
     },
+    newsfeed: function (sec) {
+      var all = [];
+      Object.keys(DATA.stocks || {}).forEach(function (t) {
+        var st = DATA.stocks[t];
+        ((st.news || {}).items || []).forEach(function (n) { all.push(Object.assign({ ticker: t, name: st.name }, n)); });
+      });
+      // 중요한 기사부터, 같은 중요도면 최신 순. 미분류는 뒤로
+      all.sort(function (a, b) { return ((a.importance || 9) - (b.importance || 9)) || ((b.at || '') > (a.at || '') ? 1 : -1); });
+      var limit = state.feedAll ? all.length : 15;
+      var visible = all.filter(function (n) { return !n.dup_of && newsPass(n); });
+      return '<section class="card" aria-label="' + esc(sec.label) + '"><div class="card-head"><h2>' + esc(sec.label) + '</h2></div>' + newsFilters() +
+        newsRows(all.filter(function (n) { return n.dup_of || visible.slice(0, limit).indexOf(n) >= 0; }), true) +
+        (visible.length > limit ? '<button type="button" class="btn small" data-feedall>' + (visible.length - limit) + '개 더 보기</button>' : '') +
+        '<p class="src">관심 종목의 최근 기사를 중요도 순으로 모았습니다. 출처: Yahoo Finance. ' + aiStamp() + '</p></section>';
+    },
     briefing: function (sec) {
       var b = DATA.briefing;
       if (!b) return '';
@@ -229,8 +244,8 @@
           return '<li>' + pill(x.level === 'red' ? '즉시' : '참고', x.level === 'red' ? 'bad' : 'warn', true) + ' <b>' + esc(x.text) + '</b>' +
             '<small>왜: ' + esc(x.why) + ' · 출처: ' + src + '</small></li>';
         }).join('');
-        var news = r.news ? '<li class="news">' + pill('뉴스', 'none', true) + ' <a href="' + esc(r.news.url) + '" target="_blank" rel="noopener">' + esc(r.news.title) + '</a>' +
-          '<small>' + esc(r.news.publisher || '') + ' · ' + md(r.news.at) + ' ' + esc((r.news.at || '').slice(11, 16)) + ' · 중요도는 아직 분류하지 않음</small></li>' : '';
+        var news = r.news ? '<li class="news">' + impPill(r.news) + ' <a href="' + esc(r.news.url) + '" target="_blank" rel="noopener">' + esc(r.news.title) + '</a>' +
+          '<small>' + esc(r.news.publisher || '') + ' · ' + md(r.news.at) + ' ' + esc((r.news.at || '').slice(11, 16)) + (r.news.importance ? '' : ' · 아직 AI 분류 전') + '</small></li>' : '';
         var cov = r.coverage && !r.coverage.sec ? '<li class="cov">' + pill('커버리지 밖', 'none', true) + ' <small>공시·내부자 매매: ' + esc(r.coverage.sec_reason) + '</small></li>' : '';
         return '<div class="br-item ' + r.level + '"><div class="br-row">' + name +
           '<span class="price">' + (r.currency === 'KRW' ? fmt(r.price, 0) + '원' : '$' + fmt(r.price, 2)) + '</span>' +
@@ -640,12 +655,10 @@
     var finBox = box('장기 재무', '<div id="fin" data-t="' + esc(s.ticker) + '"><p class="empty">불러오는 중입니다…</p></div>');
     var nw = s.news, newsBox = '';
     if (nw) {
-      newsBox = box('최근 뉴스', nw.items.length ? nw.items.map(function (n) {
-        return '<div class="event"><div class="date"><b>' + md(n.at) + '</b><span>' + esc((n.at || '').slice(11, 16)) + '</span></div><div class="what"><b><a href="' + esc(n.url) +
-          '" target="_blank" rel="noopener">' + esc(n.title) + '</a></b><span>' + esc(n.publisher || '') + '</span></div></div>';
-      }).join('') : '<p class="empty">최근 뉴스가 없습니다.</p>',
-        '제목을 누르면 원문이 열립니다. 기사는 영어이고, 시간은 한국 시간입니다. 출처: ' + esc(nw.source) + ' · ' + md(nw.fetched) + ' ' + esc((nw.fetched || '').slice(11, 16)) + ' 수집' + (nw.stale ? ' (이전 값)' : ''));
+      newsBox = box('최근 뉴스', newsFilters() + (nw.items.length ? newsRows(nw.items, false) : '<p class="empty">최근 뉴스가 없습니다.</p>'),
+        '제목을 누르면 원문이 열립니다. 기사는 영어이고, 시간은 한국 시간입니다. 출처: ' + esc(nw.source) + ' · ' + md(nw.fetched) + ' ' + esc((nw.fetched || '').slice(11, 16)) + ' 수집' + (nw.stale ? ' (이전 값)' : '') + '. ' + aiStamp());
     }
+    newsBox = monthBox(s) + newsBox;
     return head + '<div class="grid2">' + priceBox + tech + '</div>' + check + charts +
       '<div class="grid2">' + base + val + '</div>' + finBox + debtBox + trend + '<div class="grid2">' + earn + analyst + '</div>' + shortBox + newsBox + (sc ? '<div class="grid2">' + filingsBox + insiderBox + '</div>' : '');
   }
@@ -719,6 +732,57 @@
       '현금흐름 분기 값은 누적값의 차이로, 4분기는 연간에서 9개월 누적을 빼서 만듭니다. 4분기 EPS는 계산하지 않습니다. ' +
       'ROIC는 세후 영업이익 ÷ (자기자본 + 차입금 − 현금·단기 투자)의 기초·기말 평균으로, 대시보드가 정한 방식입니다. 현금이 많아 투하자본이 총자산의 10%도 안 되면 값이 수백 %로 튀어 비워 둡니다. ' +
       'P/FCF·EV는 Yahoo 시가총액과 SEC 값을 함께 씁니다. 출처: SEC XBRL · ' + md(F.fetched) + ' 수집</p>';
+  }
+  // ───────── AI 뉴스 분류 (중요도·유형 표시, 필터, 같은 사건 묶기) ─────────
+  var NEWS_TYPES = ['실적', '가이던스', 'M&A', '자사주 매입', '배당', '규제', '소송', '경영진 변동', '구조조정', '기타'];
+  function impPill(n) {
+    if (!n.importance) return pill('미분류', 'none', true);
+    return pill('중요도 ' + n.importance + ' · ' + n.type, n.importance <= 2 ? 'bad' : n.importance === 3 ? 'warn' : 'none', true);
+  }
+  function newsFilters() {
+    var imp = state.newsImp || 'all', ty = state.newsType || '';
+    return '<div class="news-filter"><div class="seg wrap">' + [['all', '전체'], ['12', '중요도 1~2'], ['123', '1~3']].map(function (o) {
+      return '<button type="button" class="btn small" data-nimp="' + o[0] + '" aria-pressed="' + (imp === o[0]) + '">' + o[1] + '</button>';
+    }).join('') + '</div><label class="pick"><span>유형</span><select data-ntype><option value="">전체</option>' +
+      NEWS_TYPES.map(function (t) { return '<option' + (t === ty ? ' selected' : '') + '>' + t + '</option>'; }).join('') + '</select></label></div>';
+  }
+  function newsPass(n) {
+    var imp = state.newsImp || 'all', ty = state.newsType || '';
+    if (imp !== 'all' && !(n.importance && imp.indexOf(String(n.importance)) >= 0)) return false;
+    if (ty && n.type !== ty) return false;
+    return true;
+  }
+  function newsRows(items, withName) {
+    // 같은 사건 기사는 첫 기사 아래 '같은 사건 N개'로 접는다
+    var dups = {};
+    items.forEach(function (n) { if (n.dup_of) dups[n.dup_of] = (dups[n.dup_of] || 0) + 1; });
+    var shown = items.filter(function (n) { return !n.dup_of && newsPass(n); });
+    if (!shown.length) return '<p class="empty">조건에 맞는 뉴스가 없습니다.</p>';
+    return shown.map(function (n) {
+      var more = dups[n.id] ? ' · 같은 사건 기사 ' + dups[n.id] + '개 더' : '';
+      return '<div class="event"><div class="date"><b>' + md(n.at) + '</b><span>' + esc((n.at || '').slice(11, 16)) + '</span></div><div class="what">' +
+        '<div class="nhead">' + impPill(n) + (withName ? ' <a class="nname" href="#stocks/' + encodeURIComponent(n.ticker) + '">' + esc(n.name) + '</a>' : '') + '</div>' +
+        '<b><a href="' + esc(n.url) + '" target="_blank" rel="noopener">' + esc(n.title) + '</a></b><span>' + esc(n.publisher || '') + more +
+        (n.reason ? ' · AI 판단: ' + esc(n.reason) : '') + '</span></div></div>';
+    }).join('');
+  }
+  function aiStamp() {
+    var a = DATA.news_ai || {};
+    return a.updated_at ? 'AI 분류: ' + esc(a.by || 'Claude') + ' · ' + md(a.updated_at) + ' ' + esc(a.updated_at.slice(11, 16)) + ' 기준. 제목만 보고 판단한 참고용입니다.'
+      : 'AI 분류 결과가 아직 없습니다(미분류).';
+  }
+  function monthBox(s) {
+    var m = s.news_month;
+    if (!m) return '';
+    var lines = m.lines.map(function (ln) {
+      var src = ln.sources.map(function (id, i) {
+        var a = m.sources[id];
+        return a ? '<a href="' + esc(a.url) + '" target="_blank" rel="noopener" title="' + esc(a.title) + '">[' + (i + 1) + ']</a>' : '';
+      }).join(' ');
+      return '<li>' + esc(ln.text) + ' <small>' + src + '</small></li>';
+    }).join('');
+    return box('이번 달 요약 (' + Number(m.month.slice(5, 7)) + '월)', '<ul class="month-sum">' + lines + '</ul>',
+      '뉴스 제목들을 AI가 요약했습니다. 문장 끝 [번호]를 누르면 근거 기사가 열립니다. 근거 기사가 없는 문장은 넣지 않습니다. ' + aiStamp());
   }
   function issueUrl(action, ticker, name) {
     // 종목 추가·삭제는 GitHub 요청(이슈)으로 보낸다. 저장소의 자동 작업이 받아서 처리한다
@@ -1015,6 +1079,9 @@
       else window.prompt('주소를 복사하세요', cp.dataset.copy);
       return;
     }
+    var ni = e.target.closest('[data-nimp]');
+    if (ni) { state.newsImp = ni.dataset.nimp; renderView(); return; }
+    if (e.target.closest('[data-feedall]')) { state.feedAll = true; renderView(); return; }
     var bs = e.target.closest('[data-bsort]');
     if (bs) {   // 같은 머리글을 누를 때마다 큰 순 → 작은 순 → 기본 순서
       var k = bs.dataset.bsort, cur = state.bsort || {};
@@ -1043,6 +1110,7 @@
     if (ticker) window.open(issueUrl('추가', ticker, form.name.value.trim()), '_blank', 'noopener');
   });
   $('view').addEventListener('change', function (e) {
+    if (e.target.matches('[data-ntype]')) { state.newsType = e.target.value; renderView(); return; }
     if (!e.target.matches('[data-compare]') || !DATA) return;
     state.compare = e.target.value;
     $('strength').innerHTML = strengthChart(DATA.stocks[state.stock]);   // 이 묶음만 다시 그린다

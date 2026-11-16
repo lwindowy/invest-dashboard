@@ -78,7 +78,9 @@ def stock_file(data, fin_all, ticker):
         "insider_90d": (sec_co or {}).get("summary"),
         "insider_trades": [{k: r[k] for k in ("date", "owner", "role", "kind", "shares", "price", "value", "planned")} for r in (sec_co or {}).get("insider", [])[:15]],
         "alerts": [a for a in data.get("alerts", []) if a.get("ticker") == ticker],
-        "news": [{k: n.get(k) for k in ("title", "publisher", "at", "url")} for n in ((s.get("news") or {}).get("items") or [])],
+        "news": [{k: n.get(k) for k in ("title", "publisher", "at", "url", "importance", "type", "event")} for n in ((s.get("news") or {}).get("items") or []) if not n.get("dup_of")],
+        "news_note": "importance(1=중대 사건 ~ 5=일상)와 type은 AI가 기사 제목으로 분류한 값이다. 값이 없으면 아직 분류하지 않은 기사다. 같은 사건의 중복 기사는 뺐다.",
+        "news_month": s.get("news_month"),
     }
     if fin:
         out["financials"] = {

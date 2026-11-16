@@ -26,6 +26,7 @@ import yfinance as yf
 
 import ai_export
 import briefing
+import news_ai
 import financials
 import sec
 
@@ -768,7 +769,7 @@ def stock_news(entry, old, long_name=None):
     words = {re.sub(r"\.K[SQ]$", "", entry["ticker"]), *entry.get("news_keywords", [])}
     for name in (entry.get("news_q"), long_name):
         if name:
-            words.add(name.split()[0])
+            words.add(re.sub(r"[^\w.-]", "", name.split()[0]))   # "CoreWeave, Inc." → CoreWeave
     words = {w for w in words if len(w) >= 2 and not w.isdigit()}
     pattern = re.compile(r"\b(" + "|".join(re.escape(w) for w in words) + r")\b", re.I)
     try:
@@ -1188,6 +1189,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=str(ROOT / "site/data/dashboard.json"))
     ap.add_argument("--prev", help="이전 결과 JSON. 실패한 항목의 값을 여기서 가져온다.")
+    ap.add_argument("--news-ai", help="AI 뉴스 분류 결과(news_ai.json). 없으면 --prev 와 같은 폴더에서 찾는다.")
     ap.add_argument("--prev-financials", help="이전 장기 재무 JSON. 없으면 --prev 와 같은 폴더의 financials.json 을 찾는다.")
     args = ap.parse_args()
 
@@ -1316,6 +1318,19 @@ def main():
         "glossary": json.loads((ROOT / "config/glossary.json").read_text(encoding="utf-8"))["terms"],
         "errors": errors,
     }
+    ai_path = Path(args.news_ai) if args.news_ai else Path(args.prev).with_name("news_ai.json") if args.prev else None
+    news_result = {}
+    if ai_path and ai_path.is_file():
+        try:
+            news_result = json.loads(ai_path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            warn("AI 뉴스 분류 파일", exc)
+    try:
+        dropped = news_ai.apply(data, news_result)
+        if dropped:
+            print(f"[참고] AI 뉴스 분류 중 검사에 걸려 뺀 항목 {len(dropped)}건: {dropped[:3]}", file=sys.stderr)
+    except Exception as exc:
+        warn("AI 뉴스 분류 적용", exc)
     try:
         data["alerts"] = build_alerts(ctx, data, data["generated_at"])
     except Exception as exc:
@@ -1336,6 +1351,7 @@ def main():
     except Exception as exc:
         warn("AI용 요약 파일", exc)
         n_ai = 0
+    (out.parent / "news_queue.json").write_text(json.dumps(news_ai.build_queue(data, news_result, dt.datetime.now(KST)), ensure_ascii=False, indent=1), encoding="utf-8")
     (out.parent / "brief.json").write_text(json.dumps(build_brief(data), ensure_ascii=False, indent=1, allow_nan=False), encoding="utf-8")
     out.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":"), allow_nan=False), encoding="utf-8")
     (out.parent / "history.json").write_text(json.dumps(history, ensure_ascii=False, separators=(",", ":"), allow_nan=False), encoding="utf-8")
