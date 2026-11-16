@@ -130,5 +130,9 @@ def write(data, fin_all, out_dir):
             (out_dir / name).write_text(json.dumps(body, ensure_ascii=False, separators=(",", ":"), allow_nan=False), encoding="utf-8")
             files.append({"ticker": t, "name": row["name"], "market": market, "url": base + name,
                           "has_sec_financials": body["financials"] is not None})
+    names = {file_name(f["ticker"]) for f in files} | {"index.json"}
+    for old in out_dir.glob("*.json"):   # 관심 종목에서 뺀 종목의 파일은 지운다
+        if old.name not in names:
+            old.unlink()
     (out_dir / "index.json").write_text(json.dumps(index_file(data, files), ensure_ascii=False, indent=1, allow_nan=False), encoding="utf-8")
     return len(files)

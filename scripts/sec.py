@@ -172,7 +172,8 @@ def manager(cfg, old, watch_names):
     filings = [f for f in recent(cfg["cik"]) if f["form"] == "13F-HR"][:2]
     if not filings:
         raise ValueError("13F 공시가 없습니다")
-    if old and old.get("acc") == filings[0]["accessionNumber"]:
+    # 같은 13F를 이미 읽었고 관심 종목 목록도 그대로면 다시 받지 않는다(종목을 추가·삭제하면 다시 맞춰 본다)
+    if old and old.get("acc") == filings[0]["accessionNumber"] and old.get("watch_keys") == sorted(watch_names):
         return old
     now = parse_13f(cfg["cik"], filings[0])
     before = parse_13f(cfg["cik"], filings[1])["holdings"] if len(filings) > 1 else {}
@@ -205,6 +206,7 @@ def manager(cfg, old, watch_names):
     sold = [h["issuer"].title() for k, h in sorted(before.items(), key=lambda kv: kv[1]["value"], reverse=True) if k not in now["holdings"]][:5]
     return {"name": cfg["name"], "who": cfg.get("who"), "cik": int(cfg["cik"]), "acc": now["acc"], "period": now["period"], "filed": now["filed"],
             "total": now["total"], "count": len(ranked), "top": [describe(h) for h in ranked[:10]], "watch": watch, "sold": sold,
+            "watch_keys": sorted(watch_names),
             "url": f"https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK={int(cfg['cik'])}&type=13F-HR"}
 
 
@@ -220,18 +222,24 @@ def match_key(title):
 def build(config, prev, today, warn):
     """하루 한 번 SEC 데이터를 모은다. prev 는 이전 결과의 'sec' 부분."""
     prev = prev or {}
-    if prev.get("fetched") == today.isoformat():
-        return prev
+    us = [e["ticker"] for e in config["watchlist"].get("us", [])]
+    known = set(prev.get("companies") or {}) | set(prev.get("not_on_sec") or [])
+    on_sec = sorted(t for t in us if t not in set(prev.get("not_on_sec") or []))
+    managers_ok = all(m.get("watch_keys") == on_sec for m in prev.get("managers", []))   # 13F에서 맞춰 본 종목 목록도 그대로인지
+    if prev.get("fetched") == today.isoformat() and all(t in known for t in us) and managers_ok:
+        # 오늘 이미 받았고 새로 추가된 종목이 없다. 목록에서 뺀 종목만 지운다
+        return {**prev, "companies": {t: c for t, c in (prev.get("companies") or {}).items() if t in us}}
     try:
         listing = get("https://www.sec.gov/files/company_tickers.json").json().values()
         ciks = {row["ticker"]: (row["cik_str"], row["title"]) for row in listing}
     except Exception as exc:
         warn("SEC 종목 목록", exc)
         return prev
-    companies, watch_names = {}, {}
+    companies, watch_names, not_on_sec = {}, {}, []
     for entry in config["watchlist"].get("us", []):
         ticker = entry["ticker"]
         if ticker not in ciks:
+            not_on_sec.append(ticker)
             continue
         cik, title = ciks[ticker]
         watch_names[ticker] = (entry["name"], match_key(title))
@@ -250,4 +258,4 @@ def build(config, prev, today, warn):
             warn(f"13F {cfg['name']}", exc)
             if int(cfg["cik"]) in old_managers:
                 managers.append(old_managers[int(cfg["cik"])])
-    return {"fetched": today.isoformat(), "source": "SEC EDGAR", "companies": companies, "managers": managers}
+    return {"fetched": today.isoformat(), "source": "SEC EDGAR", "companies": companies, "managers": managers, "not_on_sec": not_on_sec}
