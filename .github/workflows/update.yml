@@ -58,10 +58,19 @@ jobs:
         continue-on-error: true
         run: curl -fsSL --retry 3 --retry-delay 10 --max-time 60 "${{ steps.pages.outputs.base_url }}/data/financials.json" -o "$RUNNER_TEMP/financials.json"
 
-      # Claude 예약 작업이 ai-results 브랜치에 저장한 AI 뉴스 분류 결과. 없으면 분류 없이 계속한다
-      - name: AI 뉴스 분류 결과 받기
+      # 스크리너 표(나스닥 100 + 관심 종목)도 하루 한 번만 받는다. prev.json 옆에 두면 수집 스크립트가 찾는다
+      - name: 이전 스크리너 표 받기
         continue-on-error: true
-        run: git fetch --depth=1 origin ai-results && git show FETCH_HEAD:news_ai.json > "$RUNNER_TEMP/news_ai.json"
+        run: curl -fsSL --retry 3 --retry-delay 10 --max-time 60 "${{ steps.pages.outputs.base_url }}/data/screener.json" -o "$RUNNER_TEMP/screener.json"
+
+      # Claude 예약 작업이 ai-results 브랜치에 저장한 AI 뉴스 분류 결과와 회사 소개. 없으면 없는 채로 계속한다
+      - name: AI 뉴스 분류 결과와 회사 소개 받기
+        continue-on-error: true
+        run: |
+          git fetch --depth=1 origin ai-results
+          for f in news_ai.json profiles.json; do
+            if git cat-file -e "FETCH_HEAD:$f" 2>/dev/null; then git show "FETCH_HEAD:$f" > "$RUNNER_TEMP/$f"; fi
+          done
 
       - name: 데이터 수집
         run: python scripts/fetch_data.py --prev "$RUNNER_TEMP/prev.json"

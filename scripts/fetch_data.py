@@ -28,7 +28,9 @@ import ai_export
 import briefing
 import earnings
 import news_ai
+import profiles
 import financials
+import screener
 import sec
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -1205,6 +1207,14 @@ def main():
         except Exception as exc:
             print(f"이전 장기 재무를 읽지 못해 무시합니다: {exc}", file=sys.stderr)
 
+    prev_scr = None
+    scr_path = Path(args.prev).with_name("screener.json") if args.prev else None
+    if scr_path and scr_path.is_file():
+        try:
+            prev_scr = json.loads(scr_path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            print(f"이전 스크리너 표를 읽지 못해 무시합니다: {exc}", file=sys.stderr)
+
     # 필요한 심볼·시계열을 설정에서 모아 한 번에 받는다
     series, regime, senti = config["series"], config["regime"], config["sentiment"]
     symbols = {c["symbol"] for c in series.values() if c.get("symbol")}
@@ -1327,6 +1337,19 @@ def main():
             print(f"[참고] AI 뉴스 분류 중 검사에 걸려 뺀 항목 {len(dropped)}건: {dropped[:3]}", file=sys.stderr)
     except Exception as exc:
         warn("AI 뉴스 분류 적용", exc)
+    prof_path = ai_path.with_name("profiles.json") if ai_path else None
+    prof_result = {}
+    if prof_path and prof_path.is_file():
+        try:
+            prof_result = json.loads(prof_path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            warn("회사 소개 파일", exc)
+    try:
+        n_bad = profiles.apply(data, prof_result)
+        if n_bad:
+            print(f"[참고] 회사 소개 검사에서 뺀 항목 {n_bad}건", file=sys.stderr)
+    except Exception as exc:
+        warn("회사 소개 적용", exc)
     try:
         data["alerts"] = build_alerts(ctx, data, data["generated_at"])
     except Exception as exc:
@@ -1343,10 +1366,19 @@ def main():
     out.parent.mkdir(parents=True, exist_ok=True)
     (out.parent / "financials.json").write_text(json.dumps(fin, ensure_ascii=False, separators=(",", ":"), allow_nan=False), encoding="utf-8")
     try:
+        scr = screener.build(config, prev_scr, today, warn)
+        (out.parent / "screener.json").write_text(json.dumps(scr, ensure_ascii=False, separators=(",", ":"), allow_nan=False), encoding="utf-8")
+        data["screener"] = {"fetched": scr.get("fetched"), "count": len(scr.get("rows") or [])}
+    except Exception as exc:
+        warn("스크리너", exc)
+        if prev_scr:
+            (out.parent / "screener.json").write_text(json.dumps(prev_scr, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    try:
         n_ai = ai_export.write(data, fin, out.parent / "ai")
     except Exception as exc:
         warn("AI용 요약 파일", exc)
         n_ai = 0
+    (out.parent / "profile_queue.json").write_text(json.dumps(profiles.build_queue(data, prof_result, today), ensure_ascii=False, indent=1), encoding="utf-8")
     (out.parent / "news_queue.json").write_text(json.dumps(news_ai.build_queue(data, news_result, dt.datetime.now(KST)), ensure_ascii=False, indent=1), encoding="utf-8")
     (out.parent / "brief.json").write_text(json.dumps(build_brief(data), ensure_ascii=False, indent=1, allow_nan=False), encoding="utf-8")
     out.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":"), allow_nan=False), encoding="utf-8")
