@@ -1,6 +1,6 @@
 {
  "version": 1,
- "updated_at": "2026-11-17T04:42+09:00",
+ "updated_at": "2026-11-17T07:41+09:00",
  "by": "Claude 예약 작업 (구독)",
  "items": {
   "c8c869c2c6cf": {
@@ -2822,6 +2822,258 @@
    "event": "dram price fixing suit",
    "reason": "같은 D램 소송이지만 제목의 주인공은 마이크론",
    "classified_at": "2026-11-17T04:42+09:00"
+  },
+  "a6628deba8ec": {
+   "ticker": "IREN",
+   "title": "CoreWeave, Oracle and Nebius Plunge as Nvidia Fallout Rattles AI Stocks",
+   "url": "https://finance.yahoo.com/technology/ai/articles/coreweave-oracle-nebius-plunge-nvidia-192652785.html",
+   "publisher": "GuruFocus.com",
+   "at": "2026-11-17T04:26+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "nvidia fallout selloff nov 16",
+   "reason": "제목에 아이렌이 없고 다른 AI 종목 하락을 다룬 기사",
+   "classified_at": "2026-11-17T07:41+09:00"
+  },
+  "09e6668012d4": {
+   "ticker": "CRWV",
+   "title": "CoreWeave, Oracle and Nebius Plunge as Nvidia Fallout Rattles AI Stocks",
+   "url": "https://finance.yahoo.com/technology/ai/articles/coreweave-oracle-nebius-plunge-nvidia-192652785.html",
+   "publisher": "GuruFocus.com",
+   "at": "2026-11-17T04:26+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "nvidia fallout selloff nov 16",
+   "reason": "엔비디아 여파로 인한 주가 급락을 설명하는 기사",
+   "classified_at": "2026-11-17T07:41+09:00"
+  },
+  "006555e993ab": {
+   "ticker": "NBIS",
+   "title": "CoreWeave, Oracle and Nebius Plunge as Nvidia Fallout Rattles AI Stocks",
+   "url": "https://finance.yahoo.com/technology/ai/articles/coreweave-oracle-nebius-plunge-nvidia-192652785.html",
+   "publisher": "GuruFocus.com",
+   "at": "2026-11-17T04:26+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "nvidia fallout selloff nov 16",
+   "reason": "엔비디아 여파로 인한 주가 급락을 설명하는 기사",
+   "classified_at": "2026-11-17T07:41+09:00"
+  },
+  "42ac6925e127": {
+   "ticker": "NVDA",
+   "title": "Trump to Name Nvidia, Amazon and Microsoft AI “National Champions” as Bessent Demands a Shakeup",
+   "url": "https://finance.yahoo.com/technology/ai/articles/trump-name-nvidia-amazon-microsoft-192913454.html",
+   "publisher": "TIKR",
+   "at": "2026-11-17T04:29+09:00",
+   "importance": 2,
+   "type": "기타",
+   "event": "national champions",
+   "reason": "미국 정부가 AI '국가 대표 기업'으로 지정한다는 보도로 정책상 의미가 큼",
+   "classified_at": "2026-11-17T07:41+09:00"
+  },
+  "0908e3af0104": {
+   "ticker": "NVDA",
+   "title": "Altman Says AI Industry Will Be Fine Amid Nvidia CEO Departure",
+   "url": "https://finance.yahoo.com/technology/ai/articles/altman-says-ai-industry-fine-192812807.html",
+   "publisher": "MT Newswires",
+   "at": "2026-11-17T04:28+09:00",
+   "importance": 4,
+   "type": "경영진 변동",
+   "event": "nvidia ceo departure",
+   "reason": "CEO 이탈에 대한 외부 인사(올트먼)의 논평",
+   "classified_at": "2026-11-17T07:41+09:00"
+  },
+  "b527ea42abc3": {
+   "ticker": "NVDA",
+   "title": "Nvidia Stocks Decline 2.31% as Huang Comeback Talk Shadows $108 Billion Quarter",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/nvidia-stocks-decline-2-31-192734785.html",
+   "publisher": "GuruFocus.com",
+   "at": "2026-11-17T04:27+09:00",
+   "importance": 4,
+   "type": "경영진 변동",
+   "event": "jensen huang return",
+   "reason": "젠슨 황 복귀설 속 주가 하락을 설명하는 기사",
+   "classified_at": "2026-11-17T07:41+09:00"
+  },
+  "3e3e4ad29ff5": {
+   "ticker": "NVDA",
+   "title": "CoreWeave, Oracle and Nebius Plunge as Nvidia Fallout Rattles AI Stocks",
+   "url": "https://finance.yahoo.com/technology/ai/articles/coreweave-oracle-nebius-plunge-nvidia-192652785.html",
+   "publisher": "GuruFocus.com",
+   "at": "2026-11-17T04:26+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "nvidia fallout selloff nov 16",
+   "reason": "엔비디아 여파로 AI 종목이 함께 떨어진 주가 움직임 기사",
+   "classified_at": "2026-11-17T07:41+09:00"
+  },
+  "997dcee768d7": {
+   "ticker": "NVDA",
+   "title": "Rockwell Automation Integrates Nvidia Omniverse Into Emulate3D Factory Simulation Software",
+   "url": "https://finance.yahoo.com/technology/ai/articles/rockwell-automation-integrates-nvidia-omniverse-191941809.html",
+   "publisher": "MT Newswires",
+   "at": "2026-11-17T04:19+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "rockwell omniverse",
+   "reason": "로크웰의 제품 발표로 엔비디아는 주인공이 아님",
+   "classified_at": "2026-11-17T07:41+09:00"
+  },
+  "763cbd04c533": {
+   "ticker": "NVDA",
+   "title": "Nvidia board needs 'some heavyweights,' ex-Medtronic CEO Bill George says",
+   "url": "https://finance.yahoo.com/technology/article/nvidia-board-needs-some-heavyweights-ex-medtronic-ceo-bill-george-says-191935557.html",
+   "publisher": "Yahoo Finance",
+   "at": "2026-11-17T04:19+09:00",
+   "importance": 3,
+   "type": "경영진 변동",
+   "event": "nvidia board governance",
+   "reason": "전직 CEO가 이사회 보강 필요성을 제기한 지배구조 관련 논평",
+   "classified_at": "2026-11-17T07:41+09:00"
+  },
+  "1a5046634edf": {
+   "ticker": "NVDA",
+   "title": "The S&P 500's shot at 4 straight double-digit years is in Nvidia's hands",
+   "url": "https://finance.yahoo.com/markets/article/the-sp-500s-shot-at-4-straight-double-digit-years-is-in-nvidias-hands-191852498.html",
+   "publisher": "Yahoo Finance",
+   "at": "2026-11-17T04:18+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "nvda q3 fy27 earnings",
+   "reason": "실적 발표가 지수에 미칠 영향을 다룬 전망 기사",
+   "classified_at": "2026-11-17T07:41+09:00"
+  },
+  "122fa4347263": {
+   "ticker": "PLTR",
+   "title": "ServiceNow vs. Palantir Technologies: Comparing Steady Sales Scale Against Rapid Revenue Acceleration",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/servicenow-vs-palantir-technologies-comparing-193204567.html",
+   "publisher": "Motley Fool",
+   "at": "2026-11-17T04:32+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "pltr vs now comparison",
+   "reason": "다른 회사와 성장성을 비교하는 해설 기사",
+   "classified_at": "2026-11-17T07:41+09:00"
+  },
+  "28d2d4edeeef": {
+   "ticker": "ORCL",
+   "title": "CoreWeave, Oracle and Nebius Plunge as Nvidia Fallout Rattles AI Stocks",
+   "url": "https://finance.yahoo.com/technology/ai/articles/coreweave-oracle-nebius-plunge-nvidia-192652785.html",
+   "publisher": "GuruFocus.com",
+   "at": "2026-11-17T04:26+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "nvidia fallout selloff nov 16",
+   "reason": "엔비디아 여파로 인한 주가 급락을 설명하는 기사",
+   "classified_at": "2026-11-17T07:41+09:00"
+  },
+  "5887bdc9a78a": {
+   "ticker": "ORCL",
+   "title": "Is Oracle (ORCL) Undervalued Following Its Expanded Federal Health Data Exchange Deal?",
+   "url": "https://finance.yahoo.com/healthcare/articles/oracle-orcl-undervalued-following-expanded-191057444.html",
+   "publisher": "Simply Wall St.",
+   "at": "2026-11-17T04:10+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "va health network",
+   "reason": "연방 보건 데이터 계약 이후 저평가 여부를 묻는 해설 기사",
+   "classified_at": "2026-11-17T07:41+09:00"
+  },
+  "aeb112206a07": {
+   "ticker": "TSLA",
+   "title": "Tesla's Cybercab sales to the public are 'early validation' of robotaxi push, JPMorgan says",
+   "url": "https://finance.yahoo.com/markets/stocks/article/teslas-cybercab-sales-to-the-public-are-early-validation-of-robotaxi-push-jpmorgan-says-192145629.html",
+   "publisher": "Yahoo Finance",
+   "at": "2026-11-17T04:21+09:00",
+   "importance": 3,
+   "type": "기타",
+   "event": "cybercab sale",
+   "reason": "JP모건이 사이버캡 일반 판매를 로보택시 전략의 초기 검증으로 평가",
+   "classified_at": "2026-11-17T07:41+09:00"
+  },
+  "569595aa69e3": {
+   "ticker": "AMD",
+   "title": "NVDL 2X NVIDIA ETF Sinks 9% as NVIDIA Falls 4% on Jensen Huang Fallout Ahead of Earnings; AMD Drops 5%",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/nvdl-2x-nvidia-etf-sinks-190218782.html",
+   "publisher": "24/7 Wall St.",
+   "at": "2026-11-17T04:02+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "nvidia fallout selloff nov 16",
+   "reason": "엔비디아 ETF 중심 기사로 AMD는 곁다리",
+   "classified_at": "2026-11-17T07:41+09:00"
+  },
+  "8145576827a6": {
+   "ticker": "AMD",
+   "title": "AMD-Powered Lux Supercomputer Opens to Scientific Users at Oak Ridge, Becoming First AI Factory for DOE’s Genesis Mission",
+   "url": "https://finance.yahoo.com/technology/ai/articles/amd-powered-lux-supercomputer-opens-190000361.html",
+   "publisher": "GlobeNewswire",
+   "at": "2026-11-17T04:00+09:00",
+   "importance": 3,
+   "type": "기타",
+   "event": "lux supercomputer doe",
+   "reason": "AMD 기반 Lux 슈퍼컴퓨터가 미 에너지부 Genesis 미션용으로 가동",
+   "classified_at": "2026-11-17T07:41+09:00"
+  },
+  "8a044a5d9321": {
+   "ticker": "005930.KS",
+   "title": "Samsung Stocks Fall 4.47% as Nvidia Turmoil and DRAM Lawsuit Hit Seoul",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/samsung-stocks-fall-4-47-185426586.html",
+   "publisher": "GuruFocus.com",
+   "at": "2026-11-17T03:54+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "seoul selloff nov 16",
+   "reason": "엔비디아 혼란과 D램 소송으로 인한 주가 하락 설명 기사",
+   "classified_at": "2026-11-17T07:41+09:00"
+  },
+  "0b21f0375261": {
+   "ticker": "000660.KS",
+   "title": "SK hynix will pay suppliers that fail. Blame a hidden bottleneck",
+   "url": "https://finance.yahoo.com/technology/articles/sk-hynix-pay-suppliers-fail-191328813.html",
+   "publisher": "TheStreet",
+   "at": "2026-11-17T04:13+09:00",
+   "importance": 3,
+   "type": "기타",
+   "event": "supplier support program",
+   "reason": "협력사 지원 방침과 공급망 병목을 다룬 기사",
+   "classified_at": "2026-11-17T07:41+09:00"
+  },
+  "9321b63756a1": {
+   "ticker": "000660.KS",
+   "title": "SK Hynix Is Down 16% in a Month. What Will It Take to Get SKHY Stock Back to $150?",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/sk-hynix-down-16-month-190321820.html",
+   "publisher": "24/7 Wall St.",
+   "at": "2026-11-17T04:03+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "skhy stock outlook",
+   "reason": "한 달 16% 하락 후 반등 조건을 묻는 전망 기사",
+   "classified_at": "2026-11-17T07:41+09:00"
+  },
+  "68e079c34aa1": {
+   "ticker": "000660.KS",
+   "title": "SK hynix Stocks Sink 7.89% Despite 80% Margin and 100 Trillion Won Payout",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/sk-hynix-stocks-sink-7-185457237.html",
+   "publisher": "GuruFocus.com",
+   "at": "2026-11-17T03:54+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "seoul selloff nov 16",
+   "reason": "높은 이익률에도 주가가 떨어진 이유를 설명하는 기사",
+   "classified_at": "2026-11-17T07:41+09:00"
+  },
+  "db8c3137580a": {
+   "ticker": "000660.KS",
+   "title": "Samsung Stocks Fall 4.47% as Nvidia Turmoil and DRAM Lawsuit Hit Seoul",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/samsung-stocks-fall-4-47-185426586.html",
+   "publisher": "GuruFocus.com",
+   "at": "2026-11-17T03:54+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "seoul selloff nov 16",
+   "reason": "제목에 SK하이닉스가 없고 삼성전자가 주인공인 기사",
+   "classified_at": "2026-11-17T07:41+09:00"
   }
  },
  "monthly": {
@@ -2837,10 +3089,11 @@
      ]
     },
     {
-     "text": "이사회가 젠슨 황의 CEO 복귀에 반대한다는 보도가 나옴",
+     "text": "이사회가 젠슨 황의 CEO 복귀에 반대한다는 보도와 함께 이사회 보강 요구도 나옴",
      "sources": [
       "0aa199339e25",
-      "0476ce6e3793"
+      "0476ce6e3793",
+      "763cbd04c533"
      ]
     },
     {
@@ -2864,7 +3117,7 @@
      ]
     }
    ],
-   "updated_at": "2026-11-17T04:10+09:00"
+   "updated_at": "2026-11-17T07:41+09:00"
   },
   "IONQ": {
    "month": "2026-11",
@@ -2918,13 +3171,19 @@
      ]
     },
     {
+     "text": "JP모건은 사이버캡 일반 판매를 로보택시 전략의 초기 검증으로 평가",
+     "sources": [
+      "aeb112206a07"
+     ]
+    },
+    {
      "text": "텍사스 100억 달러 규모 태양광 공장 착공",
      "sources": [
       "f3be6370bd86"
      ]
     }
    ],
-   "updated_at": "2026-11-17T04:10+09:00"
+   "updated_at": "2026-11-17T07:41+09:00"
   },
   "005930.KS": {
    "month": "2026-11",
@@ -2950,7 +3209,7 @@
      ]
     }
    ],
-   "updated_at": "2026-11-17T04:10+09:00"
+   "updated_at": "2026-11-17T07:41+09:00"
   },
   "000660.KS": {
    "month": "2026-11",
@@ -2968,6 +3227,12 @@
      ]
     },
     {
+     "text": "공급망 병목을 이유로 협력사 지원 방침이 보도됨",
+     "sources": [
+      "0b21f0375261"
+     ]
+    },
+    {
      "text": "최대 고객 엔비디아의 경영진 충격으로 주가 약세",
      "sources": [
       "8161256afe1c",
@@ -2981,7 +3246,7 @@
      ]
     }
    ],
-   "updated_at": "2026-11-17T04:10+09:00"
+   "updated_at": "2026-11-17T07:41+09:00"
   },
   "CRWV": {
    "month": "2026-11",
@@ -3017,7 +3282,7 @@
      ]
     }
    ],
-   "updated_at": "2026-11-17T04:10+09:00"
+   "updated_at": "2026-11-17T07:41+09:00"
   },
   "NBIS": {
    "month": "2026-11",
@@ -3054,7 +3319,7 @@
      ]
     }
    ],
-   "updated_at": "2026-11-17T04:10+09:00"
+   "updated_at": "2026-11-17T07:41+09:00"
   },
   "RKLB": {
    "month": "2026-11",
@@ -3131,6 +3396,12 @@
      ]
     },
     {
+     "text": "AMD 기반 Lux 슈퍼컴퓨터가 오크리지에서 미 에너지부 Genesis 미션용으로 가동",
+     "sources": [
+      "8145576827a6"
+     ]
+    },
+    {
      "text": "미국 반도체 규제 강화 소식에 주가 하락",
      "sources": [
       "68fc7e22d18b"
@@ -3143,7 +3414,7 @@
      ]
     }
    ],
-   "updated_at": "2026-11-17T04:10+09:00"
+   "updated_at": "2026-11-17T07:41+09:00"
   },
   "PLTR": {
    "month": "2026-11",
@@ -3168,7 +3439,7 @@
      ]
     }
    ],
-   "updated_at": "2026-11-17T04:10+09:00"
+   "updated_at": "2026-11-17T07:41+09:00"
   },
   "ORCL": {
    "month": "2026-11",
@@ -3193,7 +3464,7 @@
      ]
     }
    ],
-   "updated_at": "2026-11-17T02:40+09:00"
+   "updated_at": "2026-11-17T07:41+09:00"
   },
   "IREN": {
    "month": "2026-11",
@@ -3217,7 +3488,7 @@
      ]
     }
    ],
-   "updated_at": "2026-11-17T04:10+09:00"
+   "updated_at": "2026-11-17T07:41+09:00"
   }
  }
 }
