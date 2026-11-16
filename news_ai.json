@@ -1,7 +1,7 @@
 {
  "version": 1,
- "updated_at": "2026-11-16T14:11+09:00",
- "by": "Claude (이 대화에서 시험 분류)",
+ "updated_at": "2026-11-17T02:15+09:00",
+ "by": "Claude 예약 작업 (구독)",
  "items": {
   "c8c869c2c6cf": {
    "ticker": "IREN",
@@ -1250,6 +1250,210 @@
    "event": "nvidia leadership shock",
    "reason": "최대 고객 리스크 해설",
    "classified_at": "2026-11-16T14:11+09:00"
+  },
+  "35e69bca6ca3": {
+   "ticker": "RKLB",
+   "title": "ASTS, RKLB, LUNR And FLY Fall After ULA Rocket Failure Strands 40 Amazon Satellites — Why One Analyst Wants Musk To Free Up Falcon 9 Flights",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/asts-rklb-lunr-fly-fall-055834650.html",
+   "publisher": "Stocktwits",
+   "at": "2026-11-16T14:58+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "ula failure space selloff",
+   "reason": "ULA 발사 실패로 우주주 여러 개가 함께 내린 기사로 로켓랩이 주인공이 아님",
+   "classified_at": "2026-11-17T02:15+09:00"
+  },
+  "ac8340375a29": {
+   "ticker": "NBIS",
+   "title": "Why Is NBIS Down Nearly 5% Overnight?",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/why-nbis-down-nearly-5-082116483.html",
+   "publisher": "Stocktwits",
+   "at": "2026-11-16T17:21+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "nbis overnight drop",
+   "reason": "하루 주가 하락 이유를 설명하는 기사",
+   "classified_at": "2026-11-17T02:15+09:00"
+  },
+  "ed8e8f35b945": {
+   "ticker": "NBIS",
+   "title": "Bad News for the AI Trade: Nebius’s 2027 Guide Works Out to “$8-9M per MW,” the Same as 2026 per Jim Chanos",
+   "url": "https://finance.yahoo.com/technology/ai/articles/bad-news-ai-trade-nebius-022133858.html",
+   "publisher": "TIKR",
+   "at": "2026-11-16T11:21+09:00",
+   "importance": 3,
+   "type": "가이던스",
+   "event": "nbis 2027 guidance",
+   "reason": "짐 차노스가 2027년 가이던스의 MW당 매출이 늘지 않는다고 지적한 기사",
+   "classified_at": "2026-11-17T02:15+09:00"
+  },
+  "9eb6dff98aa1": {
+   "ticker": "NVDA",
+   "title": "Stocks extend losses as traders digest Nvidia fallout",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/stocks-extend-losses-traders-digest-030006305.html",
+   "publisher": "AFP",
+   "at": "2026-11-16T17:22+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "asia selloff before earnings",
+   "reason": "엔비디아 여파로 증시 하락이 이어진다는 시황 기사",
+   "classified_at": "2026-11-17T02:15+09:00"
+  },
+  "0d8383867e67": {
+   "ticker": "NVDA",
+   "title": "November 2026 Cash Flow Stocks Like NVIDIA Stock",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/november-2026-cash-flow-stocks-080926567.html",
+   "publisher": "Simply Wall St.",
+   "at": "2026-11-16T17:09+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "cash flow stock list",
+   "reason": "현금흐름 좋은 종목을 나열한 기사",
+   "classified_at": "2026-11-17T02:15+09:00"
+  },
+  "696df5cefa2e": {
+   "ticker": "NVDA",
+   "title": "Nvidia and OpenAI Are “the New Defense Contractors,” Says Scott Galloway. Bad News: That Means Oversight",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/nvidia-openai-defense-contractors-says-075013434.html",
+   "publisher": "TIKR",
+   "at": "2026-11-16T16:50+09:00",
+   "importance": 4,
+   "type": "규제",
+   "event": "galloway oversight view",
+   "reason": "엔비디아가 방산업체처럼 감독을 받게 될 수 있다는 논평",
+   "classified_at": "2026-11-17T02:15+09:00"
+  },
+  "208ea2cc6737": {
+   "ticker": "NVDA",
+   "title": "AAPL Stock Posted Best Week In 4 Months Amid Nvidia Disruption: Apple Reportedly Plans Smart Glasses To Rival Meta Next Year",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/aapl-stock-posted-best-week-074605436.html",
+   "publisher": "Stocktwits",
+   "at": "2026-11-16T16:46+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "apple best week",
+   "reason": "애플이 주인공인 기사로 엔비디아는 배경으로만 언급",
+   "classified_at": "2026-11-17T02:15+09:00"
+  },
+  "9d5aa13bbef4": {
+   "ticker": "NVDA",
+   "title": "Walmart, Target, Amazon, Nvidia, Micron and Alphabet are part of Zacks Earnings Preview",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/walmart-target-amazon-nvidia-micron-072600451.html",
+   "publisher": "Zacks",
+   "at": "2026-11-16T16:26+09:00",
+   "importance": 5,
+   "type": "실적",
+   "event": "zacks earnings preview",
+   "reason": "여러 종목 실적 미리보기 나열 기사",
+   "classified_at": "2026-11-17T02:15+09:00"
+  },
+  "fb6c9f889ac1": {
+   "ticker": "NVDA",
+   "title": "Losing Jensen Was Bad Enough. Losing NVIDIA’s Bench Would Be Worse",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/losing-jensen-bad-enough-losing-072034224.html",
+   "publisher": "TIKR",
+   "at": "2026-11-16T16:20+09:00",
+   "importance": 4,
+   "type": "경영진 변동",
+   "event": "jensen huang return",
+   "reason": "경영진 공백 우려를 다룬 해설 기사",
+   "classified_at": "2026-11-17T02:15+09:00"
+  },
+  "ba4898719c09": {
+   "ticker": "NVDA",
+   "title": "Michael Burry Holds NVDA Puts Into Earnings, But Sees A Retail-Fueled Rally — Even As Musk Questions Jensen’s Handshake Deals",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/michael-burry-holds-nvda-puts-070242735.html",
+   "publisher": "Stocktwits",
+   "at": "2026-11-16T16:02+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "burry puts before earnings",
+   "reason": "마이클 버리의 풋옵션 보유 등 실적 앞 투자자 시각을 다룬 기사",
+   "classified_at": "2026-11-17T02:15+09:00"
+  },
+  "98b69845fc78": {
+   "ticker": "NVDA",
+   "title": "Nvidia’s All-Important Q3 Report, China Tech Results, Anthropic IPO And Microsoft Ignite To Keep Investors Hooked This Week",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/nvidia-important-q3-report-china-063705093.html",
+   "publisher": "Stocktwits",
+   "at": "2026-11-16T15:37+09:00",
+   "importance": 3,
+   "type": "실적",
+   "event": "nvda q3 fy27 earnings",
+   "reason": "이번 주 3분기 실적 발표 일정과 관심을 다룬 기사",
+   "classified_at": "2026-11-17T02:15+09:00"
+  },
+  "67438851a329": {
+   "ticker": "SPCX",
+   "title": "SpaceX’s Starlink Is United’s “Biggest Near-Term Competitive Advantage” in 100 Years, CEO Says",
+   "url": "https://finance.yahoo.com/technology/articles/spacex-starlink-united-biggest-near-022241279.html",
+   "publisher": "TIKR",
+   "at": "2026-11-16T11:22+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "united starlink praise",
+   "reason": "유나이티드 항공 CEO가 스타링크를 높이 평가한 고객 발언",
+   "classified_at": "2026-11-17T02:15+09:00"
+  },
+  "f79638040534": {
+   "ticker": "TSLA",
+   "title": "Tesla Starts Taking Orders on Self-Driving Cybercabs for Personal Use",
+   "url": "https://finance.yahoo.com/technology/ai/articles/tesla-starts-taking-orders-self-082436288.html",
+   "publisher": "MT Newswires",
+   "at": "2026-11-16T17:24+09:00",
+   "importance": 2,
+   "type": "기타",
+   "event": "cybercab sale",
+   "reason": "개인용 사이버캡 주문 접수 시작으로 새 사업 판매 개시",
+   "classified_at": "2026-11-17T02:15+09:00"
+  },
+  "986e6d3b2c51": {
+   "ticker": "TSLA",
+   "title": "Tesla And 2 Top Insider Owned Growth Stocks",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/tesla-2-top-insider-owned-061432207.html",
+   "publisher": "Simply Wall St.",
+   "at": "2026-11-16T15:14+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "insider owned growth list",
+   "reason": "내부자 보유 성장주를 나열한 기사",
+   "classified_at": "2026-11-17T02:15+09:00"
+  },
+  "41db630b62b1": {
+   "ticker": "AMD",
+   "title": "Advanced Micro Devices And 2 Other High Growth Stocks",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/advanced-micro-devices-2-other-051555106.html",
+   "publisher": "Simply Wall St.",
+   "at": "2026-11-16T14:15+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "high growth stock list",
+   "reason": "고성장주를 나열한 기사",
+   "classified_at": "2026-11-17T02:15+09:00"
+  },
+  "297f05809e26": {
+   "ticker": "AMD",
+   "title": "AMD Is Up 115% in a Year. One Investor’s Math Says a Great 2027 Is Already in the Price",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/amd-115-one-investor-math-022006369.html",
+   "publisher": "TIKR",
+   "at": "2026-11-16T11:20+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "amd valuation view",
+   "reason": "1년 115% 상승 뒤 밸류에이션을 따지는 해설 기사",
+   "classified_at": "2026-11-17T02:15+09:00"
+  },
+  "61d5c6b3de74": {
+   "ticker": "000660.KS",
+   "title": "Samsung’s $34 Billion HBM Bet Raises Memory Glut Risks",
+   "url": "https://finance.yahoo.com/technology/articles/samsung-34-billion-hbm-bet-010807624.html",
+   "publisher": "24/7 Wall St.",
+   "at": "2026-11-15T10:08+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "samsung hbm investment",
+   "reason": "제목에 SK하이닉스가 없고 삼성의 HBM 투자가 주인공인 기사",
+   "classified_at": "2026-11-17T02:15+09:00"
   }
  },
  "monthly": {
@@ -1271,15 +1475,15 @@
      ]
     },
     {
-     "text": "실적 발표를 앞두고 아시아 증시와 코스피가 엔비디아 우려로 약세",
+     "text": "이번 주 3분기 실적 발표를 앞두고 아시아 증시가 엔비디아 우려로 약세",
      "sources": [
+      "98b69845fc78",
       "f1b19e41e530",
-      "7bc8ef44c305",
-      "c6dcd09c7a35"
+      "7bc8ef44c305"
      ]
     }
    ],
-   "updated_at": "2026-11-16T14:10+09:00"
+   "updated_at": "2026-11-17T02:30+09:00"
   },
   "IONQ": {
    "month": "2026-11",
@@ -1311,10 +1515,11 @@
    "month": "2026-11",
    "lines": [
     {
-     "text": "무인 차량 사이버캡 판매·예약 시작 발표",
+     "text": "무인 차량 사이버캡의 개인용 판매·예약 시작 발표",
      "sources": [
       "b88ae32677f2",
-      "8068a6f4596f"
+      "8068a6f4596f",
+      "f79638040534"
      ]
     },
     {
@@ -1324,7 +1529,7 @@
      ]
     }
    ],
-   "updated_at": "2026-11-16T14:10+09:00"
+   "updated_at": "2026-11-17T02:30+09:00"
   },
   "005930.KS": {
    "month": "2026-11",
@@ -1363,7 +1568,7 @@
      ]
     }
    ],
-   "updated_at": "2026-11-16T14:10+09:00"
+   "updated_at": "2026-11-17T02:30+09:00"
   },
   "CRWV": {
    "month": "2026-11",
@@ -1383,6 +1588,87 @@
     }
    ],
    "updated_at": "2026-11-16T14:10+09:00"
+  },
+  "NBIS": {
+   "month": "2026-11",
+   "lines": [
+    {
+     "text": "CEO가 고객 선결제가 새 설비의 100% 이상을 충당한다고 밝힘",
+     "sources": [
+      "f27e9f95a75f"
+     ]
+    },
+    {
+     "text": "경영진이 신중한 숫자와 2027년 가이던스를 두고 시장의 의구심이 이어짐",
+     "sources": [
+      "aa270ee57bf6",
+      "ed8e8f35b945"
+     ]
+    },
+    {
+     "text": "주가 하락 속에도 베어드는 73% 상승 여력을 제시",
+     "sources": [
+      "91c5fe757064"
+     ]
+    }
+   ],
+   "updated_at": "2026-11-17T02:30+09:00"
+  },
+  "RKLB": {
+   "month": "2026-11",
+   "lines": [
+    {
+     "text": "일렉트론 100번째 발사를 달성해 가장 빠르게 이 기록에 도달한 상업 로켓이 됨",
+     "sources": [
+      "1b8bc2e246b4",
+      "2b4ea8d63a0b"
+     ]
+    }
+   ],
+   "updated_at": "2026-11-17T02:30+09:00"
+  },
+  "SPCX": {
+   "month": "2026-11",
+   "lines": [
+    {
+     "text": "스타십 부스터 회수 성공으로 주가가 오름",
+     "sources": [
+      "5e414b068e5b",
+      "d55ef50aa3a8"
+     ]
+    },
+    {
+     "text": "모건스탠리가 2027년을 앞두고 목표가를 유지·강화",
+     "sources": [
+      "4e97b86b3ebe"
+     ]
+    }
+   ],
+   "updated_at": "2026-11-17T02:30+09:00"
+  },
+  "AMD": {
+   "month": "2026-11",
+   "lines": [
+    {
+     "text": "오펜하이머 상향과 엔비디아 혼란 속에 한 주 19% 상승",
+     "sources": [
+      "6fd9c2d38489"
+     ]
+    },
+    {
+     "text": "앤트로픽 관련 소식이 AMD에 호재로 거론됨",
+     "sources": [
+      "7bcbf7f51861"
+     ]
+    },
+    {
+     "text": "양자컴퓨팅 연구와 상업 제휴를 넓힘",
+     "sources": [
+      "c635a8c3a9f2"
+     ]
+    }
+   ],
+   "updated_at": "2026-11-17T02:30+09:00"
   }
  }
 }
