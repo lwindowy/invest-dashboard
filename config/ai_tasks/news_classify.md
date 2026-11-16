@@ -20,8 +20,8 @@ Claude 예약 작업이 미국 장 시간대(동부 기준 8:45, 11:30, 14:45, 1
    python scripts/news_ai.py check /tmp/new.json --queue /tmp/queue.json
    python scripts/news_ai.py merge /tmp/old.json /tmp/new.json --queue /tmp/queue.json -o /tmp/news_ai.json
    ```
-5. `ai-results` 브랜치에 `news_ai.json` 만 올린다. 브랜치가 없으면 빈 브랜치(orphan)로 만든다. 커밋 메시지는 "뉴스 분류 (시각)".
-6. GitHub Actions의 `update.yml` 을 `workflow_dispatch` 로 한 번 실행해, 결과가 바로 화면에 붙게 한다.
+5. `ai-results` 브랜치에 `news_ai.json` 만 올린다(그 브랜치의 다른 파일은 그대로 둔다). 커밋 메시지는 "뉴스 분류 (시각)".
+6. 따로 실행할 것은 없다. `ai-results` 에 `news_ai.json` 을 올리면 그 브랜치의 `kick.yml` 이 사이트 갱신(`update.yml`)을 바로 실행한다.
 7. 분류한 기사 수, 중요도 1~2 기사 목록(종목, 제목)을 짧게 남기고 끝낸다.
 
 ## 판단 기준
