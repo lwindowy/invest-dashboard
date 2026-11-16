@@ -358,3 +358,18 @@ h3.sub { font-size: 13px; color: var(--sub); font-weight: 700; margin: 14px 0 2p
 .month-sum { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
 .month-sum li { font-size: 14px; line-height: 1.5; }
 .month-sum small a { color: var(--blue); text-decoration: none; }
+
+/* 퀄리티 점수 */
+.qwarn { border: 2px solid var(--bad-ink); }
+.qwarn h2 { display: flex; align-items: center; gap: 8px; }
+.qwarn ul { margin: 6px 0; padding-left: 20px; } .qwarn li { font-size: 15px; font-weight: 700; }
+.qrow { border-bottom: 1px solid var(--line); padding: 10px 0; }
+.qhead { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; }
+.qhead > div { display: flex; flex-direction: column; } .qhead span { font-size: 12px; color: var(--sub); }
+.qhead b[title] { cursor: help; text-decoration: underline dotted; text-underline-offset: 3px; }
+.qval { font-size: 17px; min-width: 70px; text-align: right; }
+.qrow details summary { font-size: 12px; color: var(--sub); cursor: pointer; margin-top: 4px; }
+.qin { list-style: none; margin: 6px 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 2px 16px; }
+.qin li { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; border-bottom: 1px dashed var(--line); padding: 3px 0; }
+.qin li span { color: var(--sub); }
+.qf { font-size: 12px; color: var(--sub); margin: 4px 0; line-height: 1.5; }

@@ -21,7 +21,7 @@ import yfinance as yf
 FACTS = "https://data.sec.gov/api/xbrl/companyfacts/CIK{:010d}.json"
 RELEASE_CHARS = 60000   # AI용 파일에 넣을 실적 보도자료 본문 길이(글자)
 YEARS = 15              # 연간 표에 남길 햇수
-QUARTERS = 20           # 분기 표에 남길 분기 수
+QUARTERS = 28           # 분기 표에 남길 분기 수 (밸류에이션 5년 퍼센타일에 최근 4분기 합계가 필요해 7년치)
 
 # 항목마다 회사가 쓸 수 있는 XBRL 이름. 앞에 있는 이름을 먼저 쓰고, 그 기간에 값이 없으면 다음 이름으로 채운다.
 FLOW = {   # 기간 값 (손익·현금흐름)
@@ -44,6 +44,11 @@ FLOW = {   # 기간 값 (손익·현금흐름)
     "capex": ["us-gaap:PaymentsToAcquirePropertyPlantAndEquipment", "us-gaap:PaymentsToAcquireProductiveAssets",
               "ifrs-full:PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities"],
     "sbc": ["us-gaap:ShareBasedCompensation", "us-gaap:AllocatedShareBasedCompensationExpense"],
+    "sga": ["us-gaap:SellingGeneralAndAdministrativeExpense", "ifrs-full:SellingGeneralAndAdministrativeExpense"],
+    "selling": ["us-gaap:SellingAndMarketingExpense", "us-gaap:SellingExpense"],          # 판관비를 나눠 적는 회사용
+    "admin": ["us-gaap:GeneralAndAdministrativeExpense"],
+    "dna": ["us-gaap:DepreciationDepletionAndAmortization", "us-gaap:DepreciationAndAmortization", "us-gaap:DepreciationAmortizationAndAccretionNet",
+            "us-gaap:Depreciation", "ifrs-full:DepreciationAndAmortisationExpense"],
     "buyback": ["us-gaap:PaymentsForRepurchaseOfCommonStock"],
     "dividends": ["us-gaap:PaymentsOfDividendsCommonStock", "us-gaap:PaymentsOfDividends"],
 }
@@ -66,13 +71,21 @@ STOCK = {  # 시점 값 (재무상태표)
     "debt_current": ["us-gaap:LongTermDebtCurrent", "us-gaap:DebtCurrent", "us-gaap:NotesPayableCurrent", "us-gaap:ShortTermBorrowings",
                      "ifrs-full:CurrentPortionOfNoncurrentBorrowings", "ifrs-full:CurrentBorrowings"],
     "inventory": ["us-gaap:InventoryNet", "ifrs-full:Inventories"],
+    "receivables": ["us-gaap:AccountsReceivableNetCurrent", "us-gaap:ReceivablesNetCurrent", "ifrs-full:TradeAndOtherCurrentReceivables"],
+    "ppe": ["us-gaap:PropertyPlantAndEquipmentNet", "us-gaap:PropertyPlantAndEquipmentAndFinanceLeaseRightOfUseAssetAfterAccumulatedDepreciationAndAmortization",
+            "ifrs-full:PropertyPlantAndEquipment"],
+    "retained_earnings": ["us-gaap:RetainedEarningsAccumulatedDeficit", "ifrs-full:RetainedEarnings"],
+    "liab_and_equity": ["us-gaap:LiabilitiesAndStockholdersEquity", "ifrs-full:EquityAndLiabilities"],   # 총부채를 따로 적지 않는 회사용
+    "equity_total": ["us-gaap:StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest", "us-gaap:StockholdersEquity", "ifrs-full:Equity"],
 }
+SHARES_OUT = ["us-gaap:CommonStockSharesOutstanding", "ifrs-full:NumberOfSharesOutstanding"]   # 기말 발행주식 수 (시점 값, 주식 수 단위)
 # 항목 설명 (AI용 파일의 안내문에 그대로 들어간다)
 LABELS = {
     "revenue": "매출", "cost_of_revenue": "매출원가", "gross_profit": "매출총이익", "rnd": "연구개발비", "op_income": "영업이익",
     "pretax_income": "세전이익", "income_tax": "법인세", "net_income": "순이익", "eps_diluted": "희석 EPS (주당 순이익)",
     "shares_diluted": "희석 가중평균 주식 수", "ocf": "영업현금흐름", "capex": "설비투자 (유형자산 취득, 양수로 적음)",
-    "fcf": "잉여현금흐름 = 영업현금흐름 − 설비투자", "sbc": "주식보상비용", "buyback": "자사주 매입", "dividends": "배당 지급",
+    "fcf": "잉여현금흐름 = 영업현금흐름 − 설비투자", "sbc": "주식보상비용", "sga": "판매관리비", "dna": "감가상각비 (상각 포함)",
+    "receivables": "매출채권", "selling": "판매비", "admin": "관리비", "liab_and_equity": "부채와 자본 합계", "equity_total": "자본 합계 (비지배지분 포함)", "ppe": "유형자산 (순액)", "retained_earnings": "이익잉여금 (결손금이면 음수)", "shares_out": "기말 발행주식 수", "buyback": "자사주 매입", "dividends": "배당 지급",
     "cash": "현금성 자산", "short_investments": "단기 투자자산", "total_assets": "총자산", "current_assets": "유동자산",
     "current_liabilities": "유동부채", "total_liabilities": "총부채", "equity": "자기자본", "debt_long": "장기 차입금",
     "debt_current": "1년 내 만기 차입금", "debt_total": "차입금 합계 (회사가 적은 값)",
@@ -93,6 +106,7 @@ METHOD = [
     "분기 ROE·ROIC는 최근 4개 분기 합계로 계산한다. 차입금에는 리스 부채가 들어가지 않는다. 차입금 값이 없으면 ROIC 계산에서 0으로 본다.",
     "주식 분할: 옛 공시의 EPS와 주식 수는 그 공시를 낸 뒤에 있었던 분할(Yahoo 분할 이력)만큼 나누거나 곱해 지금 주식 기준으로 맞춘다. splits 가 null 이면 보정하지 못한 것이다.",
     "EPS와 주식 수는 더할 수 없는 값이라 4분기 값을 만들지 않는다(4분기 EPS는 비어 있다).",
+    "총부채를 따로 적지 않은 회사는 '부채와 자본 합계 − 자본 합계(비지배지분 포함)'로, 판관비를 나눠 적은 회사는 '판매비 + 관리비'로 채운다.",
     "회사가 쓰는 XBRL 항목 이름이 기간마다 달라 일부 칸이 비어 있을 수 있다. 빈 칸은 계산하지 않는다(0으로 보지 않는다).",
 ]
 
@@ -197,6 +211,11 @@ def build_rows(periods, flows, stocks, quarterly):
             row[k] = vals.get(e)
         rows.append(row)
     for row in rows:
+        # 회사가 합계를 적지 않은 항목은 나눠 적은 값으로 만든다
+        if row.get("total_liabilities") is None and row.get("liab_and_equity") is not None and row.get("equity_total") is not None:
+            row["total_liabilities"] = row["liab_and_equity"] - row["equity_total"]
+        if row.get("sga") is None and row.get("selling") is not None and row.get("admin") is not None:
+            row["sga"] = row["selling"] + row["admin"]
         if row["gross_profit"] is None and row["revenue"] is not None and row["cost_of_revenue"] is not None:
             row["gross_profit"] = row["revenue"] - row["cost_of_revenue"]
         row["fcf"] = row["ocf"] - row["capex"] if row["ocf"] is not None and row["capex"] is not None else None
@@ -265,6 +284,7 @@ def statements(cik, since=None, splits=None):
         flows[k], _ = merged(gaap, names, money, False, currency if money else None, None if money else splits)
     for k, names in STOCK.items():
         stocks[k], _ = merged(gaap, names, True, True, currency)
+    stocks["shares_out"], _ = merged(gaap, SHARES_OUT, False, True, None, splits)
     split = {k: split_periods(v) for k, v in flows.items()}
     # EPS와 주식 수는 누적값의 차이로 분기를 만들 수 없다(합산이 안 되는 값). 분기 값이 직접 있는 것만 쓴다
     for k in ("eps_diluted", "shares_diluted"):

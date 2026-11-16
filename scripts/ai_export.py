@@ -5,6 +5,8 @@
 - 개인 정보(보유 수량 등)는 넣지 않는다. 저장소와 사이트가 공개다.
 """
 import json
+
+import quality
 import re
 
 
@@ -72,6 +74,7 @@ def stock_file(data, fin_all, ticker):
         if fund else None,
         "credit_rating": s.get("rating"),
         "valuation_calc": valuation(fund, fin),
+        "quality": quality.build(fin, fund, s.get("price")) if fin else None,
         "financials": None,
         "earnings_release": None,
         "sec_filings_90d": (sec_co or {}).get("filings"),

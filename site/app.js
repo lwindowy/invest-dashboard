@@ -652,6 +652,7 @@
         }).join('') + '</div></div>' : '<p class="empty">최근 180일 동안 공개시장 매수·매도 신고가 없습니다.</p>'),
         '주식 보상, 옵션 행사, 증여는 빼고 공개시장 거래만 보여 줍니다. 계획 매도는 미리 정해 둔 일정(10b5-1)에 따른 것입니다. 출처: SEC Form 4');
     }
+    var qualityBox = box('퀄리티 점수', '<div id="quality"><p class="empty">불러오는 중입니다…</p></div>');
     var finBox = box('장기 재무', '<div id="fin" data-t="' + esc(s.ticker) + '"><p class="empty">불러오는 중입니다…</p></div>');
     var nw = s.news, newsBox = '';
     if (nw) {
@@ -659,8 +660,8 @@
         '제목을 누르면 원문이 열립니다. 기사는 영어이고, 시간은 한국 시간입니다. 출처: ' + esc(nw.source) + ' · ' + md(nw.fetched) + ' ' + esc((nw.fetched || '').slice(11, 16)) + ' 수집' + (nw.stale ? ' (이전 값)' : '') + '. ' + aiStamp());
     }
     newsBox = monthBox(s) + newsBox;
-    return head + '<div class="grid2">' + priceBox + tech + '</div>' + check + charts +
-      '<div class="grid2">' + base + val + '</div>' + finBox + debtBox + trend + '<div class="grid2">' + earn + analyst + '</div>' + shortBox + newsBox + (sc ? '<div class="grid2">' + filingsBox + insiderBox + '</div>' : '');
+    return head + '<div id="qwarn"></div><div class="grid2">' + priceBox + tech + '</div>' + check + charts +
+      '<div class="grid2">' + base + val + '</div>' + qualityBox + finBox + debtBox + trend + '<div class="grid2">' + earn + analyst + '</div>' + shortBox + newsBox + (sc ? '<div class="grid2">' + filingsBox + insiderBox + '</div>' : '');
   }
   // ───────── 장기 재무 (SEC) — 종목별 AI용 파일(data/ai/티커.json)을 읽어 그린다 ─────────
   var AIF = {};
@@ -673,15 +674,51 @@
   ];
   function aiUrl(t) { return 'data/ai/' + t.replace(/[^A-Za-z0-9.-]/g, '_') + '.json'; }
   function aiAbsUrl(t) { return 'https://' + DATA.site.repo.split('/')[0] + '.github.io/' + DATA.site.repo.split('/')[1] + '/' + aiUrl(t); }
+  function fillAi(j) {
+    if ($('fin') && $('fin').dataset.t === j.ticker) { $('fin').innerHTML = finBody(j); finScroll(); }
+    if ($('quality')) $('quality').innerHTML = qualityBody(j);
+    if ($('qwarn')) $('qwarn').innerHTML = qualityWarn(j);
+  }
   function loadFin() {
     var holder = $('fin');
     if (!holder) return;
     var t = holder.dataset.t, key = t + DATA.generated_at;
-    if (AIF[key]) { holder.innerHTML = finBody(AIF[key]); finScroll(); return; }
+    if (AIF[key]) { fillAi(AIF[key]); return; }
     fetch(aiUrl(t) + '?t=' + Date.now(), { cache: 'no-store' })
       .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-      .then(function (j) { AIF[key] = j; if ($('fin') && $('fin').dataset.t === t) { $('fin').innerHTML = finBody(j); finScroll(); } })
-      .catch(function (err) { if ($('fin')) $('fin').innerHTML = '<p class="empty">장기 재무를 불러오지 못했습니다 (' + esc(err.message) + ').</p>'; });
+      .then(function (j) { AIF[key] = j; fillAi(j); })
+      .catch(function (err) {
+        ['fin', 'quality'].forEach(function (id) { if ($(id)) $(id).innerHTML = '<p class="empty">데이터를 불러오지 못했습니다 (' + esc(err.message) + ').</p>'; });
+      });
+  }
+  // ───────── 퀄리티 점수 (재무제표로 직접 계산, AI 아님) ─────────
+  var ZONE = { '안전': 'good', '주의': 'warn', '위험': 'bad', '데이터 부족': 'none', '해당 없음': 'none' };
+  var Q_WHAT = { 'Piotroski F-Score': '재무가 좋아지고 있나 (0~9점)', 'Altman Z-Score': '부도 위험', 'Beneish M-Score': '이익 부풀리기(분식) 의심',
+    'Sloan 발생액 비율': '이익이 현금으로 들어오나', 'Graham Number': '보수적 적정 주가' };
+  function qualityWarn(j) {
+    var q = j.quality;
+    if (!q || !q.warnings.length) return '';
+    return '<section class="card qwarn" aria-label="경고 신호"><h2>' + pill('경고', 'bad') + ' 재무 경고 신호 ' + q.warnings.length + '개</h2><ul>' +
+      q.warnings.map(function (w) { return '<li>' + esc(w) + '</li>'; }).join('') + '</ul><p class="src">재무제표로 계산한 신호이며 증거가 아닙니다. 아래 "퀄리티 점수"에서 입력값과 계산식을 확인하세요.</p></section>';
+  }
+  function qualityBody(j) {
+    var q = j.quality;
+    if (!q) return '<p class="empty">' + (j.market === 'kr' ? '커버리지 밖: 한국 종목은 SEC 재무제표가 없어 계산하지 않습니다(DART 미연결).' : '연간 재무제표가 아직 없어 계산하지 않습니다(상장 1년 미만일 수 있음).') + '</p>';
+    var cur = (j.financials || {}).currency === 'USD' ? 'USD' : '';
+    var rows = q.scores.map(function (sc) {
+      var v = sc.value == null ? '–' : sc.name === 'Graham Number' ? '$' + fmt(sc.value, 2) : sc.name.indexOf('Sloan') === 0 ? fmt(sc.value, 1) + '%' : fmt(sc.value, sc.name.indexOf('Piotroski') === 0 ? 0 : 2);
+      var inputs = Object.keys(sc.inputs || {}).map(function (k) {
+        var x = sc.inputs[k];
+        return '<li><span>' + esc(k) + '</span><b>' + (typeof x === 'number' ? (Math.abs(x) >= 1e6 ? money(x, cur) : fmt(x, Math.abs(x) < 10 ? 3 : 2)) : esc(x)) + '</b></li>';
+      }).join('');
+      return '<div class="qrow"><div class="qhead"><div><b title="' + esc(sc.formula) + '">' + esc(sc.name) + '</b><span>' + esc(Q_WHAT[sc.name] || '') + '</span></div>' +
+        '<b class="qval">' + v + '</b>' + pill(sc.zone, ZONE[sc.zone] || 'none', true) + '</div>' +
+        '<details><summary>입력값과 계산식' + (sc.period ? ' · ' + esc(sc.period) : '') + '</summary>' + (inputs ? '<ul class="qin">' + inputs + '</ul>' : '') +
+        '<p class="qf">계산식: ' + esc(sc.formula) + '</p>' + (sc.note ? '<p class="qf">' + esc(sc.note) + '</p>' : '') + '</details></div>';
+    }).join('');
+    return (q.financial_sector ? '<p class="notice">은행·보험·리츠는 부채가 영업의 일부라 Altman Z와 순부채÷EBITDA를 표시하지 않습니다.</p>' : '') + rows +
+      '<p class="src">' + esc(q.note) + ' 이름에 마우스를 올리거나 "입력값과 계산식"을 누르면 계산식이 보입니다. 구간: Piotroski 8~9 안전·4~7 주의·0~3 위험, Altman 2.99 초과 안전·1.81 미만 위험, ' +
+      'Beneish −2.22 이하 안전·−1.78 초과 위험(매출 1.5배 이상 급성장한 해는 한 단계 낮춤), Sloan 5% 이하 안전·10% 초과 위험(대시보드가 정한 값), Graham 현재가가 그 이하면 안전·1.5배 초과 위험. 출처: SEC 연간 재무제표, Yahoo 시가총액·주가.</p>';
   }
   function finScroll() { var sx = document.querySelector('#fin .scroll-x'); if (sx) sx.scrollLeft = sx.scrollWidth; }   // 표는 최근 기간이 보이게 오른쪽 끝으로
   function finCell(v, kind, cur) {
@@ -1071,7 +1108,7 @@
     var ch = e.target.closest('[data-chart]');
     if (ch) { openChart(ch.dataset.chart); return; }
     var fv = e.target.closest('[data-fin]');
-    if (fv) { state.finView = fv.dataset.fin; var key = $('fin').dataset.t + DATA.generated_at; if (AIF[key]) { $('fin').innerHTML = finBody(AIF[key]); finScroll(); } return; }
+    if (fv) { state.finView = fv.dataset.fin; var key = $('fin').dataset.t + DATA.generated_at; if (AIF[key]) fillAi(AIF[key]); return; }
     var cp = e.target.closest('[data-copy]');
     if (cp) {
       var done = function () { cp.textContent = '복사했습니다'; setTimeout(function () { cp.textContent = '주소 복사'; }, 2000); };
