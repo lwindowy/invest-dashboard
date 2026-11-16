@@ -325,7 +325,7 @@ h3.sub { font-size: 13px; color: var(--sub); font-weight: 700; margin: 14px 0 2p
 .ctr.fw { grid-template-columns: 0.9fr 0.9fr 0.9fr 0.9fr 1.5fr 1.7fr; min-width: 640px; }
 .ctr.fwc { grid-template-columns: 1fr 1.8fr 1fr 1.2fr; min-width: 520px; }
 
-/* 아침 브리핑 (오늘 바뀐 것) */
+/* 아침 브리핑 (오늘의 뉴스) */
 .br { display: flex; flex-direction: column; }
 .br-row { display: grid; grid-template-columns: minmax(120px, 1.6fr) 1fr 0.8fr 0.8fr 0.8fr 92px 0.9fr; gap: 8px; align-items: center; padding: 8px 4px; }
 .br-row > * { text-align: right; font-size: 15px; } .br-row > :first-child { text-align: left; }
