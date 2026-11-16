@@ -324,3 +324,37 @@ dialog.narrow { width: min(520px, calc(100vw - 24px)); }
 h3.sub { font-size: 13px; color: var(--sub); font-weight: 700; margin: 14px 0 2px; }
 .ctr.fw { grid-template-columns: 0.9fr 0.9fr 0.9fr 0.9fr 1.5fr 1.7fr; min-width: 640px; }
 .ctr.fwc { grid-template-columns: 1fr 1.8fr 1fr 1.2fr; min-width: 520px; }
+
+/* 아침 브리핑 (오늘 바뀐 것) */
+.br { display: flex; flex-direction: column; }
+.br-row { display: grid; grid-template-columns: minmax(120px, 1.6fr) 1fr 0.8fr 0.8fr 0.8fr 92px 0.9fr; gap: 8px; align-items: center; padding: 8px 4px; }
+.br-row > * { text-align: right; font-size: 15px; } .br-row > :first-child { text-align: left; }
+.br-row.th { padding: 6px 4px; border-bottom: 1px solid var(--line); }
+.br-row.th > * { font-size: 12px; color: var(--sub); }
+.br-row .sort { background: none; border: 0; padding: 4px 0; font: inherit; font-size: 12px; color: var(--sub); cursor: pointer; text-align: right; min-height: 32px; }
+.br-row .sort[aria-pressed="true"] { color: var(--ink); font-weight: 700; }
+.br-item { border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+.br-item.red { border-left: 3px solid var(--bad-ink); padding-left: 6px; }
+.br-item.yellow { border-left: 3px solid var(--warn-ink); padding-left: 6px; }
+.br-group h3, .br-group summary { font-size: 13px; color: var(--sub); font-weight: 700; margin: 14px 0 2px; cursor: default; }
+.br-group summary { cursor: pointer; padding: 6px 0; }
+.br-why { list-style: none; margin: 0 0 4px; padding: 0 4px; display: flex; flex-direction: column; gap: 4px; }
+.br-why li { font-size: 14px; line-height: 1.45; }
+.br-why small { display: block; color: var(--sub); font-size: 12px; margin-top: 1px; }
+.br-why li.news a { color: inherit; }
+.br-why a { color: inherit; }
+@media (max-width: 640px) {
+  .br-row { grid-template-columns: minmax(96px, 1.4fr) 1fr 0.8fr 0.8fr 0.8fr; gap: 6px; }
+  .br-row > * { font-size: 14px; }
+  .br-row .price { font-size: 13px; white-space: nowrap; }
+  .br-row .c-spark, .br-row .c-earn { display: none; }
+}
+
+/* AI 뉴스 분류 */
+.news-filter { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-bottom: 8px; }
+.news-filter .pick { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--sub); }
+.nhead { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+.nhead .nname { font-size: 13px; font-weight: 700; color: var(--ink); }
+.month-sum { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+.month-sum li { font-size: 14px; line-height: 1.5; }
+.month-sum small a { color: var(--blue); text-decoration: none; }

@@ -25,6 +25,8 @@ import requests
 import yfinance as yf
 
 import ai_export
+import briefing
+import news_ai
 import financials
 import sec
 
@@ -584,6 +586,8 @@ def stock_row(entry, market, ctx):
     return {"ticker": entry["ticker"], "name": entry["name"], "market": market,
             "currency": "KRW" if market == "kr" else "USD",
             "price": num(last), "change_pct": num((last / prev - 1) * 100, 2),
+            "w1_pct": num((last / float(close.iloc[-6]) - 1) * 100, 2) if len(close) > 6 else None,     # 5거래일 전 대비
+            "m1_pct": num((last / float(close.iloc[-22]) - 1) * 100, 2) if len(close) > 22 else None,   # 21거래일 전 대비
             "rsi": num(rsi(close), 1), "from_high_pct": num((last / high52 - 1) * 100, 1),
             "history_days": len(close), "asof": day(close.index[-1]), "spark": spark(close),
             "source": "Yahoo Finance"}
@@ -765,7 +769,7 @@ def stock_news(entry, old, long_name=None):
     words = {re.sub(r"\.K[SQ]$", "", entry["ticker"]), *entry.get("news_keywords", [])}
     for name in (entry.get("news_q"), long_name):
         if name:
-            words.add(name.split()[0])
+            words.add(re.sub(r"[^\w.-]", "", name.split()[0]))   # "CoreWeave, Inc." → CoreWeave
     words = {w for w in words if len(w) >= 2 and not w.isdigit()}
     pattern = re.compile(r"\b(" + "|".join(re.escape(w) for w in words) + r")\b", re.I)
     try:
@@ -785,7 +789,7 @@ def stock_news(entry, old, long_name=None):
         row = {"title": n["title"], "publisher": n.get("publisher"), "url": n["link"],
                "at": dt.datetime.fromtimestamp(t, KST).isoformat(timespec="minutes") if t else None}
         if pattern.search(n["title"]):
-            named.append(row)
+            named.append({**row, "named": True})   # 제목에 회사 이름·티커가 들어간 기사
         elif tickers & set(n.get("relatedTickers") or []):
             related.append(row)
     picked = (named + related)[:NEWS_COUNT] if len(named) < NEWS_COUNT else named[:NEWS_COUNT]
@@ -1173,6 +1177,8 @@ def build_brief(data):
             "week_ago": (data["fedwatch"].get("compare") or {}).get("week"), "asof": data["fedwatch"]["asof"]},
         "events_next_7_days": data["events"],
         "alerts": data["alerts"],
+        "changes": [{"ticker": r["ticker"], "name": r["name"], "level": r["level"],
+                     "reasons": [x["text"] for x in r["reasons"]]} for r in (data.get("briefing") or {}).get("rows", []) if r["level"] != "none"],
         "site": "https://" + data["site"]["repo"].split("/")[0] + ".github.io/" + data["site"]["repo"].split("/")[1] + "/",
     }
 
@@ -1183,6 +1189,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=str(ROOT / "site/data/dashboard.json"))
     ap.add_argument("--prev", help="이전 결과 JSON. 실패한 항목의 값을 여기서 가져온다.")
+    ap.add_argument("--news-ai", help="AI 뉴스 분류 결과(news_ai.json). 없으면 --prev 와 같은 폴더에서 찾는다.")
     ap.add_argument("--prev-financials", help="이전 장기 재무 JSON. 없으면 --prev 와 같은 폴더의 financials.json 을 찾는다.")
     args = ap.parse_args()
 
@@ -1311,11 +1318,29 @@ def main():
         "glossary": json.loads((ROOT / "config/glossary.json").read_text(encoding="utf-8"))["terms"],
         "errors": errors,
     }
+    ai_path = Path(args.news_ai) if args.news_ai else Path(args.prev).with_name("news_ai.json") if args.prev else None
+    news_result = {}
+    if ai_path and ai_path.is_file():
+        try:
+            news_result = json.loads(ai_path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            warn("AI 뉴스 분류 파일", exc)
+    try:
+        dropped = news_ai.apply(data, news_result)
+        if dropped:
+            print(f"[참고] AI 뉴스 분류 중 검사에 걸려 뺀 항목 {len(dropped)}건: {dropped[:3]}", file=sys.stderr)
+    except Exception as exc:
+        warn("AI 뉴스 분류 적용", exc)
     try:
         data["alerts"] = build_alerts(ctx, data, data["generated_at"])
     except Exception as exc:
         warn("알림", exc)
         data["alerts"] = (prev or {}).get("alerts", [])
+    try:
+        data["briefing"] = briefing.build(data, config, today, dt.datetime.now(KST))
+    except Exception as exc:
+        warn("아침 브리핑", exc)
+        data["briefing"] = (prev or {}).get("briefing")
     fin = financials.build(config, prev_fin, today, warn)
     data["financials"] = {"fetched": fin.get("fetched"), "source": fin.get("source"), "tickers": sorted(fin.get("companies") or {})}
     out = Path(args.out)
@@ -1326,6 +1351,7 @@ def main():
     except Exception as exc:
         warn("AI용 요약 파일", exc)
         n_ai = 0
+    (out.parent / "news_queue.json").write_text(json.dumps(news_ai.build_queue(data, news_result, dt.datetime.now(KST)), ensure_ascii=False, indent=1), encoding="utf-8")
     (out.parent / "brief.json").write_text(json.dumps(build_brief(data), ensure_ascii=False, indent=1, allow_nan=False), encoding="utf-8")
     out.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":"), allow_nan=False), encoding="utf-8")
     (out.parent / "history.json").write_text(json.dumps(history, ensure_ascii=False, separators=(",", ":"), allow_nan=False), encoding="utf-8")

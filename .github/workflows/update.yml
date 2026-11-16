@@ -58,6 +58,11 @@ jobs:
         continue-on-error: true
         run: curl -fsSL --retry 3 --retry-delay 10 --max-time 60 "${{ steps.pages.outputs.base_url }}/data/financials.json" -o "$RUNNER_TEMP/financials.json"
 
+      # Claude 예약 작업이 ai-results 브랜치에 저장한 AI 뉴스 분류 결과. 없으면 분류 없이 계속한다
+      - name: AI 뉴스 분류 결과 받기
+        continue-on-error: true
+        run: git fetch --depth=1 origin ai-results && git show FETCH_HEAD:news_ai.json > "$RUNNER_TEMP/news_ai.json"
+
       - name: 데이터 수집
         run: python scripts/fetch_data.py --prev "$RUNNER_TEMP/prev.json"
 
