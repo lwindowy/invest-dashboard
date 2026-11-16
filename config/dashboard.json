@@ -870,6 +870,16 @@
       ]
     },
     {
+      "id": "screener",
+      "label": "스크리너",
+      "sections": [
+        {
+          "type": "screener",
+          "label": "조건 스크리너"
+        }
+      ]
+    },
+    {
       "id": "calendar",
       "label": "캘린더",
       "sections": [

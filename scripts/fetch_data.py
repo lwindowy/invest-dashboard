@@ -29,6 +29,7 @@ import briefing
 import earnings
 import news_ai
 import financials
+import screener
 import sec
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -1205,6 +1206,14 @@ def main():
         except Exception as exc:
             print(f"이전 장기 재무를 읽지 못해 무시합니다: {exc}", file=sys.stderr)
 
+    prev_scr = None
+    scr_path = Path(args.prev).with_name("screener.json") if args.prev else None
+    if scr_path and scr_path.is_file():
+        try:
+            prev_scr = json.loads(scr_path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            print(f"이전 스크리너 표를 읽지 못해 무시합니다: {exc}", file=sys.stderr)
+
     # 필요한 심볼·시계열을 설정에서 모아 한 번에 받는다
     series, regime, senti = config["series"], config["regime"], config["sentiment"]
     symbols = {c["symbol"] for c in series.values() if c.get("symbol")}
@@ -1342,6 +1351,14 @@ def main():
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     (out.parent / "financials.json").write_text(json.dumps(fin, ensure_ascii=False, separators=(",", ":"), allow_nan=False), encoding="utf-8")
+    try:
+        scr = screener.build(config, prev_scr, today, warn)
+        (out.parent / "screener.json").write_text(json.dumps(scr, ensure_ascii=False, separators=(",", ":"), allow_nan=False), encoding="utf-8")
+        data["screener"] = {"fetched": scr.get("fetched"), "count": len(scr.get("rows") or [])}
+    except Exception as exc:
+        warn("스크리너", exc)
+        if prev_scr:
+            (out.parent / "screener.json").write_text(json.dumps(prev_scr, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     try:
         n_ai = ai_export.write(data, fin, out.parent / "ai")
     except Exception as exc:

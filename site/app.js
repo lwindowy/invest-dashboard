@@ -1088,6 +1088,127 @@
     holder.innerHTML = ''; holder.className = 'tv-on'; w.appendChild(inner); w.appendChild(sc); holder.appendChild(w);
   }
 
+  // ───────── 스크리너 (나스닥 100 + 관심 종목, AI 아님) ─────────
+  var SCR = null, scrErr = null, scrLoading = false;
+  var SF = [
+    ['market_cap', '시가총액(달러)', 'cap'], ['pe', 'PER', 'x'], ['fpe', '선행 PER', 'x'], ['ps', 'PSR', 'x'], ['peg', 'PEG', 'x'], ['ev_ebitda', 'EV/EBITDA', 'x'],
+    ['rev_growth', '매출 성장률', '%'], ['eps_growth', '이익 성장률', '%'], ['gross_margin', '매출총이익률', '%'], ['op_margin', '영업이익률', '%'],
+    ['net_margin', '순이익률', '%'], ['roe', 'ROE', '%'], ['fcf_yield', 'FCF 수익률', '%'], ['debt_equity', '부채비율(D/E)', '%'], ['div_yield', '배당수익률', '%'],
+    ['beta', '베타', 'x'], ['short_float', '공매도 비율', '%'], ['target_upside', '목표주가 여력', '%'], ['rec', '애널리스트 의견', 'n'],
+    ['r1m', '1개월 수익률', '%'], ['r3m', '3개월 수익률', '%'], ['r1y', '1년 수익률', '%'], ['from_high', '52주 고점 대비', '%'], ['vs_ma200', '200일선 대비', '%']
+  ];
+  var SFH = { market_cap: '단위: 10억 달러(B). 예: 100 = 1,000억 달러', rev_growth: '최근 분기 매출의 전년 같은 분기 대비 (Yahoo)', eps_growth: '최근 분기 이익의 전년 같은 분기 대비 (Yahoo)',
+    debt_equity: '총부채 ÷ 자기자본 × 100 (Yahoo)', rec: '1 강력 매수 ~ 5 매도 (Yahoo 평균)', fcf_yield: 'Yahoo 최근 12개월 FCF ÷ 시가총액', target_upside: '애널리스트 평균 목표주가 ÷ 현재가 − 1',
+    from_high: '최근 1년 최고 종가 대비', vs_ma200: '200일 이동평균 대비' };
+  var SP = [
+    { name: '성장 + 적정 가격', f: [['rev_growth', '>=', 20], ['fpe', '<=', 35]] },
+    { name: '고퀄리티', f: [['roe', '>=', 20], ['op_margin', '>=', 25], ['debt_equity', '<=', 100]] },
+    { name: '현금 창출', f: [['fcf_yield', '>=', 4]] },
+    { name: '낙폭 과대', f: [['from_high', '<=', -30]] },
+    { name: '추세 강함', f: [['vs_ma200', '>=', 0], ['r3m', '>=', 10]] }
+  ];
+  var scrP = { f: [['rev_growth', '>=', 20], ['fpe', '<=', 35]], sort: 'market_cap', desc: true, only: 'all' };
+  try { scrP = Object.assign(scrP, JSON.parse(store.get('scrPrefs', '{}'))); } catch (e) {}
+  function scrSave() { store.set('scrPrefs', JSON.stringify(scrP)); }
+  function sfMeta(k) { return SF.filter(function (x) { return x[0] === k; })[0]; }
+  var SF_RATIO = ['pe', 'fpe', 'ps', 'peg', 'ev_ebitda'];   // 배수는 분모가 적자면 뜻이 없어 값 없음으로 본다
+  function sfVal(r, k) { var v = r[k]; return v == null || (SF_RATIO.indexOf(k) >= 0 && v <= 0) ? null : k === 'market_cap' ? v / 1e9 : v; }
+  function sfFmt(r, k) {
+    var v = r[k], m = sfMeta(k);
+    if (v == null) return '<span class="flat">–</span>';
+    if (SF_RATIO.indexOf(k) >= 0 && v <= 0) return '<span class="flat" title="이익이 0 이하라 배수가 뜻이 없습니다">적자</span>';
+    if (m[2] === 'cap') return money(v, 'USD', true);
+    if (m[2] === '%') return ['r1m', 'r3m', 'r1y', 'from_high', 'vs_ma200', 'target_upside', 'rev_growth', 'eps_growth'].indexOf(k) >= 0 ? '<span class="' + dir(v) + '">' + signed(v, 1, '%') + '</span>' : fmt(v, 1) + '%';
+    return fmt(v, k === 'peg' || k === 'beta' ? 2 : 1) + (m[2] === 'x' ? '배' : '');
+  }
+  SECTIONS.screener = function () {
+    return '<div id="scr">' + (SCR ? scrBody() : '<section class="card"><p class="empty">' + (scrErr ? '스크리너 표를 불러오지 못했습니다 (' + esc(scrErr) + ').' : '불러오는 중입니다…') + '</p></section>') + '</div>';
+  };
+  function loadScr() {
+    if (!$('scr') || SCR || scrLoading) return;
+    scrLoading = true;
+    fetch('data/screener.json?t=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (j) { SCR = j; if ($('scr')) $('scr').innerHTML = scrBody(); })
+      .catch(function (e) { scrErr = e.message; if ($('scr')) $('scr').innerHTML = SECTIONS.screener(); })
+      .then(function () { scrLoading = false; });
+  }
+  function scrBody() {
+    var rows = SCR.rows || [], f = scrP.f.filter(function (x) { return sfMeta(x[0]); });
+    var pool = rows.filter(function (r) { return scrP.only === 'all' || (scrP.only === 'watch' ? r.watch : r.ndx); });
+    var missing = 0;
+    var hit = pool.filter(function (r) {
+      return f.every(function (x) {
+        var v = sfVal(r, x[0]);
+        if (v == null) { r._miss = true; return false; }
+        return x[1] === '>=' ? v >= x[2] : v <= x[2];
+      });
+    });
+    pool.forEach(function (r) {
+      var ok = f.every(function (x) { var v = sfVal(r, x[0]); return v == null || (x[1] === '>=' ? v >= x[2] : v <= x[2]); });
+      if (ok && f.some(function (x) { return sfVal(r, x[0]) == null; })) missing++;
+    });
+    var key = scrP.sort, desc = scrP.desc;
+    hit.sort(function (a, b) {
+      var x = sfVal(a, key), y = sfVal(b, key);
+      if (x == null) return 1; if (y == null) return -1;
+      return desc ? y - x : x - y;
+    });
+    var cols = ['market_cap'];
+    f.forEach(function (x) { if (cols.indexOf(x[0]) < 0) cols.push(x[0]); });
+    ['pe', 'fpe', 'rev_growth', 'op_margin', 'r1m', 'from_high'].forEach(function (k) { if (cols.length < 9 && cols.indexOf(k) < 0) cols.push(k); });
+    if (cols.indexOf(key) < 0) cols.push(key);
+    var opt = function (sel) { return SF.map(function (m) { return '<option value="' + m[0] + '"' + (m[0] === sel ? ' selected' : '') + '>' + esc(m[1]) + '</option>'; }).join(''); };
+    var frows = scrP.f.map(function (x, i) {
+      var m = sfMeta(x[0]) || SF[0];
+      return '<div class="sf"><select data-sf="k" data-i="' + i + '">' + opt(x[0]) + '</select>' +
+        '<select data-sf="op" data-i="' + i + '"><option value=">="' + (x[1] === '>=' ? ' selected' : '') + '>이상</option><option value="<="' + (x[1] === '<=' ? ' selected' : '') + '>이하</option></select>' +
+        '<input type="number" inputmode="decimal" step="any" data-sf="v" data-i="' + i + '" value="' + esc(x[2]) + '"><span class="u">' + (m[2] === 'cap' ? 'B$' : m[2] === '%' ? '%' : m[2] === 'x' ? '배' : '') + '</span>' +
+        '<button type="button" class="btn small" data-sf-del="' + i + '" aria-label="조건 지우기">✕</button>' + (SFH[x[0]] ? '<small>' + esc(SFH[x[0]]) + '</small>' : '') + '</div>';
+    }).join('');
+    var presets = '<div class="seg wrap">' + SP.map(function (p, i) { return '<button type="button" class="btn small" data-sp="' + i + '">' + esc(p.name) + '</button>'; }).join('') + '</div>';
+    var only = '<div class="seg">' + [['all', '전체'], ['ndx', '나스닥 100'], ['watch', '관심 종목']].map(function (o) {
+      return '<button type="button" class="btn small" data-sonly="' + o[0] + '" aria-pressed="' + (scrP.only === o[0]) + '">' + o[1] + '</button>';
+    }).join('') + '</div>';
+    var head = '<div class="ctr scr th" style="--cols:' + cols.length + '"><span>종목</span>' + cols.map(function (k) {
+      return '<button type="button" class="sortbtn" data-ssort="' + k + '">' + esc(sfMeta(k)[1]) + (k === key ? (desc ? ' ▼' : ' ▲') : '') + '</button>';
+    }).join('') + '</div>';
+    var body = hit.map(function (r) {
+      var link = r.watch ? '<a href="#stocks/' + encodeURIComponent(r.ticker) + '">' : '<a href="https://finance.yahoo.com/quote/' + encodeURIComponent(r.ticker) + '" target="_blank" rel="noopener">';
+      return '<div class="ctr scr" style="--cols:' + cols.length + '"><span>' + link + '<b>' + esc(r.ticker) + '</b></a>' + (r.watch ? ' ★' : '') + (r.stale ? ' <small>이전 값</small>' : '') +
+        '<small>' + esc(r.name || '') + '</small></span>' + cols.map(function (k) { return '<span>' + sfFmt(r, k) + '</span>'; }).join('') + '</div>';
+    }).join('');
+    var u = SCR.universe || {};
+    return '<section class="card" aria-label="조건 스크리너"><div class="card-head"><h2>조건 스크리너</h2>' + only + '</div>' +
+      '<p class="hint">조건을 고르면 바로 걸러집니다. 고른 조건은 이 브라우저에 저장됩니다.</p>' +
+      '<h3 class="sub">예시 조건</h3>' + presets + '<h3 class="sub">조건</h3>' + frows +
+      '<button type="button" class="btn small" data-sf-add>+ 조건 추가</button></section>' +
+      '<section class="card" aria-label="스크리너 결과"><h2>결과 ' + hit.length + '개 <small>/ ' + pool.length + '개 중</small></h2>' +
+      (missing ? '<p class="hint">값이 없거나(데이터 없음) 적자라 배수가 뜻이 없어 판단하지 못한 종목 ' + missing + '개는 결과에서 뺐습니다.</p>' : '') +
+      (hit.length ? '<div class="scroll-x"><div class="ctable wide">' + head + body + '</div></div>' : '<p class="empty">조건에 맞는 종목이 없습니다.</p>') +
+      '<p class="src">대상: 나스닥 100(' + esc(u.source || '') + (u.asof ? ', ' + esc(u.asof) + ' 기준' : '') + ') + 관심 종목(미국). ★ = 관심 종목(누르면 종목 화면), 나머지는 Yahoo 페이지로 열립니다. ' +
+      '숫자는 Yahoo Finance 종목 요약 값(Yahoo 정의)이고, 수익률·고점 대비·200일선은 일봉으로 직접 계산했습니다. 하루 한 번 받습니다(' + md(SCR.fetched) + ' 수집' + (SCR.failed ? ', 실패 ' + SCR.failed + '개는 이전 값' : '') + '). ' +
+      '예시 조건의 숫자는 대시보드가 정한 값입니다. 투자 권유가 아닙니다.</p></section>';
+  }
+  function scrRedraw() { scrSave(); if ($('scr') && SCR) $('scr').innerHTML = scrBody(); }
+  document.addEventListener('change', function (ev) {
+    var el = ev.target, k = el.dataset && el.dataset.sf;
+    if (!k) return;
+    var i = Number(el.dataset.i), row = scrP.f[i];
+    if (k === 'k') { row[0] = el.value; } else if (k === 'op') row[1] = el.value; else { var v = Number(el.value); if (el.value === '' || !isFinite(v)) return; row[2] = v; }
+    scrRedraw();
+  });
+  document.addEventListener('click', function (ev) {
+    var b = ev.target.closest && ev.target.closest('[data-sp],[data-sf-del],[data-sf-add],[data-sonly],[data-ssort]');
+    if (!b || !SCR) return;
+    if (b.dataset.sp != null) scrP.f = SP[Number(b.dataset.sp)].f.map(function (x) { return x.slice(); });
+    else if (b.dataset.sfDel != null) scrP.f.splice(Number(b.dataset.sfDel), 1);
+    else if (b.dataset.sfAdd != null) scrP.f.push(['pe', '<=', 30]);
+    else if (b.dataset.sonly) scrP.only = b.dataset.sonly;
+    else if (b.dataset.ssort) { if (scrP.sort === b.dataset.ssort) scrP.desc = !scrP.desc; else { scrP.sort = b.dataset.ssort; scrP.desc = true; } }
+    scrRedraw();
+  });
+
   // ───────── 캘린더 탭 ─────────
   var KINDS = ['실적', '경제지표', 'FOMC', '만기', '내 이벤트'];
   function kstToday() { return new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Seoul' }).format(new Date()); }
@@ -1296,6 +1417,7 @@
     $('view').innerHTML = html;
     if ($('tv')) loadTradingView($('tv'));   // 종목 요약을 열면 차트를 바로 불러온다
     loadFin();
+    loadScr();
   }
   function renderChrome() {
     document.title = DATA.site.title;

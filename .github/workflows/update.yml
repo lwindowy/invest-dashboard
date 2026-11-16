@@ -58,6 +58,11 @@ jobs:
         continue-on-error: true
         run: curl -fsSL --retry 3 --retry-delay 10 --max-time 60 "${{ steps.pages.outputs.base_url }}/data/financials.json" -o "$RUNNER_TEMP/financials.json"
 
+      # 스크리너 표(나스닥 100 + 관심 종목)도 하루 한 번만 받는다. prev.json 옆에 두면 수집 스크립트가 찾는다
+      - name: 이전 스크리너 표 받기
+        continue-on-error: true
+        run: curl -fsSL --retry 3 --retry-delay 10 --max-time 60 "${{ steps.pages.outputs.base_url }}/data/screener.json" -o "$RUNNER_TEMP/screener.json"
+
       # Claude 예약 작업이 ai-results 브랜치에 저장한 AI 뉴스 분류 결과. 없으면 분류 없이 계속한다
       - name: AI 뉴스 분류 결과 받기
         continue-on-error: true
