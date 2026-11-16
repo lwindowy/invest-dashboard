@@ -679,6 +679,7 @@
         '주식 보상, 옵션 행사, 증여는 빼고 공개시장 거래만 보여 줍니다. 계획 매도는 미리 정해 둔 일정(10b5-1)에 따른 것입니다. 출처: SEC Form 4');
     }
     var valHistBox = box('밸류에이션 5년 위치', '<div id="valhist"><p class="empty">불러오는 중입니다…</p></div>');
+    var calcBox = box('가치 계산기 · DCF · 역DCF · IRR', '<div id="calc"><p class="empty">불러오는 중입니다…</p></div>');
     var qualityBox = box('퀄리티 점수', '<div id="quality"><p class="empty">불러오는 중입니다…</p></div>');
     var finBox = box('장기 재무', '<div id="fin" data-t="' + esc(s.ticker) + '"><p class="empty">불러오는 중입니다…</p></div>');
     var nw = s.news, newsBox = '';
@@ -688,7 +689,7 @@
     }
     newsBox = monthBox(s) + newsBox;
     return head + '<div id="qwarn"></div><div class="grid2">' + priceBox + tech + '</div>' + check + charts +
-      '<div class="grid2">' + base + val + '</div>' + valHistBox + qualityBox + finBox + debtBox + trend + earn + analyst + shortBox + newsBox + (sc ? '<div class="grid2">' + filingsBox + insiderBox + '</div>' : '');
+      '<div class="grid2">' + base + val + '</div>' + valHistBox + calcBox + qualityBox + finBox + debtBox + trend + earn + analyst + shortBox + newsBox + (sc ? '<div class="grid2">' + filingsBox + insiderBox + '</div>' : '');
   }
   // ───────── 장기 재무 (SEC) — 종목별 AI용 파일(data/ai/티커.json)을 읽어 그린다 ─────────
   var AIF = {};
@@ -708,6 +709,7 @@
     if ($('quality')) $('quality').innerHTML = qualityBody(j);
     if ($('qwarn')) $('qwarn').innerHTML = qualityWarn(j);
     if ($('valhist')) $('valhist').innerHTML = valHistBody(j);
+    if ($('calc') && DATA.stocks[j.ticker]) $('calc').innerHTML = calcBody(DATA.stocks[j.ticker], j);
   }
   function loadFin() {
     var holder = $('fin');
@@ -718,9 +720,120 @@
       .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .then(function (j) { AIF[key] = j; fillAi(j); })
       .catch(function (err) {
-        ['fin', 'quality', 'valhist'].forEach(function (id) { if ($(id)) $(id).innerHTML = '<p class="empty">데이터를 불러오지 못했습니다 (' + esc(err.message) + ').</p>'; });
+        ['fin', 'quality', 'valhist', 'calc'].forEach(function (id) { if ($(id)) $(id).innerHTML = '<p class="empty">데이터를 불러오지 못했습니다 (' + esc(err.message) + ').</p>'; });
       });
   }
+  // ───────── 가치 계산기: DCF · 역DCF · IRR (AI 아님, 브라우저에서 계산) ─────────
+  // 기본값은 대시보드가 정한 값: 할인율 10%, 영구 성장률 3%, 1~5년 성장률 = 매출 3년 CAGR(0~30%로 자름), 6~10년 = 그 절반,
+  // 매도 시 P/E = 지금 P/E와 5년 P/E 중앙값(없으면 20배) 중 작은 값, 최대 40배(배수가 더 오른다고 가정하지 않음).
+  var CALC = null;
+  function calcCtx(s, j) {
+    var f = s.fund || {}, fin = j.financials && typeof j.financials === 'object' ? j.financials : null;
+    var cur = f.currency || s.currency, vc = j.valuation_calc || {};
+    var cap = vc.market_cap || f.market_cap, price = s.price;
+    if (!cap || !price) return null;
+    var c = { cur: cur, price: price, cap: cap, shares: cap / price, src: [] };
+    var q = fin && (fin.quarterly || []).length ? fin.quarterly[fin.quarterly.length - 1] : null;
+    if (fin && fin.ttm) {
+      c.fcf = fin.ttm.fcf; c.ni = fin.ttm.net_income; c.sbc = fin.ttm.sbc; c.end = fin.ttm.end;
+      c.netCash = q && q.net_cash != null ? q.net_cash : f.net_cash;
+      c.src.push('현금흐름·순이익·주식보상비용: SEC 최근 4개 분기 합계(' + md(fin.ttm.end) + ' 끝)');
+      var g3 = ((fin.cagr_pct || {}).revenue || {})['3'];
+      c.g3 = g3;
+    } else {
+      var qs = (f.quarters || []).slice(-4);
+      if (qs.length === 4 && qs.every(function (x) { return x.fcf != null; })) c.fcf = qs.reduce(function (a, x) { return a + x.fcf; }, 0);
+      c.netCash = f.net_cash; c.end = qs.length ? qs[qs.length - 1].date : null;
+      if (qs.length === 4 && qs[0].revenue && qs[3].revenue) c.g3 = null;
+      c.src.push('현금흐름: Yahoo 최근 4개 분기 합계(SEC 재무가 없는 종목)');
+    }
+    c.src.push('시가총액·주가: Yahoo, 순현금: ' + (q ? 'SEC 최근 분기 말' : 'Yahoo'));
+    var vh = (j.valuation_history || {}).metrics || [], pe = vh.filter(function (m) { return m.key === 'pe'; })[0];
+    c.medPe = pe && pe.median ? pe.median : null;
+    var g = c.g3 == null ? 10 : Math.max(0, Math.min(30, Math.round(c.g3)));
+    c.def = { basis: c.fcf != null ? 'fcf' : 'ni', sbc: false, g1: g, g2: Math.round(g / 2), tg: 3, r: 10, years: 5, ge: g, exitPe: Math.round(Math.min(40, c.medPe || 20, c.ni > 0 ? c.cap / c.ni : 40)) };
+    c.inp = Object.assign({}, c.def);
+    return c;
+  }
+  function dcfValue(base, g1, g2, tg, r) {
+    var pv = 0, cf = base;
+    for (var t = 1; t <= 10; t++) { cf *= 1 + (t <= 5 ? g1 : g2); pv += cf / Math.pow(1 + r, t); }
+    return pv + cf * (1 + tg) / (r - tg) / Math.pow(1 + r, 10);
+  }
+  function calcBase(c) {
+    var i = c.inp, b = i.basis === 'ni' ? c.ni : c.fcf;
+    if (b == null) return null;
+    return i.sbc && c.sbc ? b - c.sbc : b;
+  }
+  function calcResults(c) {
+    var i = c.inp, base = calcBase(c), cur = c.cur, out = '';
+    var pc = function (v) { return '<span class="' + dir(v) + '">' + signed(v, 1, '%') + '</span>'; };
+    if (base == null) out += '<p class="empty">기준 현금흐름 값이 없어 계산할 수 없습니다(데이터 없음).</p>';
+    else if (base <= 0) out += '<p class="empty">기준 값이 ' + money(base, cur) + '(0 이하)라 DCF가 뜻이 없습니다. 흑자 전환 전 회사는 매출 배수나 IRR로 보는 편이 낫습니다.</p>';
+    else if (i.r / 100 <= i.tg / 100) out += '<p class="empty">할인율이 영구 성장률보다 커야 계산됩니다.</p>';
+    else {
+      var nc = c.netCash || 0, val = function (g1, g2, tg, r) { return (dcfValue(base, g1, g2, tg, r) + nc) / c.shares; };
+      var fair = val(i.g1 / 100, i.g2 / 100, i.tg / 100, i.r / 100);
+      var lo = -0.5, hi = 1.5, target = c.cap - nc;
+      for (var k = 0; k < 80; k++) { var mid = (lo + hi) / 2; if (dcfValue(base, mid, mid, i.tg / 100, i.r / 100) < target) lo = mid; else hi = mid; }
+      var implied = (lo + hi) / 2 * 100;
+      out += '<div class="facts">' + fact('DCF 적정 주가', price(fair, cur), '현재가 ' + price(c.price, cur) + ' 대비 ' + pc((fair / c.price - 1) * 100)) +
+        fact('역DCF: 지금 주가에 담긴 성장률', implied >= 149 ? '연 150% 이상' : implied <= -49 ? '연 −50% 이하' : '연 ' + fmt(implied, 1) + '%',
+          '앞으로 10년 동안 기준 값이 매년 이만큼 늘어야 지금 주가가 맞습니다(할인율 ' + i.r + '%, 영구 ' + i.tg + '%)') + '</div>';
+      var rs = [i.r - 1, i.r, i.r + 1], ts = [i.tg - 1, i.tg, i.tg + 1];
+      out += '<h3 class="sub">할인율·영구 성장률을 바꾸면 (적정 주가)</h3><div class="scroll-x"><div class="ctable"><div class="ctr th"><span>할인율 \\ 영구</span>' +
+        ts.map(function (t) { return '<span>' + t + '%</span>'; }).join('') + '</div>' + rs.map(function (r) {
+          return '<div class="ctr"><span>' + r + '%</span>' + ts.map(function (t) {
+            if (r <= t) return '<span class="flat">–</span>';
+            var v = val(i.g1 / 100, i.g2 / 100, t / 100, r / 100);
+            return '<span class="' + (r === i.r && t === i.tg ? 'calc-me ' : '') + dir(v - c.price) + '">' + price(v, cur) + '</span>';
+          }).join('') + '</div>';
+        }).join('') + '</div></div>';
+    }
+    // IRR: 지금 사서 N년 뒤 '그때 EPS × 매도 P/E'에 판다고 할 때 연 수익률 (배당은 뺌)
+    var eps = c.ni != null ? c.ni / c.shares : null;
+    if (eps != null && eps > 0) {
+      var exitPrice = eps * Math.pow(1 + i.ge / 100, i.years) * i.exitPe, irr = (Math.pow(exitPrice / c.price, 1 / i.years) - 1) * 100;
+      out += '<h3 class="sub">IRR: ' + i.years + '년 보유하면</h3><div class="facts">' + fact('연 수익률', pc(irr), '배당 제외') +
+        fact(i.years + '년 뒤 예상 주가', price(exitPrice, cur), '주당순이익 ' + price(eps * Math.pow(1 + i.ge / 100, i.years), cur) + ' × P/E ' + i.exitPe + '배') +
+        fact('지금 주당순이익', price(eps, cur), '최근 4개 분기 순이익 ÷ 주식 수') + '</div>';
+    } else out += '<h3 class="sub">IRR</h3><p class="empty">' + (eps == null ? '최근 4개 분기 순이익 값이 없어(데이터 없음)' : '최근 4개 분기 순이익이 0 이하(적자)라') + ' IRR을 계산하지 않습니다.</p>';
+    return out;
+  }
+  function calcBody(s, j) {
+    var c = CALC = calcCtx(s, j);
+    if (!c) return '<p class="empty">시가총액이나 주가가 없어 계산할 수 없습니다(데이터 없음).</p>';
+    c.ticker = s.ticker;
+    var i = c.inp, cur = c.cur;
+    var num = function (key, label, unit, step) {
+      return '<label class="cin"><span>' + label + '</span><span><input type="number" inputmode="decimal" step="' + (step || 1) + '" data-calc="' + key + '" value="' + i[key] + '">' + unit + '</span></label>';
+    };
+    var basis = '<label class="cin"><span>기준 값</span><span><select data-calc="basis">' +
+      (c.fcf != null ? '<option value="fcf"' + (i.basis === 'fcf' ? ' selected' : '') + '>잉여현금흐름(FCF) ' + money(c.fcf, cur) + '</option>' : '') +
+      (c.ni != null ? '<option value="ni"' + (i.basis === 'ni' ? ' selected' : '') + '>순이익 ' + money(c.ni, cur) + '</option>' : '') + '</select></span></label>' +
+      (c.sbc ? '<label class="chk"><input type="checkbox" data-calc="sbc"' + (i.sbc ? ' checked' : '') + '> 주식보상비용(' + money(c.sbc, cur) + ') 빼기</label>' : '');
+    return '<div class="calc-in">' + basis + num('g1', '1~5년 성장률', '%') + num('g2', '6~10년 성장률', '%') + num('tg', '영구 성장률', '%', 0.5) + num('r', '할인율', '%', 0.5) + '</div>' +
+      '<div class="calc-in">' + num('years', 'IRR 보유 기간', '년') + num('ge', '주당순이익 성장률', '%') + num('exitPe', '매도 시 P/E', '배') +
+      '<button type="button" class="btn small" data-calc-reset>기본값으로</button></div>' +
+      '<div id="calcout">' + calcResults(c) + '</div>' +
+      '<p class="src">기본값은 대시보드가 정한 값입니다: 할인율 10%, 영구 성장률 3%, 1~5년 성장률 = 매출 3년 연평균 성장률' +
+      (c.g3 != null ? '(' + fmt(c.g3, 1) + '%)' : '(값 없음 → 10%)') + '을 0~30%로 자른 값, 6~10년 = 그 절반, 매도 시 P/E = 지금 P/E와 5년 P/E 중앙값' + (c.medPe ? '(' + fmt(c.medPe, 1) + '배)' : '(값 없음 → 20배)') + ' 중 작은 값을 40배 이하로(배수가 더 오른다고 가정하지 않음). ' +
+      '적정 주가 = (10년 현금흐름 현재가치 + 10년 뒤 영구가치 + 순현금 ' + money(c.netCash, cur) + ') ÷ 주식 수(시가총액 ÷ 주가). 역DCF는 1~10년 성장률을 하나로 두고 지금 시가총액과 맞는 값을 찾습니다. ' +
+      c.src.join('. ') + '. 결과는 가정에 따라 크게 바뀌는 참고용 계산이며 투자 권유가 아닙니다.</p>';
+  }
+  document.addEventListener('input', function (ev) {
+    var el = ev.target, key = el.dataset && el.dataset.calc;
+    if (!key || !CALC || !$('calcout')) return;
+    CALC.inp[key] = el.type === 'checkbox' ? el.checked : key === 'basis' ? el.value : Number(el.value);
+    if (key !== 'basis' && key !== 'sbc' && !isFinite(CALC.inp[key])) return;
+    if (key === 'years' && CALC.inp.years < 1) return;
+    $('calcout').innerHTML = calcResults(CALC);
+  });
+  document.addEventListener('click', function (ev) {
+    if (!ev.target.closest || !ev.target.closest('[data-calc-reset]') || !CALC) return;
+    var s = DATA.stocks[CALC.ticker], j = AIF[CALC.ticker + DATA.generated_at];
+    if (s && j && $('calc')) $('calc').innerHTML = calcBody(s, j);
+  });
   // ───────── 밸류에이션 5년 위치 (AI 아님) ─────────
   function valChart(m) {
     var s = m.series, n = s.length;

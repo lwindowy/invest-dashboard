@@ -397,3 +397,13 @@ h3.sub { font-size: 13px; color: var(--sub); font-weight: 700; margin: 14px 0 2p
   .ctr.er > :nth-child(4) .pill { display: table; margin: 2px 0 0 auto; }
   .ctr.er > :nth-child(n+6) { display: none; }
 }
+
+/* 가치 계산기 */
+.calc-in { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: flex-end; margin-bottom: 10px; }
+.cin { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--sub); }
+.cin input, .cin select { font: inherit; font-size: 14px; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 5px 7px; }
+.cin input { width: 64px; text-align: right; margin-right: 3px; }
+.chk { font-size: 13px; display: flex; gap: 5px; align-items: center; flex-basis: 100%; }
+#calc .src { margin-top: 12px; }
+#calcout .facts + .src, #calcout .facts { margin-bottom: 8px; }
+.calc-me { font-weight: 700; text-decoration: underline; }
