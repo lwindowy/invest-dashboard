@@ -480,3 +480,7 @@ details.th-gd summary, details.pf-src summary { cursor: pointer; min-height: 32p
 .th-pillar > summary::-webkit-details-marker { display: none; }
 .th-pillar:not([open]) > summary::after { content: '근거·반대 관점 보기 ▾'; display: block; margin-top: 6px; font-size: 12px; color: var(--blue); }
 .th-pillar > summary .th-claim { margin-top: 0; }
+.th-seg-bar i { background: #3b82f6; }
+.ctr.c4 { grid-template-columns: 1fr 1fr 1fr 1.2fr; }
+.th-unproven { margin: 0 0 4px; font-size: 14px; line-height: 1.55; }
+div.th-gd { font-size: 14px; }
