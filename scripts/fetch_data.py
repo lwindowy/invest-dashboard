@@ -32,6 +32,7 @@ import profiles
 import financials
 import screener
 import sec
+import thesis
 
 ROOT = Path(__file__).resolve().parent.parent
 KST = ZoneInfo("Asia/Seoul")
@@ -1362,6 +1363,11 @@ def main():
         data["briefing"] = (prev or {}).get("briefing")
     fin = financials.build(config, prev_fin, today, warn)
     data["financials"] = {"fetched": fin.get("fetched"), "source": fin.get("source"), "tickers": sorted(fin.get("companies") or {})}
+    try:   # 투자 논리 점검판 (config/thesis.json + 시세·재무)
+        for t, th in thesis.build(data, fin, warn).items():
+            data["stocks"][t]["thesis"] = th
+    except Exception as exc:
+        warn("투자 논리 점검판", exc)
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     (out.parent / "financials.json").write_text(json.dumps(fin, ensure_ascii=False, separators=(",", ":"), allow_nan=False), encoding="utf-8")

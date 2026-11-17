@@ -90,6 +90,8 @@ def stock_file(data, fin_all, ticker):
         "news_note": "importance(1=중대 사건 ~ 5=일상)와 type은 AI가 기사 제목으로 분류한 값이다. 값이 없으면 아직 분류하지 않은 기사다. 같은 사건의 중복 기사는 뺐다.",
         "news_month": s.get("news_month"),
         "profile": s.get("profile"),
+        "thesis": s.get("thesis"),
+        "thesis_note": "thesis 는 공개 자료(SEC 공시·보도자료)로 정리한 투자 논리 점검판이다. 문장마다 sources 번호가 있고, calc 는 시세로 계산한 값이다. 매수·매도 권유가 아니다.",
     }
     if fin:
         out["financials"] = {

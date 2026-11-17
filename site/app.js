@@ -70,7 +70,8 @@
     'Short Float': 'short_float', 'Short Ratio': 'short_ratio', 'Short Interest': 'short_interest', 'RSI (14)': 'rsi', 'CCI (20)': 'cci',
     '이자보상배율': 'interest_coverage', '순부채 ÷ EBITDA': 'net_debt_ebitda', '부채비율': 'debt_to_equity', '유동비율': 'current_ratio',
     '52주 고점 대비': 'from_high', '신용등급': 'credit_rating', '최근 공시': 'filings', '내부자 매매': 'insider', '차트 체크리스트': 'chart_checklist', '애널리스트 목표주가': 'target_price',
-    '나스닥 대비 상대 강도와 종목 비교': 'relative_strength', '실적 추이': 'fcf'
+    '나스닥 대비 상대 강도와 종목 비교': 'relative_strength', '실적 추이': 'fcf',
+    '투자 논리 점검판': 'thesis', '수주 잔고': 'backlog', '계약된 ARR 목표': 'arr', '주식 수 1년 변화': 'dilution', '현금 (사용 제한 포함)': 'restricted_cash'
   };
 
   // ───────── 공통 부품 ─────────
@@ -687,7 +688,7 @@
       newsBox = box('최근 뉴스', newsFilters() + (nw.items.length ? newsRows(nw.items, false) : '<p class="empty">최근 뉴스가 없습니다.</p>'),
         '제목을 누르면 원문이 열립니다. 기사는 영어이고, 시간은 한국 시간입니다. 출처: ' + esc(nw.source) + ' · ' + md(nw.fetched) + ' ' + esc((nw.fetched || '').slice(11, 16)) + ' 수집' + (nw.stale ? ' (이전 값)' : '') + '. ' + aiStamp());
     }
-    return head + profileBox(s) + monthBox(s) + '<div id="qwarn"></div><div class="grid2">' + priceBox + tech + '</div>' + check + charts +
+    return head + profileBox(s) + thesisBox(s) + monthBox(s) + '<div id="qwarn"></div><div class="grid2">' + priceBox + tech + '</div>' + check + charts +
       '<div class="grid2">' + base + val + '</div>' + valHistBox + calcBox + qualityBox + finBox + debtBox + trend + earn + analyst + shortBox + newsBox + (sc ? '<div class="grid2">' + filingsBox + insiderBox + '</div>' : '');
   }
   // ───────── 장기 재무 (SEC) — 종목별 AI용 파일(data/ai/티커.json)을 읽어 그린다 ─────────
@@ -1048,6 +1049,120 @@
       '<div class="pf-grid">' + list('무엇을 하나', p.business) + rev + mg + list('앞으로의 방향', p.vision) + list('강점', p.strengths) + list('위험 요인', p.risks) + '</div>' + srcs +
       '<p class="src">AI(Claude)가 위 출처(공시·회사 자료)를 읽고 한국어로 정리했습니다. 문장 끝 [번호]를 누르면 근거가 열립니다. 출처가 없는 문장은 넣지 않습니다. ' +
       md(p.updated) + ' 작성' + (p.basis ? ' · 기준: ' + esc(p.basis) : '') + '. 새 정기 보고서가 나오면 다시 씁니다. 투자 권유가 아닙니다.</p></section>';
+  }
+  // ───────── 투자 논리 점검판 (config/thesis.json + 시세로 계산한 값) ─────────
+  function thesisBox(s) {
+    var th = s.thesis;
+    if (!th) return '';
+    var c = th.calc || {}, F = th.facts || {}, src = th.sources || [];
+    var ref = function (ids) {
+      return ids && ids.length ? ' <small class="ref">' + ids.map(function (i) {
+        var x = src[i - 1];
+        return x ? '<a href="' + esc(x.url) + '" target="_blank" rel="noopener" title="' + esc(x.title + ' · ' + x.date) + '">[' + i + ']</a>' : '';
+      }).join('') + '</small>' : '';
+    };
+    var pc = function (v) { return v == null ? '<span class="flat">–</span>' : '<span class="' + dir(v) + '">' + signed(v, 1, '%') + '</span>'; };
+    var cur = c.currency || s.currency || 'USD';
+    var mny = function (v) { return money(v, cur).replace('.0억', '억'); };
+    var ym = function (iso) { return iso.slice(2, 7).replace('-', '.'); };
+    var cashAll = c.cash != null ? c.cash + (c.restricted_cash || 0) : null;
+    var sh = c.shares || {}, iq = c.interest || {}, sg = th.segments || {}, rows = sg.rows || [], sers = sg.series || [];
+    // 숫자 칸: 설정(cards)에 적은 순서대로. calc(공통 계산), fact(공시에서 적은 값), segment(매출 부문 비중), series(거시 지표)
+    var CALC = {
+      market_cap: function () { return fact('시가총액', mny(c.market_cap), '주가 ' + price(s.price, s.currency) + ' · 52주 고점 대비 ' + signed(s.from_high_pct, 1, '%')); },
+      cash: function () {
+        return fact(c.restricted_cash ? '현금 (사용 제한 포함)' : '보유 현금', mny(cashAll), (c.mcap_to_cash != null ? '시가총액 ÷ 현금 ' + fmt(c.mcap_to_cash, 2) + '배' : '') +
+          (c.restricted_cash ? ' · 제한 ' + mny(c.restricted_cash) + ref((F.restricted_cash || {}).src) : ''));
+      },
+      dilution: function () { return fact('주식 수 1년 변화', sh.yoy_pct != null ? pc(sh.yoy_pct) : '–', sh.base_end ? ym(sh.base_end) + ' → ' + ym(sh.q_end) + ' 분기 평균 · SEC 10-Q' : 'SEC 분기 자료 없음'); },
+      short: function () { return fact('Short Float', c.short_float_pct != null ? fmt(c.short_float_pct, 1) + '%' : '–', c.short_date ? md(c.short_date) + ' 기준' : ''); },
+      interest: function () { return fact('분기 이자비용', iq.last ? mny(iq.last.interest) : '–', iq.first && iq.first !== iq.last ? iq.first.period + ' 분기 ' + mny(iq.first.interest) + '에서' : ''); },
+      next_earnings: function () { return fact('다음 실적 발표', c.next_earnings ? md(c.next_earnings) + ' (' + weekday(c.next_earnings) + ')' : '–', c.next_earnings ? '한국 시간' : ''); }
+    };
+    // cards 를 안 적은 종목은 기본 칸을 쓰되, 값이 없는 칸(한국 종목의 공매도·SEC 주식 수 등)은 뺀다
+    var cards = th.cards || [{ calc: 'market_cap' }, { calc: 'cash' }, sh.yoy_pct != null && { calc: 'dilution' }, c.short_float_pct != null && { calc: 'short' }, iq.last && { calc: 'interest' }, { calc: 'next_earnings' }].filter(Boolean);
+    var top = '<div class="facts">' + cards.map(function (k) {
+      if (k.calc) return CALC[k.calc] ? CALC[k.calc]() : '';
+      if (k.fact) {
+        var x = F[k.fact] || {}, sub = [];
+        if (k.sub_fact && F[k.sub_fact]) sub.push(esc(F[k.sub_fact].label) + ' ' + (F[k.sub_fact].value != null ? mny(F[k.sub_fact].value) : esc(F[k.sub_fact].text)));
+        if (k.compare === 'mcap_multiple' && x.value && c.market_cap) sub.push('시가총액의 ' + fmt(x.value / c.market_cap, 1) + '배');
+        if (k.compare === 'ev_ratio' && x.value && c.ev) sub.push('EV ÷ ' + esc(k.short || '이 값') + ' ' + fmt(c.ev / x.value, 1) + '배');
+        if (k.compare === 'mcap_pct' && x.value && c.market_cap) sub.push('시가총액의 ' + fmt(x.value / c.market_cap * 100, 1) + '%');
+        if (!sub.length && x.note) sub.push(esc(x.note.split('.')[0]));
+        if (x.asof) sub.push(md(x.asof) + ' 기준');
+        return '<div class="fact"><span class="k">' + esc(k.label || x.label) + q(k.help) + '</span><b>' + (x.value != null ? mny(x.value) : esc(x.text)) + esc(k.suffix || '') + ref(x.src) + '</b><span class="s">' + sub.join(' · ') + '</span></div>';
+      }
+      if (k.segment) {
+        var v = (c.segment_share || {})[k.segment];
+        var rest = sers.filter(function (z) { return z.key !== k.segment; }).map(function (z) { return esc(z.name) + ' ' + fmt((c.segment_share || {})[z.key], 1) + '%'; }).join(' · ');
+        return fact(k.label, v != null ? fmt(v, 1) + '%' : '–', (c.segments_period ? c.segments_period + ' 분기' : '') + (rest ? ' · ' + rest : ''));
+      }
+      if (k.series) {
+        var sv = (c.series || {})[k.series];
+        return fact(k.label || (sv || {}).name || k.series, sv ? esc(sv.prefix || '') + fmt(sv.value, sv.decimals != null ? Math.min(sv.decimals, 2) : 0) + esc(sv.unit || '') : '–', sv ? md(sv.asof) + ' 기준' : '');
+      }
+      return '';
+    }).join('') + '</div>';
+
+    // 분기 매출 구성: 부문을 한 막대에 쌓아 그린다. 첫 부문의 비중을 옆에 적는다
+    var COLORS = ['#3b82f6', '#f59e0b', '#10b981', '#8b5cf6', '#64748b'];
+    var total = function (r) { return sers.reduce(function (a, z) { return a + (r[z.key] || 0); }, 0); };
+    var maxT = Math.max.apply(null, rows.map(total).concat([1]));
+    var seg = rows.length && sers.length ? '<h3 class="sub">' + esc(sg.label || '분기 매출 구성') + ' <small>(' + esc(sg.unit) + ')</small></h3><div class="th-seg">' + rows.map(function (r) {
+      var tot = total(r);
+      return '<div class="th-seg-row"><span class="q">' + esc(r.q) + '</span><div class="th-seg-bar">' + sers.map(function (z, i) {
+        return '<i style="width:' + ((r[z.key] || 0) / maxT * 100).toFixed(1) + '%;background:' + COLORS[i % COLORS.length] + '" title="' + esc(z.name + ' ' + fmt(r[z.key], 1)) + '"></i>';
+      }).join('') + '</div><span class="v">' + fmt(tot, 0) + ' <small>' + esc(sers[0].short || sers[0].name.split(' ')[0]) + ' ' + fmt((r[sers[0].key] || 0) / tot * 100, 0) + '%</small>' + ref(r.src) + '</span></div>';
+    }).join('') + '</div><div class="legend">' + sers.map(function (z, i) { return '<span><i class="sw" style="background:' + COLORS[i % COLORS.length] + '"></i>' + esc(z.name) + '</span>'; }).join('') + '</div>' +
+      (sg.note ? '<p class="hint">' + esc(sg.note) + '</p>' : '') : '';
+
+    // 주가 변화 나누어 보기: 같은 업종(경쟁사가 관심 종목에 있을 때)과 시장이 함께 움직인 만큼과 이 종목만의 차이
+    var P = c.peers || [], B = c.bench || {}, me = P[0] || {}, others = P.slice(1), hasPeers = others.length > 0;
+    var peerNames = others.map(function (x) { return x.name; }).join('·');
+    var peerLabel = others.length === 1 ? esc(others[0].name) : '경쟁사 평균';   // 경쟁사가 하나면 이름을 그대로 쓴다
+    var cls = hasPeers ? 'th5' : 'c4', gapName = hasPeers ? peerLabel + '과 차이' : esc(B.name || '시장') + '과 차이';
+    var split = P.length ? '<h3 class="sub">주가 변화 나누어 보기</h3><div class="scroll-x"><div class="ctable wide"><div class="ctr ' + cls + ' th"><span>기간</span><span>' + esc(me.name) + '</span>' + (hasPeers ? '<span>' + peerLabel + '</span>' : '') + '<span>' + esc(B.name || '시장') + '</span><span>' + gapName + '</span></div>' +
+      [['1개월', 'r1'], ['3개월', 'r3']].map(function (k) {
+        var mine = me[k[1]], base = hasPeers ? B['peers_' + k[1]] : B[k[1]];
+        return '<div class="ctr ' + cls + '"><span>' + k[0] + '</span><span>' + pc(mine) + '</span>' + (hasPeers ? '<span>' + pc(base) + '</span>' : '') + '<span>' + pc(B[k[1]]) + '</span><span>' + pc(mine != null && base != null ? mine - base : null) + '</span></div>';
+      }).join('') + '</div></div>' +
+      (hasPeers ? '<div class="scroll-x"><div class="ctable wide"><div class="ctr th5 th"><span>회사</span><span>시가총액 (' + (cur === 'KRW' ? '원' : '달러') + ')</span><span>' + esc(me.name) + ' 대비</span><span>1개월</span><span>3개월</span></div>' + P.map(function (x) {
+        return '<div class="ctr th5"><span><a href="#stocks/' + encodeURIComponent(x.ticker) + '">' + esc(x.name) + '</a></span><span>' + money(x.market_cap, cur, true) + '</span><span>' + (x.market_cap && me.market_cap ? fmt(x.market_cap / me.market_cap, 1) + '배' : '–') + '</span><span>' + pc(x.r1) + '</span><span>' + pc(x.r3) + '</span></div>';
+      }).join('') + '</div></div>' +
+        '<p class="hint">' + (others.length === 1 ? peerLabel : '경쟁사 평균(' + esc(peerNames) + ')') + '과 비슷하게 움직였다면 업종 전체의 영향이 컸다는 뜻이고, 차이가 크면 회사만의 소식이 더 컸을 수 있습니다. 원인을 단정하지는 않습니다.</p>'
+        : '<p class="hint">관심 종목에 같은 업종 회사가 없어 시장(' + esc(B.name || '') + ')과만 비교합니다. 차이가 크면 시장 전체보다 업종·회사의 소식이 더 컸다는 뜻이며, 원인을 단정하지는 않습니다.</p>') : '';
+
+    var narrow = window.matchMedia && window.matchMedia('(max-width: 760px)').matches;   // 휴대폰에서는 논리 카드를 접어 둔다
+    var pillars = (th.pillars || []).length ? '<h3 class="sub">논리와 반대 관점' + (narrow ? ' <small>(눌러서 근거와 반대 관점 보기)</small>' : '') + '</h3><div class="th-pillars">' + th.pillars.map(function (p) {
+      var li = function (arr) { return (arr || []).length ? '<ul class="pf-list">' + arr.map(function (e) { return '<li>' + esc(e.text) + ref(e.src) + '</li>'; }).join('') + '</ul>' : ''; };
+      return '<details class="th-pillar"' + (narrow ? '' : ' open') + '><summary><h4>' + esc(p.title) + '</h4><p class="th-claim"><span class="pill small good">논리</span> ' + esc(p.claim) + '</p></summary>' + li(p.evidence) +
+        '<p class="th-claim"><span class="pill small warn">반대 관점</span> ' + esc(p.counter) + '</p>' + li(p.counter_evidence) +
+        (p.watch ? '<p class="th-watch">볼 숫자: ' + esc(p.watch) + '</p>' : '') + '</details>';
+    }).join('') + '</div>' : '';
+
+    var tone = { '완료': 'good', '진행 중': 'none', '일정 변경': 'warn', '대기': 'none', '취소': 'bad' };
+    var ms = (th.milestones || []).length ? '<h3 class="sub">회사가 밝힌 일정과 진행</h3><div class="th-ms">' + th.milestones.map(function (m) {
+      return '<div class="th-ms-row"><div class="w"><b>' + esc(m.what) + '</b><small>' + esc(m.note || '') + ref(m.src) + '</small></div><span class="when">' + esc(m.when) + '</span>' + pill(m.status, tone[m.status] || 'none', true) + '</div>';
+    }).join('') + '</div>' : '';
+
+    var ev = (th.evolution || []).length ? '<h3 class="sub">논리가 바뀐 기록</h3><div class="th-gd">' + th.evolution.map(function (g) {
+      return '<div class="event"><div class="date"><b>' + esc(g.date.slice(2).replace(/-/g, '.')) + '</b></div><div class="what"><span>' + esc(g.text) + ref(g.src) + '</span></div></div>';
+    }).join('') + '</div>' : '';
+    var unproven = th.unproven ? '<p class="th-unproven"><span class="pill small none">아직 증명되지 않은 것</span> ' + esc(th.unproven.text) + ref(th.unproven.src) + '</p>' : '';
+    var gtone = { '상향': 'good', '달성': 'good', '일정 변경': 'warn', '하향': 'bad', '미달': 'bad', '시험 실패': 'bad' };
+    var gd = (th.guidance || []).length ? '<details class="th-gd"><summary>목표와 실제 기록 ' + th.guidance.length + '건 (회사 발표 순서대로)</summary>' + th.guidance.map(function (g) {
+      return '<div class="event"><div class="date"><b>' + esc(g.date.slice(2).replace(/-/g, '.')) + '</b></div><div class="what"><span>' + pill(g.kind, gtone[g.kind] || 'none', true) + ' ' + esc(g.text) + ref(g.src) + '</span></div></div>';
+    }).join('') + '</details>' : '';
+
+    var srcs = '<details class="pf-src"><summary>출처 ' + src.length + '개</summary><ol>' + src.map(function (x) {
+      return '<li><a href="' + esc(x.url) + '" target="_blank" rel="noopener">' + esc(x.title) + '</a> <small>' + esc(x.date) + '</small></li>';
+    }).join('') + '</ol></details>';
+    var notion = DATA.site.notion_company_notes ? ' <a href="' + esc(DATA.site.notion_company_notes) + '" target="_blank" rel="noopener">노션 기업분석 노트</a>(본인만 열림)에 따로 적어 둔 관점과 나란히 보세요.' : '';
+    return '<section class="card th" aria-label="투자 논리 점검판"><h2>투자 논리 점검판' + q(HELP_BY_LABEL['투자 논리 점검판']) + '</h2>' +
+      '<p class="pf-one">' + esc(th.question) + '</p>' + unproven + top + seg + split + pillars + ev + ms + gd + srcs +
+      '<p class="src">공개 자료(SEC 공시·회사 보도자료)와 시세로만 만든 점검표입니다. ' + (th.frame === 'inferred' ? '어떤 논리를 볼지는 대시보드(Claude)가 공통 질문 틀로 공시를 읽고 고른 추론입니다. ' : '어떤 항목을 고르고 어떻게 나눌지는 대시보드가 정했습니다. ') + '매수·매도 권유가 아닙니다. 문장 끝 [번호]를 누르면 근거가 열립니다. ' +
+      '기준: ' + esc(th.basis || '') + ' · ' + md(th.updated) + ' 정리. 회사가 새 발표를 내면 config/thesis.json 을 고칩니다. 숫자 칸은 30분마다 시세로 다시 계산합니다.' + notion + '</p></section>';
   }
   function monthBox(s) {
     var m = s.news_month;
