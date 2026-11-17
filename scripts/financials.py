@@ -320,7 +320,15 @@ def statements(cik, since=None, splits=None):
         for k, src in (("gross_margin_pct", "gross_profit"), ("op_margin_pct", "op_income"), ("net_margin_pct", "net_income"), ("fcf_margin_pct", "fcf")):
             ttm[k] = pct(ttm[src], ttm["revenue"]) if ttm["revenue"] and ttm["revenue"] > 0 else None
         ttm["roe_pct"], ttm["roic_pct"] = quarterly[-1]["roe_pct"], quarterly[-1]["roic_pct"]
-    return {"entity": data.get("entityName"), "currency": currency, "annual": annual[-YEARS:], "quarterly": quarterly[-QUARTERS:], "ttm": ttm}
+    # 분기 기본 가중평균 주식 수. 희석(주식 수 증가) 추이를 보는 데 쓴다. 같은 분기에 값이 여럿이면 가장 늦게 낸 공시를 쓴다
+    basic = {}
+    for row in sorted(gaap.get("us-gaap", {}).get("WeightedAverageNumberOfSharesOutstandingBasic", {}).get("units", {}).get("shares") or [],
+                      key=lambda x: x.get("filed") or ""):
+        if row.get("start") and row.get("end") and row.get("val") and 80 <= days(row["start"], row["end"]) <= 100:
+            basic[row["end"]] = row["val"]
+    shares_q = [{"end": d, "shares": basic[d]} for d in sorted(basic)][-12:]
+    return {"entity": data.get("entityName"), "currency": currency, "annual": annual[-YEARS:], "quarterly": quarterly[-QUARTERS:], "ttm": ttm,
+            "shares_basic_q": shares_q}
 
 
 def strip_html(raw):
@@ -380,7 +388,7 @@ def weekly_prices(tickers):
     return out
 
 
-VERSION = 2   # 저장 형식이 바뀌면 올린다. 다르면 같은 날이라도 전부 다시 받는다
+VERSION = 3   # 저장 형식이 바뀌면 올린다. 다르면 같은 날이라도 전부 다시 받는다
 
 
 def build(config, prev, today, warn):

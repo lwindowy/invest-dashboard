@@ -444,3 +444,39 @@ h3.sub { font-size: 13px; color: var(--sub); font-weight: 700; margin: 14px 0 2p
 .pf-src { margin-top: 8px; font-size: 13px; }
 .pf-src ol { padding-left: 22px; margin: 6px 0; }
 .pf-src li { margin: 2px 0; word-break: break-all; }
+
+/* 투자 논리 점검판 */
+.th-seg { display: flex; flex-direction: column; gap: 6px; max-width: 640px; }
+.th-seg-row { display: grid; grid-template-columns: 44px 1fr 118px; gap: 8px; align-items: center; font-size: 13px; }
+.th-seg-row .q { color: var(--sub); }
+.th-seg-row .v { text-align: right; white-space: nowrap; }
+.th-seg-row .v small { color: var(--sub); }
+.th-seg-bar { display: flex; height: 14px; background: var(--note-bg); border-radius: 3px; overflow: hidden; }
+.th-seg-bar i, .sw { display: block; height: 100%; }
+.th-seg-bar .ai, .sw.ai { background: #3b82f6; }
+.th-seg-bar .btc, .sw.btc { background: #f59e0b; }
+.sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+.ctr.th5 { grid-template-columns: 1.1fr 1fr 1fr 1fr 1.2fr; }
+.th-pillars { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 760px) { .th-pillars { grid-template-columns: 1fr; } .th-seg-row { grid-template-columns: 40px 1fr 104px; } }
+.th-pillar { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; min-width: 0; }
+.th-pillar h4 { margin: 0 0 6px; font-size: 15px; }
+.th-claim { margin: 8px 0 2px; font-size: 14px; line-height: 1.55; }
+.th-watch { margin: 8px 0 0; font-size: 12px; color: var(--sub); }
+.th-ms { display: flex; flex-direction: column; }
+.th-ms-row { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; padding: 8px 2px; border-bottom: 1px solid var(--line); font-size: 14px; }
+.th-ms-row .w { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.th-ms-row .w small { color: var(--sub); font-size: 12px; }
+.th-ms-row .when { font-size: 12px; color: var(--sub); text-align: right; }
+@media (max-width: 520px) { .th-ms-row { grid-template-columns: 1fr auto; } .th-ms-row .when { grid-column: 1; text-align: left; } }
+details.th-gd { margin-top: 12px; font-size: 14px; }
+details.th-gd summary, details.pf-src summary { cursor: pointer; min-height: 32px; display: flex; align-items: center; color: var(--sub); font-weight: 700; font-size: 13px; }
+.th .hint { margin: 4px 0 0; font-size: 12px; color: var(--sub); line-height: 1.5; }
+.th-gd .event { margin: 8px 0; }
+.th-gd .event .date { flex: 0 0 66px; }
+.th-gd .event .date b { font-size: 12px; }
+.th-gd .event .what span { font-size: 14px; line-height: 1.55; }
+.th-pillar > summary { list-style: none; cursor: pointer; }
+.th-pillar > summary::-webkit-details-marker { display: none; }
+.th-pillar:not([open]) > summary::after { content: '근거·반대 관점 보기 ▾'; display: block; margin-top: 6px; font-size: 12px; color: var(--blue); }
+.th-pillar > summary .th-claim { margin-top: 0; }
