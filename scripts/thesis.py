@@ -72,7 +72,7 @@ def build_one(t, cfg, data, fin):
         sv = (data.get("series") or {}).get(sid) if sid else None
         if sv and sv.get("value") is not None:
             m["series"][sid] = {"name": sv.get("name"), "value": sv.get("value"), "asof": sv.get("asof"),
-                                "prefix": sv.get("prefix"), "decimals": sv.get("decimals")}
+                                "prefix": sv.get("prefix"), "unit": sv.get("unit"), "decimals": sv.get("decimals")}
     # 주식 수 변화(희석): SEC 분기 기본 가중평균 주식 수, 1년 전 같은 분기와 비교
     hist = ((fin.get("companies") or {}).get(t) or {}).get("shares_basic_q") or []
     if hist:

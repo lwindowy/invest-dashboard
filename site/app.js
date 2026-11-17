@@ -1089,6 +1089,7 @@
         if (k.compare === 'mcap_multiple' && x.value && c.market_cap) sub.push('시가총액의 ' + fmt(x.value / c.market_cap, 1) + '배');
         if (k.compare === 'ev_ratio' && x.value && c.ev) sub.push('EV ÷ ' + esc(k.short || '이 값') + ' ' + fmt(c.ev / x.value, 1) + '배');
         if (k.compare === 'mcap_pct' && x.value && c.market_cap) sub.push('시가총액의 ' + fmt(x.value / c.market_cap * 100, 1) + '%');
+        if (!sub.length && x.note) sub.push(esc(x.note.split('.')[0]));
         if (x.asof) sub.push(md(x.asof) + ' 기준');
         return '<div class="fact"><span class="k">' + esc(k.label || x.label) + q(k.help) + '</span><b>' + (x.value != null ? mny(x.value) : esc(x.text)) + esc(k.suffix || '') + ref(x.src) + '</b><span class="s">' + sub.join(' · ') + '</span></div>';
       }
@@ -1099,7 +1100,7 @@
       }
       if (k.series) {
         var sv = (c.series || {})[k.series];
-        return fact(k.label || (sv || {}).name || k.series, sv ? esc(sv.prefix || '') + fmt(sv.value, sv.decimals != null ? Math.min(sv.decimals, 2) : 0) : '–', sv ? md(sv.asof) + ' 기준' : '');
+        return fact(k.label || (sv || {}).name || k.series, sv ? esc(sv.prefix || '') + fmt(sv.value, sv.decimals != null ? Math.min(sv.decimals, 2) : 0) + esc(sv.unit || '') : '–', sv ? md(sv.asof) + ' 기준' : '');
       }
       return '';
     }).join('') + '</div>';
@@ -1119,8 +1120,9 @@
     // 주가 변화 나누어 보기: 같은 업종(경쟁사가 관심 종목에 있을 때)과 시장이 함께 움직인 만큼과 이 종목만의 차이
     var P = c.peers || [], B = c.bench || {}, me = P[0] || {}, others = P.slice(1), hasPeers = others.length > 0;
     var peerNames = others.map(function (x) { return x.name; }).join('·');
-    var cls = hasPeers ? 'th5' : 'c4', gapName = hasPeers ? '경쟁사 평균과 차이' : esc(B.name || '시장') + '과 차이';
-    var split = P.length ? '<h3 class="sub">주가 변화 나누어 보기</h3><div class="scroll-x"><div class="ctable wide"><div class="ctr ' + cls + ' th"><span>기간</span><span>' + esc(me.name) + '</span>' + (hasPeers ? '<span>경쟁사 평균</span>' : '') + '<span>' + esc(B.name || '시장') + '</span><span>' + gapName + '</span></div>' +
+    var peerLabel = others.length === 1 ? esc(others[0].name) : '경쟁사 평균';   // 경쟁사가 하나면 이름을 그대로 쓴다
+    var cls = hasPeers ? 'th5' : 'c4', gapName = hasPeers ? peerLabel + '과 차이' : esc(B.name || '시장') + '과 차이';
+    var split = P.length ? '<h3 class="sub">주가 변화 나누어 보기</h3><div class="scroll-x"><div class="ctable wide"><div class="ctr ' + cls + ' th"><span>기간</span><span>' + esc(me.name) + '</span>' + (hasPeers ? '<span>' + peerLabel + '</span>' : '') + '<span>' + esc(B.name || '시장') + '</span><span>' + gapName + '</span></div>' +
       [['1개월', 'r1'], ['3개월', 'r3']].map(function (k) {
         var mine = me[k[1]], base = hasPeers ? B['peers_' + k[1]] : B[k[1]];
         return '<div class="ctr ' + cls + '"><span>' + k[0] + '</span><span>' + pc(mine) + '</span>' + (hasPeers ? '<span>' + pc(base) + '</span>' : '') + '<span>' + pc(B[k[1]]) + '</span><span>' + pc(mine != null && base != null ? mine - base : null) + '</span></div>';
@@ -1128,7 +1130,7 @@
       (hasPeers ? '<div class="scroll-x"><div class="ctable wide"><div class="ctr th5 th"><span>회사</span><span>시가총액 (' + (cur === 'KRW' ? '원' : '달러') + ')</span><span>' + esc(me.name) + ' 대비</span><span>1개월</span><span>3개월</span></div>' + P.map(function (x) {
         return '<div class="ctr th5"><span><a href="#stocks/' + encodeURIComponent(x.ticker) + '">' + esc(x.name) + '</a></span><span>' + money(x.market_cap, cur, true) + '</span><span>' + (x.market_cap && me.market_cap ? fmt(x.market_cap / me.market_cap, 1) + '배' : '–') + '</span><span>' + pc(x.r1) + '</span><span>' + pc(x.r3) + '</span></div>';
       }).join('') + '</div></div>' +
-        '<p class="hint">경쟁사 평균(' + esc(peerNames) + ')과 비슷하게 움직였다면 업종 전체의 영향이 컸다는 뜻이고, 차이가 크면 회사만의 소식이 더 컸을 수 있습니다. 원인을 단정하지는 않습니다.</p>'
+        '<p class="hint">' + (others.length === 1 ? peerLabel : '경쟁사 평균(' + esc(peerNames) + ')') + '과 비슷하게 움직였다면 업종 전체의 영향이 컸다는 뜻이고, 차이가 크면 회사만의 소식이 더 컸을 수 있습니다. 원인을 단정하지는 않습니다.</p>'
         : '<p class="hint">관심 종목에 같은 업종 회사가 없어 시장(' + esc(B.name || '') + ')과만 비교합니다. 차이가 크면 시장 전체보다 업종·회사의 소식이 더 컸다는 뜻이며, 원인을 단정하지는 않습니다.</p>') : '';
 
     var narrow = window.matchMedia && window.matchMedia('(max-width: 760px)').matches;   // 휴대폰에서는 논리 카드를 접어 둔다
@@ -1148,8 +1150,8 @@
       return '<div class="event"><div class="date"><b>' + esc(g.date.slice(2).replace(/-/g, '.')) + '</b></div><div class="what"><span>' + esc(g.text) + ref(g.src) + '</span></div></div>';
     }).join('') + '</div>' : '';
     var unproven = th.unproven ? '<p class="th-unproven"><span class="pill small none">아직 증명되지 않은 것</span> ' + esc(th.unproven.text) + ref(th.unproven.src) + '</p>' : '';
-    var gtone = { '상향': 'good', '일정 변경': 'warn', '하향': 'bad' };
-    var gd = (th.guidance || []).length ? '<details class="th-gd"><summary>목표 변경 기록 ' + th.guidance.length + '건 (회사 발표 순서대로)</summary>' + th.guidance.map(function (g) {
+    var gtone = { '상향': 'good', '달성': 'good', '일정 변경': 'warn', '하향': 'bad', '미달': 'bad', '시험 실패': 'bad' };
+    var gd = (th.guidance || []).length ? '<details class="th-gd"><summary>목표와 실제 기록 ' + th.guidance.length + '건 (회사 발표 순서대로)</summary>' + th.guidance.map(function (g) {
       return '<div class="event"><div class="date"><b>' + esc(g.date.slice(2).replace(/-/g, '.')) + '</b></div><div class="what"><span>' + pill(g.kind, gtone[g.kind] || 'none', true) + ' ' + esc(g.text) + ref(g.src) + '</span></div></div>';
     }).join('') + '</details>' : '';
 
