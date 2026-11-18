@@ -502,3 +502,7 @@ svg.mc .mc-cross { stroke: var(--sub); stroke-width: 1; }
 .mc-tip div { margin-top: 2px; }
 .ctr.mc4 { grid-template-columns: 1.2fr 1fr 1fr 0.8fr; min-width: 420px; }
 .mc-table { margin-top: 8px; }
+
+/* CSV 받기 버튼 */
+.card-head .csv-btn, .fin-tools .csv-btn { margin-left: auto; }
+.csv-row { display: flex; justify-content: flex-end; margin: -36px 0 8px; }
