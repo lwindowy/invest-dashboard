@@ -362,11 +362,12 @@
         return '<div class="ctr ins"><span><a href="#stocks/' + encodeURIComponent(t) + '">' + esc(name) + '</a></span>' +
           '<span>' + (m.buy_count ? pill(m.buy_count + '건', 'good', true) + ' ' + money(m.buy_value, 'USD') : '없음') + '</span>' +
           '<span>' + (m.sell_count ? m.sell_count + '건 · ' + money(m.sell_value, 'USD') + (m.sell_planned ? ' <small>(계획 매도 ' + m.sell_planned + '건)</small>' : '') : '없음') + '</span>' +
+          '<span>' + (['buy', 'sell'].map(function (side) { return ((c.clusters || {})[side] || []).filter(function (e) { return e.active; }).map(function (e) { return clusterTag(e, side).replace(' ' + pill('진행 중', 'none', true), ''); }).join(' '); }).join(' ').trim() || '<span class="flat">없음</span>') + '</span>' +
           '<span>' + (last ? md(last.date) + ' ' + esc(last.owner) + ' ' + (last.code === 'P' ? '매수' : '매도') : '–') + '</span></div>';
       }).join('');
       return '<section class="card" aria-label="' + esc(sec.label) + '"><h2>' + esc(sec.label) + q('insider') + '</h2>' +
-        '<div class="scroll-x"><div class="ctable wide ins-table"><div class="ctr ins th"><span>종목</span><span>공개시장 매수</span><span>공개시장 매도</span><span>가장 최근 거래</span></div>' + rows + '</div></div>' +
-        '<p class="src">임원·이사·10% 이상 주주가 공개시장에서 사고판 것만 셉니다(주식 보상, 옵션 행사, 증여 제외). 계획 매도는 미리 정해 둔 일정(10b5-1)에 따른 매도입니다. 종목을 누르면 거래 내역이 나옵니다. 미국 상장 종목만 해당합니다. 출처: SEC · ' + md((DATA.sec || {}).fetched) + ' 수집</p></section>';
+        '<div class="scroll-x"><div class="ctable wide ins-table"><div class="ctr ins th"><span>종목</span><span>공개시장 매수</span><span>공개시장 매도</span><span>클러스터 (진행 중)</span><span>가장 최근 거래</span></div>' + rows + '</div></div>' +
+        '<p class="src">임원·이사·10% 이상 주주가 공개시장에서 사고판 것만 셉니다(주식 보상, 옵션 행사, 증여 제외). 계획 매도는 미리 정해 둔 일정(10b5-1)에 따른 매도입니다. 클러스터는 ' + (function () { var f = cs[Object.keys(cs)[0]]; return f ? clusterRule(f) : '30일 안에 3명 이상'; })() + '의 서로 다른 내부자가 같은 방향으로 거래한 묶음이고(매도는 계획 매도 제외, 기준은 대시보드가 정함), 마지막 거래가 그 기간 안에 있으면 진행 중입니다. 종목을 누르면 거래 내역이 나옵니다. 미국 상장 종목만 해당합니다. 출처: SEC · ' + md((DATA.sec || {}).fetched) + ' 수집</p></section>';
     },
     managers: function (sec) {
       var ms = (DATA.sec || {}).managers || [];
@@ -672,12 +673,13 @@
       insiderBox = box('내부자 매매', '<div class="facts">' +
         fact('공개시장 매수 (90일)', sc.summary.buy_count ? sc.summary.buy_count + '건 ' + pill('매수 있음', 'good', true) : '없음', sc.summary.buy_count ? money(sc.summary.buy_value, 'USD') : '') +
         fact('공개시장 매도 (90일)', sc.summary.sell_count ? sc.summary.sell_count + '건' : '없음', sc.summary.sell_count ? money(sc.summary.sell_value, 'USD') + ' · 계획 매도 ' + sc.summary.sell_planned + '건' : '') + '</div>' +
+        '<h3 class="sub">내부자 클러스터 <small>(' + clusterRule(sc) + ', 180일)</small></h3>' + clusterList(sc) +
         (trades.length ? '<div class="scroll-x"><div class="ctable wide"><div class="ctr tr5 th"><span>날짜</span><span>누가</span><span>거래</span><span>주식 수</span><span>금액</span></div>' + trades.map(function (r) {
           return '<div class="ctr tr5"><span>' + md(r.date) + '</span><span>' + esc(r.owner) + '<br><small>' + esc(r.role) + '</small></span>' +
             '<span>' + pill(r.code === 'P' ? '매수' : r.planned ? '계획 매도' : '매도', r.code === 'P' ? 'good' : 'none', true) + '</span>' +
             '<span>' + fmt(r.shares, 0) + '</span><span>' + (r.value ? money(r.value, 'USD') : '–') + '</span></div>';
         }).join('') + '</div></div>' : '<p class="empty">최근 180일 동안 공개시장 매수·매도 신고가 없습니다.</p>'),
-        '주식 보상, 옵션 행사, 증여는 빼고 공개시장 거래만 보여 줍니다. 계획 매도는 미리 정해 둔 일정(10b5-1)에 따른 것입니다. 출처: SEC Form 4');
+        '주식 보상, 옵션 행사, 증여는 빼고 공개시장 거래만 보여 줍니다. 계획 매도는 미리 정해 둔 일정(10b5-1)에 따른 것입니다. 클러스터는 여러 내부자가 짧은 기간에 함께 사거나 판 묶음이며, 기준(' + clusterRule(sc) + ', 매도는 계획 매도 제외)은 대시보드가 정했습니다. 세금 납부용 매도가 공개시장 매도로 신고되면 함께 셉니다. 출처: SEC Form 4');
     }
     var valHistBox = box('밸류에이션 5년 위치', '<div id="valhist"><p class="empty">불러오는 중입니다…</p></div>');
     var calcBox = box('가치 계산기 · DCF · 역DCF · IRR', '<div id="calc"><p class="empty">불러오는 중입니다…</p></div>');
@@ -1163,6 +1165,22 @@
       '<p class="pf-one">' + esc(th.question) + '</p>' + unproven + top + seg + split + pillars + ev + ms + gd + srcs +
       '<p class="src">공개 자료(SEC 공시·회사 보도자료)와 시세로만 만든 점검표입니다. ' + (th.frame === 'inferred' ? '어떤 논리를 볼지는 대시보드(Claude)가 공통 질문 틀로 공시를 읽고 고른 추론입니다. ' : '어떤 항목을 고르고 어떻게 나눌지는 대시보드가 정했습니다. ') + '매수·매도 권유가 아닙니다. 문장 끝 [번호]를 누르면 근거가 열립니다. ' +
       '기준: ' + esc(th.basis || '') + ' · ' + md(th.updated) + ' 정리. 회사가 새 발표를 내면 config/thesis.json 을 고칩니다. 숫자 칸은 30분마다 시세로 다시 계산합니다.' + notion + '</p></section>';
+  }
+  // 내부자 클러스터: 기준 기간 안에 서로 다른 내부자 여러 명이 같은 방향으로 공개시장 거래(매도는 계획 매도 제외)
+  function clusterRule(c) { var r = c.cluster_rule || { days: 30, people: 3 }; return r.days + '일 안에 ' + r.people + '명 이상'; }
+  function clusterTag(e, side) {
+    return pill((side === 'buy' ? '매수 ' : '매도 ') + e.people + '명', side === 'buy' ? 'good' : 'warn', true) + (e.active ? ' ' + pill('진행 중', 'none', true) : '');
+  }
+  function clusterList(c) {
+    var cl = c.clusters || {}, all = [];
+    ['buy', 'sell'].forEach(function (side) { (cl[side] || []).forEach(function (e) { all.push([side, e]); }); });
+    all.sort(function (a, b) { return a[1].end < b[1].end ? 1 : -1; });
+    if (!all.length) return '<p class="empty">최근 180일 동안 클러스터가 없습니다 (기준: ' + clusterRule(c) + ').</p>';
+    return '<div class="th-gd">' + all.map(function (x) {
+      var e = x[1], who = e.owners.slice(0, 4).map(function (w) { return esc(w.owner) + ' <small>(' + esc(w.role) + ')</small>'; }).join(', ') + (e.owners.length > 4 ? ' 외 ' + (e.owners.length - 4) + '명' : '');
+      return '<div class="event"><div class="date"><b>' + esc(e.start.slice(2).replace(/-/g, '.')) + '</b><span>~' + esc(e.end.slice(5).replace('-', '.')) + '</span></div><div class="what"><span>' + clusterTag(e, x[0]) +
+        ' ' + e.trades + '건 · ' + money(e.value, 'USD') + '</span><span class="cl-who">' + who + '</span></div></div>';
+    }).join('') + '</div>';
   }
   function monthBox(s) {
     var m = s.news_month;

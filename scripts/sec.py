@@ -141,6 +141,39 @@ def company(ticker, cik, old, today):
     return {"cik": int(cik), "filings": filings, "insider": insider, "form4_seen": form4_seen, "summary": summary}
 
 
+def clusters(insider, today, days=30, people=3):
+    """내부자 클러스터: days 일 안에 서로 다른 내부자 people 명 이상이 같은 방향(공개시장 매수 또는 계획 아닌 매도)으로
+    거래한 구간. 구간이 겹치면 하나로 잇는다. 최근 days 일 안에 끝난 구간은 '진행 중'으로 표시한다."""
+    D = dt.date.fromisoformat
+    out = {}
+    for side, keep in (("buy", lambda r: r["code"] == "P"), ("sell", lambda r: r["code"] == "S" and not r.get("planned"))):
+        trades = sorted((r for r in insider if keep(r) and r.get("date")), key=lambda r: r["date"])
+        eps = []
+        for i, r in enumerate(trades):
+            win = [x for x in trades[:i + 1] if (D(r["date"]) - D(x["date"])).days <= days]
+            if len({x["owner"] for x in win}) < people:
+                continue
+            if eps and win[0]["date"] <= eps[-1]["end"]:
+                eps[-1]["end"] = r["date"]
+                eps[-1]["rows"] += [x for x in win if x not in eps[-1]["rows"]]
+            else:
+                eps.append({"start": win[0]["date"], "end": r["date"], "rows": list(win)})
+        res = []
+        for e in reversed(eps):          # 최근 구간부터
+            who = {}
+            for x in e["rows"]:
+                w = who.setdefault(x["owner"], {"owner": x["owner"], "role": x["role"], "value": 0, "shares": 0})
+                w["value"] += x["value"] or 0
+                w["shares"] += x["shares"] or 0
+            res.append({"start": e["start"], "end": e["end"], "people": len(who), "trades": len(e["rows"]),
+                        "value": sum(w["value"] for w in who.values()),
+                        "owners": sorted(who.values(), key=lambda w: -w["value"]),
+                        "active": (today - D(e["end"])).days <= days,
+                        "key": f"{side}:{e['start']}"})
+        out[side] = res
+    return out
+
+
 def parse_13f(cik, filing):
     """13F 한 건의 보유 종목을 회사별로 합친다(주식만, 옵션 제외)."""
     acc = filing["accessionNumber"].replace("-", "")
@@ -219,6 +252,16 @@ def match_key(title):
     return " ".join(words[:2]) if len(words) > 1 and words[1] not in GENERIC else words[0]
 
 
+def with_clusters(companies, config, today):
+    """종목마다 내부자 클러스터를 붙인다(받아 둔 거래로 매번 다시 계산, 기준값은 설정 sec.cluster)."""
+    rule = (config.get("sec") or {}).get("cluster") or {}
+    days, people = int(rule.get("days", 30)), int(rule.get("people", 3))
+    for c in companies.values():
+        c["clusters"] = clusters(c.get("insider") or [], today, days, people)
+        c["cluster_rule"] = {"days": days, "people": people}
+    return companies
+
+
 def build(config, prev, today, warn):
     """하루 한 번 SEC 데이터를 모은다. prev 는 이전 결과의 'sec' 부분."""
     prev = prev or {}
@@ -228,7 +271,7 @@ def build(config, prev, today, warn):
     managers_ok = all(m.get("watch_keys") == on_sec for m in prev.get("managers", []))   # 13F에서 맞춰 본 종목 목록도 그대로인지
     if prev.get("fetched") == today.isoformat() and all(t in known for t in us) and managers_ok:
         # 오늘 이미 받았고 새로 추가된 종목이 없다. 목록에서 뺀 종목만 지운다
-        return {**prev, "companies": {t: c for t, c in (prev.get("companies") or {}).items() if t in us}}
+        return {**prev, "companies": with_clusters({t: c for t, c in (prev.get("companies") or {}).items() if t in us}, config, today)}
     try:
         listing = get("https://www.sec.gov/files/company_tickers.json").json().values()
         ciks = {row["ticker"]: (row["cik_str"], row["title"]) for row in listing}
@@ -258,4 +301,4 @@ def build(config, prev, today, warn):
             warn(f"13F {cfg['name']}", exc)
             if int(cfg["cik"]) in old_managers:
                 managers.append(old_managers[int(cfg["cik"])])
-    return {"fetched": today.isoformat(), "source": "SEC EDGAR", "companies": companies, "managers": managers, "not_on_sec": not_on_sec}
+    return {"fetched": today.isoformat(), "source": "SEC EDGAR", "companies": with_clusters(companies, config, today), "managers": managers, "not_on_sec": not_on_sec}

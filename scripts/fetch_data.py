@@ -1129,6 +1129,16 @@ def build_alerts(ctx, data, now):
             if f["date"] >= recent_day and (f["form"] == "8-K" or f["form"].startswith("424B")):
                 what = " · ".join(f["items"]) if f["items"] else f["label"]
                 add(f["acc"], "공시", f"{name} {f['form']}: {what}", f"{f['date']} 접수 (미국 날짜)", "info", t, f["date"])
+        # 내부자 클러스터: 새로 생겼거나 사람 수가 늘어난 때만(같은 묶음에 거래만 더해진 것은 다시 알리지 않음)
+        old_cl = ((((prev.get("sec") or {}).get("companies") or {}).get(t) or {}).get("clusters")) or {}
+        for side, word, tone in (("buy", "매수", "good"), ("sell", "매도", "warn")):
+            before = {e["key"]: e["people"] for e in old_cl.get(side, [])}
+            for e in (c.get("clusters") or {}).get(side, []):
+                if e["active"] and e["end"] >= recent_day and e["people"] > before.get(e["key"], 0):
+                    add(f"cluster:{t}:{e['key']}:{e['people']}", "내부자 클러스터",
+                        f"{name} 내부자 {e['people']}명 {word} 클러스터",
+                        f"{e['start']}~{e['end']} · {e['trades']}건 · 약 {e['value']:,.0f}달러" + (" (계획 매도 제외)" if side == "sell" else ""),
+                        tone, t, e["end"])
         for r in c.get("insider", []):
             if r["code"] == "P" and r["filed"] >= recent_day:
                 add(r["acc"], "내부자 매수", f"{name} 내부자 매수: {r['owner']} ({r['role']})",

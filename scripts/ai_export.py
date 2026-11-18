@@ -84,6 +84,7 @@ def stock_file(data, fin_all, ticker):
         "earnings_release": None,
         "sec_filings_90d": (sec_co or {}).get("filings"),
         "insider_90d": (sec_co or {}).get("summary"),
+        "insider_clusters": (sec_co or {}).get("clusters"),
         "insider_trades": [{k: r[k] for k in ("date", "owner", "role", "kind", "shares", "price", "value", "planned")} for r in (sec_co or {}).get("insider", [])[:15]],
         "alerts": [a for a in data.get("alerts", []) if a.get("ticker") == ticker],
         "news": [{k: n.get(k) for k in ("title", "publisher", "at", "url", "importance", "type", "event")} for n in ((s.get("news") or {}).get("items") or []) if not n.get("dup_of")],

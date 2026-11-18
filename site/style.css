@@ -239,7 +239,8 @@ dialog.narrow { width: min(520px, calc(100vw - 24px)); }
 .ctr.cx { grid-template-columns: 1.4fr repeat(var(--cols), 1fr); min-width: 520px; }
 
 /* 내부자 매매와 13F */
-.ctr.ins { grid-template-columns: 1fr 1.2fr 1.8fr 1.8fr; min-width: 640px; }
+.ctr.ins { grid-template-columns: 1fr 1.2fr 1.8fr 1.3fr 1.8fr; min-width: 760px; }
+.cl-who { display: block; color: var(--sub); font-size: 0.85em; margin-top: 2px; }
 .ctr.tr5 { grid-template-columns: 0.6fr 1.8fr 0.9fr 1fr 1fr; min-width: 520px; }
 .ctr a { color: inherit; }
 .ctr small, .hold small { color: var(--sub); font-size: 12px; }
