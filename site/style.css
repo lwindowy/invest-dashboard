@@ -1,5 +1,6 @@
 /* 색은 의미가 있을 때만 쓴다: 상승·하락, 과매수·과매도, 국면 신호등 */
 :root {
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4;
   --bg: #f5f6f8; --card: #ffffff; --ink: #111827; --sub: #566070; --line: #e3e6eb;
   --active-bg: #111827; --active-ink: #ffffff; --note-bg: #e8ebf0;
   --red: #c81e1e; --blue: #1d4ed8; --green: #15803d;
@@ -10,6 +11,7 @@
   --up: var(--red); --down: var(--blue);
 }
 :root[data-theme="dark"] {
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181;
   --bg: #0f1419; --card: #171d24; --ink: #f2f4f7; --sub: #a3adba; --line: #2a323c;
   --active-bg: #f2f4f7; --active-ink: #0f1419; --note-bg: #2a323c;
   --red: #ff8080; --blue: #7fb0ff; --green: #5fd38d;
@@ -485,3 +487,18 @@ details.th-gd summary, details.pf-src summary { cursor: pointer; min-height: 32p
 .ctr.c4 { grid-template-columns: 1fr 1fr 1fr 1.2fr; }
 .th-unproven { margin: 0 0 4px; font-size: 14px; line-height: 1.55; }
 div.th-gd { font-size: 14px; }
+
+/* 여러 종목 비교 차트: 범주 색 5칸(검증한 팔레트), 색은 종목이 고른 칸을 따라감 */
+.mc-chips { margin-bottom: 8px; }
+.mc-sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.mc-wrap { position: relative; }
+svg.mc .mc-line polyline { fill: none; stroke: var(--c); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+svg.mc .mc-line[data-cur] polyline { stroke-width: 3; }
+svg.mc .mc-line circle { fill: var(--c); stroke: var(--card); stroke-width: 2; }
+svg.mc .mc-line circle.clip { fill: var(--card); stroke: var(--c); stroke-width: 2; }
+svg.mc .grid.base { stroke: var(--sub); stroke-dasharray: 4 4; }
+svg.mc .mc-cross { stroke: var(--sub); stroke-width: 1; }
+.mc-tip { position: absolute; top: 8px; background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font-size: 13px; pointer-events: none; box-shadow: 0 2px 8px rgba(0,0,0,.12); white-space: nowrap; z-index: 2; }
+.mc-tip div { margin-top: 2px; }
+.ctr.mc4 { grid-template-columns: 1.2fr 1fr 1fr 0.8fr; min-width: 420px; }
+.mc-table { margin-top: 8px; }

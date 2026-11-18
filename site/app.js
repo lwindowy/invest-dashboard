@@ -662,6 +662,8 @@
       box('트레이딩뷰 차트', '<div id="tv" data-symbol="' + esc(s.market === 'kr' ? 'KRX:' + s.ticker.replace(/\.K[SQ]$/, '') : s.ticker) + '"></div>',
         '트레이딩뷰 무료 위젯입니다. 한국 종목은 무료 위젯에서 표시되지 않을 수 있습니다. 차트가 비어 있으면 위의 트레이딩뷰 바로가기를 누르세요.');
 
+    var multiBox = box('여러 종목 비교 차트', '<div id="multi" data-t="' + esc(s.ticker) + '"><p class="empty">불러오는 중입니다…</p></div>',
+      '관심 종목 중 SEC 재무가 있는 미국 종목을 최대 5개까지 골라 같은 지표로 겹쳐 봅니다(고른 종목은 브라우저에 저장). 주가는 고른 종목 모두에 값이 있는 첫 주를 100으로 맞춘 주간 종가(Yahoo), 재무 지표는 SEC 분기 값(외국 기업은 연간), P/E·P/S·EV/EBITDA는 밸류에이션 5년 위치와 같은 주간 값입니다. 재무 지표는 상장 전 분기가 없을 수 있습니다. 선 위에 마우스를 올리거나 누르면 그 날짜의 값이 나옵니다.');
     var sc = ((DATA.sec || {}).companies || {})[s.ticker];
     var filingsBox = '', insiderBox = '';
     if (sc) {
@@ -690,7 +692,7 @@
       newsBox = box('최근 뉴스', newsFilters() + (nw.items.length ? newsRows(nw.items, false) : '<p class="empty">최근 뉴스가 없습니다.</p>'),
         '제목을 누르면 원문이 열립니다. 기사는 영어이고, 시간은 한국 시간입니다. 출처: ' + esc(nw.source) + ' · ' + md(nw.fetched) + ' ' + esc((nw.fetched || '').slice(11, 16)) + ' 수집' + (nw.stale ? ' (이전 값)' : '') + '. ' + aiStamp());
     }
-    return head + profileBox(s) + thesisBox(s) + monthBox(s) + '<div id="qwarn"></div><div class="grid2">' + priceBox + tech + '</div>' + check + charts +
+    return head + profileBox(s) + thesisBox(s) + monthBox(s) + '<div id="qwarn"></div><div class="grid2">' + priceBox + tech + '</div>' + check + charts + multiBox +
       '<div class="grid2">' + base + val + '</div>' + valHistBox + calcBox + qualityBox + finBox + debtBox + trend + earn + analyst + shortBox + newsBox + (sc ? '<div class="grid2">' + filingsBox + insiderBox + '</div>' : '');
   }
   // ───────── 장기 재무 (SEC) — 종목별 AI용 파일(data/ai/티커.json)을 읽어 그린다 ─────────
@@ -725,6 +727,194 @@
         ['fin', 'quality', 'valhist', 'calc'].forEach(function (id) { if ($(id)) $(id).innerHTML = '<p class="empty">데이터를 불러오지 못했습니다 (' + esc(err.message) + ').</p>'; });
       });
   }
+  // ───────── 여러 종목 비교 차트 (AI 아님): 관심 종목(미국, SEC 재무가 있는 종목) 최대 5개를 같은 지표로 겹쳐 본다 ─────────
+  // 색은 종목이 처음 고른 칸(1~5)을 따라가서, 다른 종목을 빼도 남은 선의 색이 바뀌지 않는다.
+  var MC_METRICS = [
+    ['price', '주가 (시작 = 100)', 'idx'], ['revenue_growth_pct', '매출 성장률 (전년 대비)', 'pct'], ['gross_margin_pct', '매출총이익률', 'pct'],
+    ['op_margin_pct', '영업이익률', 'pct'], ['fcf_margin_pct', 'FCF 마진', 'pct'], ['roic_pct', 'ROIC', 'pct'],
+    ['share_change_pct', '희석 주식 수 증감 (전년 대비)', 'pct'], ['v:pe', 'P/E', 'x'], ['v:ps', 'P/S', 'x'], ['v:ev_ebitda', 'EV/EBITDA', 'x']
+  ];
+  var MC_MAX = 5, MC = null;
+  function mcState() {
+    var st; try { st = JSON.parse(store.get('multicmp', '{}')); } catch (e) { st = {}; }
+    st.slots = st.slots || {}; st.metric = st.metric || 'price'; st.years = st.years || 3;
+    return st;
+  }
+  function mcSave(st) { store.set('multicmp', JSON.stringify(st)); }
+  function mcPool() { return Object.keys((DATA.sec || {}).companies || {}).filter(function (t) { return DATA.stocks[t]; }); }
+  function mcPick(cur, st) {
+    // 지금 종목은 늘 포함. 처음 열면 점검판 경쟁사(없으면 목록 앞쪽) 두 개로 채운다
+    var pool = mcPool();
+    if (pool.indexOf(cur) < 0) return null;
+    var picked = Object.keys(st.slots).filter(function (t) { return pool.indexOf(t) >= 0; });
+    if (!st.init) {
+      var th = (DATA.stocks[cur] || {}).thesis, seed = ((th && th.peers) || []).concat(pool);
+      seed.forEach(function (t) { if (t !== cur && pool.indexOf(t) >= 0 && picked.length < 2 && picked.indexOf(t) < 0) picked.push(t); });
+      st.init = true;
+    }
+    if (picked.indexOf(cur) < 0) picked.unshift(cur);
+    if (picked.length > MC_MAX) picked = [cur].concat(picked.filter(function (t) { return t !== cur; }).slice(0, MC_MAX - 1));
+    var used = {}, slots = {};
+    picked.forEach(function (t) { if (st.slots[t] != null && !used[st.slots[t]]) { slots[t] = st.slots[t]; used[st.slots[t]] = 1; } });
+    picked.forEach(function (t) { if (slots[t] == null) { for (var i = 0; i < MC_MAX; i++) if (!used[i]) { slots[t] = i; used[i] = 1; break; } } });
+    st.slots = slots;
+    return picked;
+  }
+  function mcSeries(j, metric, from) {
+    // [날짜(ms), 값] 목록과 주기(w 주간, q 분기, y 연간)
+    var pts = [], kind = 'q';
+    if (metric === 'price') {
+      pts = ((j.price_weekly || {}).points || []).map(function (p) { return [Date.parse(p[0]), p[1]]; });
+      kind = 'w';
+    } else if (metric.indexOf('v:') === 0) {
+      var m = (((j.valuation_history || {}).metrics) || []).filter(function (x) { return x.key === metric.slice(2); })[0];
+      pts = ((m && m.series) || []).map(function (p) { return [Date.parse(p[0]), p[1]]; });
+      kind = 'w';
+    } else {
+      var F = j.financials && typeof j.financials === 'object' ? j.financials : {}, rows = F.quarterly || [];
+      if (!rows.length) { rows = F.annual || []; kind = 'y'; }
+      pts = rows.map(function (r) { return [Date.parse(r.end), r[metric]]; });
+    }
+    pts = pts.filter(function (p) { return p[1] != null && isFinite(p[1]) && p[0] >= from; });
+    return { pts: pts, kind: kind };
+  }
+  function mcNice(lo, hi) {
+    var span = hi - lo || Math.abs(hi) || 1, raw = span / 5, mag = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / mag;
+    var step = (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * mag;
+    return { lo: Math.floor(lo / step) * step, hi: Math.ceil(hi / step) * step, step: step };
+  }
+  function mcFmt(v, unit) { return v == null ? '–' : unit === 'pct' ? fmt(v, 1) + '%' : unit === 'x' ? fmt(v, 1) + '배' : fmt(v, 0); }
+  function mcYm(ms) { return new Date(ms).toISOString().slice(2, 7).replace('-', '.'); }
+  function mcBody(cur, picked, st, files) {
+    var met = MC_METRICS.filter(function (m) { return m[0] === st.metric; })[0] || MC_METRICS[0], unit = met[2];
+    var from = Date.now() - st.years * 365.25 * 864e5;
+    var lines = picked.map(function (t) { var r = mcSeries(files[t] || {}, met[0], from); return { t: t, slot: st.slots[t], name: DATA.stocks[t].name, pts: r.pts, kind: r.kind }; });
+    var baseNote = '';
+    if (unit === 'idx') {   // 모든 종목에 값이 있는 첫 주를 100으로(늦게 상장한 종목이 있으면 그날부터)
+      var start = Math.max.apply(null, lines.filter(function (l) { return l.pts.length; }).map(function (l) { return l.pts[0][0]; }));
+      lines.forEach(function (l) {
+        l.pts = l.pts.filter(function (p) { return p[0] >= start; });
+        if (l.pts.length) { var b0 = l.pts[0][1]; l.pts = l.pts.map(function (p) { return [p[0], p[1] / b0 * 100]; }); }
+      });
+      if (isFinite(start) && start > from + 30 * 864e5) baseNote = '<p class="hint">고른 종목 중 상장이 가장 늦은 종목에 맞춰 ' + new Date(start).toISOString().slice(0, 10) + '을 100으로 맞췄습니다.</p>';
+    }
+    var pool = mcPool();
+    var chips = '<div class="seg wrap mc-chips">' + pool.map(function (t) {
+      var on = picked.indexOf(t) >= 0;
+      return '<button type="button" class="btn small" data-mc-t="' + esc(t) + '" aria-pressed="' + on + '"' + (t === cur ? ' disabled title="지금 보는 종목"' : (!on && picked.length >= MC_MAX ? ' disabled title="최대 ' + MC_MAX + '개"' : '')) + '>' +
+        (on ? '<i class="mc-sw" style="background:var(--s' + (st.slots[t] + 1) + ')"></i>' : '') + esc(DATA.stocks[t].name) + '</button>';
+    }).join('') + '</div>';
+    var tools = '<div class="fin-tools"><label class="pick">지표 <select data-mc-metric>' + MC_METRICS.map(function (m) {
+      return '<option value="' + m[0] + '"' + (m[0] === met[0] ? ' selected' : '') + '>' + esc(m[1]) + '</option>';
+    }).join('') + '</select></label><div class="seg">' + [1, 3, 5].map(function (y) {
+      return '<button type="button" class="btn small" data-mc-y="' + y + '" aria-pressed="' + (y === st.years) + '">' + y + '년</button>';
+    }).join('') + '</div></div>';
+    var has = lines.filter(function (l) { return l.pts.length; });
+    if (!has.length) { MC = null; return chips + tools + '<p class="empty">고른 종목에 이 지표 값이 없습니다.</p>'; }
+    var all = [].concat.apply([], has.map(function (l) { return l.pts.map(function (p) { return p[1]; }); }));
+    var srt = all.slice().sort(function (a, b) { return a - b; }), pq = function (q) { return srt[Math.min(srt.length - 1, Math.floor(q * (srt.length - 1)))]; };
+    var p5 = pq(0.05), p95 = pq(0.95), pad = (p95 - p5) * 0.5 || Math.abs(p95) * 0.5 || 1;
+    var anchor = unit === 'idx' ? [100] : unit === 'pct' ? [0] : [];
+    var lo = Math.min.apply(null, anchor.concat([Math.max(srt[0], p5 - pad)])), hi = Math.max.apply(null, anchor.concat([Math.min(srt[srt.length - 1], p95 + pad)]));
+    var clipped = all.some(function (v) { return v < lo || v > hi; });
+    var ys = mcNice(lo, hi), x0 = Math.min.apply(null, has.map(function (l) { return l.pts[0][0]; })), x1 = Date.now();
+    var narrow = window.matchMedia && window.matchMedia('(max-width: 760px)').matches;   // 휴대폰에서는 좁게 그려 글자를 키운다
+    var W = narrow ? 380 : 720, H = narrow ? 260 : 300, L = narrow ? 46 : 56, R = 10, T = 14, B = 30;
+    var X = function (ms) { return L + (ms - x0) / (x1 - x0) * (W - L - R); }, Y = function (v) { return T + (ys.hi - Math.max(ys.lo, Math.min(ys.hi, v))) / (ys.hi - ys.lo) * (H - T - B); };
+    var grid = '';
+    for (var g = ys.lo; g <= ys.hi + ys.step / 2; g += ys.step) {
+      var base = unit === 'idx' ? Math.abs(g - 100) < 1e-9 : Math.abs(g) < 1e-9;
+      grid += '<line class="grid' + (base ? ' base' : '') + '" x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(g).toFixed(1) + '" y2="' + Y(g).toFixed(1) + '"></line>' +
+        '<text class="axis" x="' + (L - 8) + '" y="' + (Y(g) + 4).toFixed(1) + '" text-anchor="end">' + fmt(g, ys.step < 1 ? 1 : 0) + (unit === 'pct' ? '%' : '') + '</text>';
+    }
+    var ticks = '', half = x1 - x0 < 2.2 * 365 * 864e5;   // 2년이 안 되면 7월 눈금도 넣는다
+    for (var k = new Date(x0).getFullYear() * 2; k <= new Date(x1).getFullYear() * 2 + 1; k++) {
+      var yr = Math.floor(k / 2), jul = k % 2 === 1;
+      if (jul && !half) continue;
+      var xm = X(Date.UTC(yr, jul ? 6 : 0, 1));
+      var yr = jul ? String(yr).slice(2) + '.07' : yr;
+      if (xm > L + 14 && xm < W - R - 14) ticks += '<line class="grid" x1="' + xm.toFixed(1) + '" x2="' + xm.toFixed(1) + '" y1="' + (H - B) + '" y2="' + (H - B + 5) + '"></line><text class="axis" x="' + xm.toFixed(1) + '" y="' + (H - 8) + '" text-anchor="middle">' + yr + '</text>';
+    }
+    var paths = has.slice().reverse().map(function (l) {
+      var d = l.pts.map(function (p) { return X(p[0]).toFixed(1) + ',' + Y(p[1]).toFixed(1); }).join(' ');
+      var dots = l.pts.map(function (p) {
+        var out = p[1] < ys.lo || p[1] > ys.hi;
+        return l.kind === 'w' && !out ? '' : '<circle' + (out ? ' class="clip"' : '') + ' cx="' + X(p[0]).toFixed(1) + '" cy="' + Y(p[1]).toFixed(1) + '" r="4"></circle>';
+      }).join('');
+      return '<g class="mc-line" style="--c:var(--s' + (l.slot + 1) + ')"' + (l.t === cur ? ' data-cur' : '') + '><polyline points="' + d + '"></polyline>' + dots + '</g>';
+    }).join('');
+    var legend = '<div class="legend">' + lines.map(function (l) {
+      var last = l.pts.length ? l.pts[l.pts.length - 1][1] : null;
+      return '<span class="legend-item"><i class="mc-sw" style="background:var(--s' + (l.slot + 1) + ')"></i>' + esc(l.name) + ' <b>' + mcFmt(last, unit) + '</b>' +
+        (l.kind === 'y' && l.pts.length ? ' <small>(연간)</small>' : '') + (!l.pts.length ? ' <small>(값 없음)</small>' : '') + '</span>';
+    }).join('') + '</div>';
+    var table = '<details class="mc-table"><summary>표로 보기</summary><div class="scroll-x"><div class="ctable"><div class="ctr th mc4"><span>종목</span><span>처음</span><span>마지막</span><span>변화</span></div>' + lines.map(function (l) {
+      var a = l.pts[0], b = l.pts[l.pts.length - 1];
+      var chg = a && b ? (unit === 'idx' ? signed(b[1] - 100, 1, '%') : unit === 'pct' ? signed(b[1] - a[1], 1, '%p') : signed((b[1] / a[1] - 1) * 100, 1, '%')) : '–';
+      return '<div class="ctr mc4"><span>' + esc(l.name) + '</span><span>' + (a ? mcFmt(a[1], unit) + ' <small>' + mcYm(a[0]) + '</small>' : '–') + '</span><span>' + (b ? mcFmt(b[1], unit) + ' <small>' + mcYm(b[0]) + '</small>' : '–') + '</span><span>' + chg + '</span></div>';
+    }).join('') + '</div></div></details>';
+    MC = { x0: x0, x1: x1, L: L, R: R, W: W, lines: has, unit: unit, X: X };
+    var clipNote = clipped ? '<p class="hint">축 범위를 벗어난 값은 위·아래 가장자리에 빈 점으로 표시했습니다. 실제 값은 마우스를 올리거나 표로 보기에서 확인하세요.</p>' : '';
+    return chips + tools + legend + baseNote + '<div class="mc-wrap"><svg class="curve mc" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(met[1]) + ' 종목 비교 ' + st.years + '년">' + grid + ticks + paths +
+      '<line class="mc-cross" x1="0" x2="0" y1="' + T + '" y2="' + (H - B) + '" style="display:none"></line></svg><div class="mc-tip" hidden></div></div>' + clipNote + table;
+  }
+  function loadMulti() {
+    var holder = $('multi');
+    if (!holder) return;
+    var cur = holder.dataset.t, st = mcState(), picked = mcPick(cur, st);
+    if (!picked) { holder.innerHTML = '<p class="empty">SEC 재무가 있는 미국 종목만 비교할 수 있습니다.</p>'; return; }
+    mcSave(st);
+    Promise.all(picked.map(function (t) {
+      var key = t + DATA.generated_at;
+      if (AIF[key]) return AIF[key];
+      return fetch(aiUrl(t) + '?t=' + Date.now(), { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then(function (j) { AIF[key] = j; return j; });
+    })).then(function (js) {
+      var files = {};
+      picked.forEach(function (t, i) { files[t] = js[i]; });
+      if ($('multi') && $('multi').dataset.t === cur) $('multi').innerHTML = mcBody(cur, picked, st, files);
+    }).catch(function (err) { holder.innerHTML = '<p class="empty">데이터를 불러오지 못했습니다 (' + esc(err.message) + ').</p>'; });
+  }
+  document.addEventListener('click', function (ev) {
+    var b = ev.target.closest && ev.target.closest('[data-mc-t],[data-mc-y]');
+    if (!b || !$('multi')) return;
+    var st = mcState();
+    if (b.dataset.mcY) st.years = +b.dataset.mcY;
+    else {
+      var t = b.dataset.mcT;
+      if (st.slots[t] != null) delete st.slots[t];
+      else { var used = {}; Object.keys(st.slots).forEach(function (k) { used[st.slots[k]] = 1; }); for (var i = 0; i < MC_MAX; i++) if (!used[i]) { st.slots[t] = i; break; } }
+    }
+    st.init = true; mcSave(st); loadMulti();
+  });
+  document.addEventListener('change', function (ev) {
+    if (!ev.target.matches || !ev.target.matches('[data-mc-metric]')) return;
+    var st = mcState(); st.metric = ev.target.value; st.init = true; mcSave(st); loadMulti();
+  });
+  function mcHover(target, clientX) {
+    var svg = target.closest && target.closest('svg.mc');
+    if (!svg || !MC) return;
+    var r = svg.getBoundingClientRect(), px = (clientX - r.left) / r.width * MC.W;
+    var cross = svg.querySelector('.mc-cross'), tip = svg.parentNode.querySelector('.mc-tip');
+    var ms = MC.x0 + (px - MC.L) / (MC.W - MC.L - MC.R) * (MC.x1 - MC.x0);
+    var rows = MC.lines.map(function (l) {
+      var best = null;
+      l.pts.forEach(function (p) { if (p[0] <= ms + 3.5 * 864e5 && (!best || p[0] > best[0])) best = p; });
+      return best ? [l, best] : null;
+    }).filter(Boolean);
+    if (px < MC.L || !rows.length) { cross.style.display = 'none'; tip.hidden = true; return; }
+    var at = Math.max.apply(null, rows.map(function (x) { return x[1][0]; }));
+    cross.setAttribute('x1', MC.X(at)); cross.setAttribute('x2', MC.X(at)); cross.style.display = '';
+    tip.innerHTML = '<b>' + new Date(at).toISOString().slice(0, 10) + '</b>' + rows.map(function (x) {
+      return '<div><i class="mc-sw" style="background:var(--s' + (x[0].slot + 1) + ')"></i>' + esc(x[0].name) + ' <b>' + mcFmt(x[1][1], MC.unit) + '</b>' +
+        (x[1][0] < at - 10 * 864e5 ? ' <small>(' + mcYm(x[1][0]) + ')</small>' : '') + '</div>';
+    }).join('');
+    tip.hidden = false;
+    var left = MC.X(at) / MC.W * r.width, w = tip.offsetWidth;
+    tip.style.left = Math.max(0, left + 12 + w > r.width ? left - w - 12 : left + 12) + 'px';
+  }
+  document.addEventListener('mousemove', function (ev) { mcHover(ev.target, ev.clientX); });
+  document.addEventListener('touchstart', function (ev) { if (ev.touches[0]) mcHover(ev.target, ev.touches[0].clientX); }, { passive: true });
   // ───────── 가치 계산기: DCF · 역DCF · IRR (AI 아님, 브라우저에서 계산) ─────────
   // 기본값은 대시보드가 정한 값: 할인율 10%, 영구 성장률 3%, 1~5년 성장률 = 매출 3년 CAGR(0~30%로 자름), 6~10년 = 그 절반,
   // 매도 시 P/E = 지금 P/E와 5년 P/E 중앙값(없으면 20배) 중 작은 값, 최대 40배(배수가 더 오른다고 가정하지 않음).
@@ -1579,6 +1769,7 @@
     $('view').innerHTML = html;
     if ($('tv')) loadTradingView($('tv'));   // 종목 요약을 열면 차트를 바로 불러온다
     loadFin();
+    loadMulti();
     loadScr();
   }
   function renderChrome() {

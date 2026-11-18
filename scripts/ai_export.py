@@ -80,6 +80,7 @@ def stock_file(data, fin_all, ticker):
         "valuation_calc": valuation(fund, fin),
         "quality": quality.build(fin, fund, s.get("price")) if fin else None,
         "valuation_history": valuation_hist.build(fin, (fin or {}).get("price_weekly"), dt.date.fromisoformat(data["generated_at"][:10])) if fin else None,
+        "price_weekly": {"note": "주간 종가(주식 분할 반영), 최근 5년. 출처: Yahoo Finance", "points": ((fin or {}).get("price_weekly") or [])[-262:]} if (fin or {}).get("price_weekly") else None,
         "financials": None,
         "earnings_release": None,
         "sec_filings_90d": (sec_co or {}).get("filings"),
