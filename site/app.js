@@ -672,7 +672,9 @@
           esc(f.items.length ? f.items.join(' · ') : f.label) + '</a></b><span>' + esc(f.label) + '</span></div></div>';
       }).join('') : '<p class="empty">최근 90일 동안 주요 공시가 없습니다.</p>', '최근 90일의 주요 공시입니다. 제목을 누르면 SEC 원문이 열립니다. 출처: SEC · ' + md(DATA.sec.fetched) + ' 수집');
       var trades = sc.insider.slice(0, 10);
-      insiderBox = box('내부자 매매', '<div class="facts">' +
+      var insCsv = csvBtn('ins', ['거래일', '신고일', '이름', '직책', '거래', '계획 매도(10b5-1)', '주식 수', '가격(달러)', '금액(달러)', '거래 후 보유 주식 수', 'SEC 접수번호'],
+        sc.insider.map(function (r) { return [r.date, r.filed, r.owner, r.role, r.kind, r.planned ? 'O' : '', r.shares, r.price, r.value, r.after, r.acc]; }), s.ticker + '_insider_180d');
+      insiderBox = box('내부자 매매', (sc.insider.length ? '<div class="csv-row">' + insCsv + '</div>' : '') + '<div class="facts">' +
         fact('공개시장 매수 (90일)', sc.summary.buy_count ? sc.summary.buy_count + '건 ' + pill('매수 있음', 'good', true) : '없음', sc.summary.buy_count ? money(sc.summary.buy_value, 'USD') : '') +
         fact('공개시장 매도 (90일)', sc.summary.sell_count ? sc.summary.sell_count + '건' : '없음', sc.summary.sell_count ? money(sc.summary.sell_value, 'USD') + ' · 계획 매도 ' + sc.summary.sell_planned + '건' : '') + '</div>' +
         '<h3 class="sub">내부자 클러스터 <small>(' + clusterRule(sc) + ', 180일)</small></h3>' + clusterList(sc) +
@@ -727,6 +729,32 @@
         ['fin', 'quality', 'valhist', 'calc'].forEach(function (id) { if ($(id)) $(id).innerHTML = '<p class="empty">데이터를 불러오지 못했습니다 (' + esc(err.message) + ').</p>'; });
       });
   }
+  // ───────── CSV 내보내기: 화면의 표를 엑셀·구글 시트에서 여는 파일로 받는다 ─────────
+  // 파일 이름은 영어로(일부 브라우저가 한글 파일 이름을 'download'로 바꿈). 표를 그릴 때 CSVS[이름]에 원래 숫자(꾸밈 없는 값)를 넣어 두고, 버튼을 누르면 그때 파일을 만든다.
+  var CSVS = {};
+  function csvBtn(id, head, rows, file) {
+    CSVS[id] = { head: head, rows: rows, file: file };
+    return '<button type="button" class="btn small csv-btn" data-csv="' + esc(id) + '" title="엑셀·구글 시트에서 열 수 있는 파일">CSV 받기</button>';
+  }
+  function csvText(head, rows) {
+    var q = function (v) {
+      if (v == null || (typeof v === 'number' && !isFinite(v))) return '';
+      var t = typeof v === 'number' ? String(Math.round(v * 1e6) / 1e6) : String(v);
+      if (/^[=+\-@]/.test(t) && typeof v !== 'number') t = "'" + t;   // 엑셀이 글자를 수식으로 읽지 않게
+      return /[",\n\r]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
+    };
+    return '﻿' + [head].concat(rows).map(function (r) { return r.map(q).join(','); }).join('\r\n');   // BOM: 엑셀이 한글을 바로 읽게
+  }
+  document.addEventListener('click', function (ev) {
+    var b = ev.target.closest && ev.target.closest('[data-csv]');
+    if (!b || !CSVS[b.dataset.csv]) return;
+    var c = CSVS[b.dataset.csv], today = new Date().toISOString().slice(0, 10);
+    var url = URL.createObjectURL(new Blob([csvText(c.head, c.rows)], { type: 'text/csv;charset=utf-8' }));
+    var a = document.createElement('a');
+    a.href = url; a.download = (c.file + '_' + today + '.csv').replace(/[\\/:*?"<>|\s]+/g, '_');
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+  });
   // ───────── 여러 종목 비교 차트 (AI 아님): 관심 종목(미국, SEC 재무가 있는 종목) 최대 5개를 같은 지표로 겹쳐 본다 ─────────
   // 색은 종목이 처음 고른 칸(1~5)을 따라가서, 다른 종목을 빼도 남은 선의 색이 바뀌지 않는다.
   var MC_METRICS = [
@@ -854,7 +882,11 @@
       return '<div class="ctr mc4"><span>' + esc(l.name) + '</span><span>' + (a ? mcFmt(a[1], unit) + ' <small>' + mcYm(a[0]) + '</small>' : '–') + '</span><span>' + (b ? mcFmt(b[1], unit) + ' <small>' + mcYm(b[0]) + '</small>' : '–') + '</span><span>' + chg + '</span></div>';
     }).join('') + '</div></div></details>';
     MC = { x0: x0, x1: x1, L: L, R: R, W: W, lines: has, unit: unit, X: X };
+    var mcCsv = csvBtn('mc', ['티커', '종목', '날짜', met[1] + (unit === 'pct' ? ' (%)' : unit === 'x' ? ' (배)' : ''), '주기'],
+      [].concat.apply([], has.map(function (l) { return l.pts.map(function (p) { return [l.t, l.name, new Date(p[0]).toISOString().slice(0, 10), p[1], { w: '주간', q: '분기', y: '연간' }[l.kind]]; }); })),
+      'compare_' + met[0].replace('v:', '') + '_' + st.years + 'y');
     var clipNote = clipped ? '<p class="hint">축 범위를 벗어난 값은 위·아래 가장자리에 빈 점으로 표시했습니다. 실제 값은 마우스를 올리거나 표로 보기에서 확인하세요.</p>' : '';
+    tools = tools.replace(/<\/div><\/div>$/, '</div>' + mcCsv + '</div>');
     return chips + tools + legend + baseNote + '<div class="mc-wrap"><svg class="curve mc" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(met[1]) + ' 종목 비교 ' + st.years + '년">' + grid + ticks + paths +
       '<line class="mc-cross" x1="0" x2="0" y1="' + T + '" y2="' + (H - B) + '" style="display:none"></line></svg><div class="mc-tip" hidden></div></div>' + clipNote + table;
   }
@@ -1168,7 +1200,10 @@
     var relHtml = rel ? '<div class="event"><div class="date"><b>' + md(rel.date) + '</b><span>' + esc(rel.date.slice(0, 4)) + '</span></div><div class="what"><b><a href="' + esc(rel.url) + '" target="_blank" rel="noopener">최근 실적 보도자료 (SEC 원문)</a></b>' +
       '<span>본문 ' + fmt(rel.chars, 0) + '자를 AI용 파일에 넣었습니다' + (rel.truncated ? ' (긴 부분은 앞쪽만)' : '') + '</span></div></div>' : '';
     var note = [F.since_note, F.stale ? '오늘 수집에 실패해 이전 값입니다.' : ''].filter(Boolean).join(' ');
-    return '<div class="card-head sub-head">' + seg + '</div>' + (note ? '<p class="notice">' + esc(note) + '</p>' : '') + facts + charts + table + cagrHtml + relHtml + link +
+    var fkeys = Object.keys(F.fields || {}), fv = view;
+    var finCsv = csvBtn('fin', ['기간', '시작일', '종료일'].concat(fkeys.map(function (k) { return F.fields[k] + ' [' + k + ']'; })),
+      full.map(function (r) { return [r.period, r.start, r.end].concat(fkeys.map(function (k) { return r[k]; })); }), j.ticker + '_financials_' + fv);
+    return '<div class="card-head sub-head">' + seg + finCsv + '</div>' + (note ? '<p class="notice">' + esc(note) + '</p>' : '') + facts + charts + table + cagrHtml + relHtml + link +
       '<p class="src">단위: ' + esc(unitName) + '. 회사가 SEC에 낸 10-K·10-Q 숫자로 계산합니다. 연도는 회계연도(FY, 끝난 해)이고 분기는 끝난 달입니다. ' +
       '현금흐름 분기 값은 누적값의 차이로, 4분기는 연간에서 9개월 누적을 빼서 만듭니다. 4분기 EPS는 계산하지 않습니다. 최근 12개월(LTM)은 4개 분기 합계이고, 4분기 EPS가 없으면 순이익 ÷ 최근 희석 주식 수로 근사해 ≈를 붙입니다. 증감 보기에서 비율 항목은 %p(퍼센트포인트) 차이입니다. ' +
       'ROIC는 세후 영업이익 ÷ (자기자본 + 차입금 − 현금·단기 투자)의 기초·기말 평균으로, 대시보드가 정한 방식입니다. 현금이 많아 투하자본이 총자산의 10%도 안 되면 값이 수백 %로 튀어 비워 둡니다. ' +
@@ -1531,11 +1566,13 @@
         '<small>' + esc(r.name || '') + '</small></span>' + cols.map(function (k) { return '<span>' + sfFmt(r, k) + '</span>'; }).join('') + '</div>';
     }).join('');
     var u = SCR.universe || {};
+    var scrCsv = csvBtn('scr', ['티커', '이름', '섹터', '업종', '관심 종목', '나스닥 100', '주가', '기준일'].concat(SF.map(function (m) { return m[1] + (m[2] === '%' ? ' (%)' : m[2] === 'x' ? ' (배)' : ''); })),
+      hit.map(function (r) { return [r.ticker, r.name, r.sector, r.industry, r.watch ? 'O' : '', r.ndx ? 'O' : '', r.price, r.asof].concat(SF.map(function (m) { return r[m[0]]; })); }), 'screener_results');
     return '<section class="card" aria-label="조건 스크리너"><div class="card-head"><h2>조건 스크리너</h2>' + only + '</div>' +
       '<p class="hint">조건을 고르면 바로 걸러집니다. 고른 조건은 이 브라우저에 저장됩니다.</p>' +
       '<h3 class="sub">예시 조건</h3>' + presets + '<h3 class="sub">조건</h3>' + frows +
       '<button type="button" class="btn small" data-sf-add>+ 조건 추가</button></section>' +
-      '<section class="card" aria-label="스크리너 결과"><h2>결과 ' + hit.length + '개 <small>/ ' + pool.length + '개 중</small></h2>' +
+      '<section class="card" aria-label="스크리너 결과"><div class="card-head"><h2>결과 ' + hit.length + '개 <small>/ ' + pool.length + '개 중</small></h2>' + (hit.length ? scrCsv : '') + '</div>' +
       (missing ? '<p class="hint">값이 없거나(데이터 없음) 적자라 배수가 뜻이 없어 판단하지 못한 종목 ' + missing + '개는 결과에서 뺐습니다.</p>' : '') +
       (hit.length ? '<div class="scroll-x"><div class="ctable wide">' + head + body + '</div></div>' : '<p class="empty">조건에 맞는 종목이 없습니다.</p>') +
       '<p class="src">대상: 나스닥 100(' + esc(u.source || '') + (u.asof ? ', ' + esc(u.asof) + ' 기준' : '') + ') + 관심 종목(미국). ★ = 관심 종목(누르면 종목 화면), 나머지는 Yahoo 페이지로 열립니다. ' +
