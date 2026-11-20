@@ -275,6 +275,46 @@
         '<div class="br">' + head + body + '</div>' + rules +
         '<p class="src">수익률 머리글(1일·1주·1개월)을 누르면 묶음 안에서 정렬됩니다. 1주는 5거래일, 1개월은 21거래일 전 종가 대비입니다. 주가 출처: Yahoo Finance(약 15분 지연).</p></section>';
     },
+    chain: function (sec) {
+      // 산업 묶음(AI 밸류체인, 우주 등): 줄 = 종목 묶음의 단순 평균, 그 밑에 종목·ETF별 값
+      var g = ((DATA.industry || {}).groups || {})[sec.group];
+      if (!g) return '<section class="card" aria-label="' + esc(sec.label) + '"><h2>' + esc(sec.label) + '</h2><p class="empty">데이터를 받지 못했습니다.</p></section>';
+      var key = state.chainP || 'm1';
+      var PERIODS = [['w1', '1주'], ['m1', '1개월'], ['m3', '3개월'], ['ytd', '연초 이후']];
+      var label = PERIODS.filter(function (p) { return p[0] === key; })[0][1];
+      var buttons = PERIODS.map(function (p) { return '<button type="button" class="btn small" data-chain-p="' + p[0] + '" aria-pressed="' + (p[0] === key) + '">' + p[1] + '</button>'; }).join('');
+      var allG = (DATA.industry || {}).groups || {};   // 막대 눈금은 모든 산업 묶음이 같게(묶음끼리 비교되게)
+      var vals = [].concat.apply([], Object.keys(allG).map(function (k) { return allG[k].rows.map(function (r) { return r.avg[key]; }); })).filter(function (v) { return v != null; });
+      var scale = Math.max.apply(null, vals.map(Math.abs).concat([1]));
+      var pc = function (v) { return v == null ? '<span class="flat">–</span>' : '<span class="' + dir(v) + '">' + signed(v, 1, '%') + '</span>'; };
+      var bar = function (v) {
+        if (v == null) return '<span class="cbar"></span>';
+        var w = Math.abs(v) / scale * 50;
+        return '<span class="cbar"><i style="' + (v >= 0 ? 'left:50%' : 'left:' + (50 - w).toFixed(1) + '%') + ';width:' + w.toFixed(1) + '%;background:' + (v >= 0 ? 'var(--up)' : 'var(--down)') + '"></i></span>';
+      };
+      var chip = function (m) {
+        var v = m[key], inner = esc(m.name) + (m.watch ? '<span class="star" aria-label="관심 종목">★</span>' : '') + (m.etf && !/ETF/.test(m.name) ? ' <small>ETF</small>' : '') + ' ' + pc(v);
+        return m.watch && DATA.stocks[m.symbol] ? '<a class="cchip" href="#stocks/' + encodeURIComponent(m.symbol) + '" title="' + esc(m.symbol) + '">' + inner + '</a>'
+          : '<span class="cchip' + (m.etf ? ' etf' : '') + '" title="' + esc(m.symbol) + (m.missing ? ' · 가격 없음' : '') + '">' + inner + '</span>';
+      };
+      var rows = g.rows.map(function (r) {
+        var a = r.avg, n = a[key + '_n'];
+        var ms = r.members.slice().sort(function (x, y) { return (y[key] == null ? -1e9 : y[key]) - (x[key] == null ? -1e9 : x[key]); });
+        var others = PERIODS.filter(function (p) { return p[0] !== key; }).map(function (p) { return p[1] + ' ' + pc(a[p[0]]); }).join(' · ') + ' · 52주 고점 대비 ' + pc(a.from_high);
+        return '<div class="chain-row"><div class="chain-head"><b>' + esc(r.name) + '</b>' + bar(a[key]) + '<span class="v">' + pc(a[key]) + '</span></div>' +
+          '<div class="chain-sub">' + others + (n < r.size ? ' <small>(값 있는 ' + n + '/' + r.size + '개 평균)</small>' : '') + '</div>' +
+          '<div class="chips">' + ms.map(chip).join('') + r.etfs.map(chip).join('') + '</div></div>';
+      }).join('');
+      var summary = '';
+      if (g.rows.length > 2) {
+        var ok = g.rows.filter(function (r) { return r.avg[key] != null; }).slice().sort(function (x, y) { return y.avg[key] - x.avg[key]; });
+        if (ok.length) summary = '<p class="lead">' + label + ' 기준 가장 강한 층: <b>' + esc(ok[0].name.replace(/^\d+\.\s*/, '')) + '</b> ' + pc(ok[0].avg[key]) +
+          ' · 가장 약한 층: <b>' + esc(ok[ok.length - 1].name.replace(/^\d+\.\s*/, '')) + '</b> ' + pc(ok[ok.length - 1].avg[key]) + '</p>';
+      }
+      var asof = ((g.rows[0] || {}).members || []).map(function (m) { return m.asof; }).filter(Boolean).sort().pop() || '';
+      return '<section class="card" aria-label="' + esc(sec.label) + '"><div class="card-head"><h2>' + esc(sec.label) + '</h2><div class="seg wrap">' + buttons + '</div></div>' + summary + rows +
+        '<p class="src">막대와 큰 숫자는 그 줄 종목들의 단순 평균 수익률(' + label + ')입니다. ETF는 참고용으로 따로 보여 주고 평균에는 넣지 않습니다. ★ = 관심 종목(누르면 종목 화면). 묶음 구성은 대시보드가 정했습니다(설정 industry_groups). 상장한 지 짧은 종목은 그 기간 값이 없어 평균에서 빠집니다. 출처: ' + esc(DATA.industry.source) + (asof ? ' · ' + md(asof) + ' 기준' : '') + '</p></section>';
+    },
     heatmap: function (sec) {
       var hm = DATA.heatmap, key = state.heat || 'd1';
       if (!hm) return '';
@@ -1882,6 +1922,8 @@
     }
     var ht = e.target.closest('[data-heat]');
     if (ht) { state.heat = ht.dataset.heat; renderView(); return; }
+    var cp = e.target.closest('[data-chain-p]');
+    if (cp) { state.chainP = cp.dataset.chainP; renderView(); return; }
     var mo = e.target.closest('[data-month]'), ki = e.target.closest('[data-kind]');
     if (mo) { state.month = mo.dataset.month; renderView(); return; }
     if (ki) { state.kinds[ki.dataset.kind] = !state.kinds[ki.dataset.kind]; renderView(); return; }
