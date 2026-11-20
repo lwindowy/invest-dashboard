@@ -1031,6 +1031,47 @@ def build_heatmap(ctx):
     return {"groups": groups, "source": "Yahoo Finance"}
 
 
+def build_industry(ctx):
+    """산업 묶음(설정 industry_groups): 종목·ETF별 기간 수익률과, 줄마다 종목 묶음의 단순 평균(ETF는 평균에서 뺌)."""
+    cfg = {k: v for k, v in (ctx["config"].get("industry_groups") or {}).items() if not k.startswith("_")}
+    watch = {e["ticker"] for entries in ctx["config"]["watchlist"].values() for e in entries}
+    year_start = pd.Timestamp(ctx["today"].year, 1, 1)
+    PER = ("w1", "m1", "m3", "ytd", "from_high")
+
+    def stats(symbol, name, etf=False):
+        item = {"symbol": symbol, "name": name, "etf": etf, "watch": symbol in watch}
+        try:
+            close = ctx["yahoo"][symbol]["Close"]
+        except KeyError:
+            return {**item, "missing": True}
+        ret = lambda days: num((float(close.iloc[-1]) / float(close.iloc[-1 - days]) - 1) * 100, 1) if len(close) > days else None
+        before = close[close.index < year_start]
+        last_year = close.iloc[-252:]
+        return {**item, "asof": day(close.index[-1]), "w1": ret(5), "m1": ret(21), "m3": ret(63),
+                "ytd": num((float(close.iloc[-1]) / float(before.iloc[-1]) - 1) * 100, 1) if len(before) else None,
+                "from_high": num((float(close.iloc[-1]) / float(last_year.max()) - 1) * 100, 1),
+                "days": len(close)}
+
+    out = {}
+    for gid, g in cfg.items():
+        rows = []
+        for r in g["rows"]:
+            members = [stats(t, n) for t, n in r["tickers"]]
+            etfs = [stats(t, n, True) for t, n in r.get("etfs", [])]
+            for m in members + etfs:
+                if m.get("missing"):
+                    warn(f"산업 {g['name']} {m['symbol']}", "가격 없음")
+            avg = {}
+            for k in PER:
+                vals = [m[k] for m in members if m.get(k) is not None]
+                avg[k] = num(sum(vals) / len(vals), 1) if vals else None
+                avg[k + "_n"] = len(vals)
+            rows.append({"name": r["name"], "note": r.get("note"), "avg": avg, "members": members, "etfs": etfs, "size": len(members)})
+        out[gid] = {"name": g["name"], "rows": rows}
+    return {"groups": out, "source": "Yahoo Finance",
+            "method": "줄의 값 = 종목 묶음의 단순 평균(등가중). ETF는 평균에 넣지 않음. 1주 5거래일, 1개월 21거래일, 3개월 63거래일, 52주 고점은 최근 252거래일 종가 최고값 기준."}
+
+
 def build_capex(ctx):
     """빅테크 분기 설비투자. 회사마다 회계 분기가 달라 분기 말 달을 3·6·9·12월로 맞춰 합친다. 하루 한 번만 받는다."""
     today, old = ctx["today"].isoformat(), (ctx["prev"] or {}).get("capex") or {}
@@ -1236,6 +1277,8 @@ def main():
     symbols |= {senti[k] for k in ("stock", "bond", "equal_weight", "index", "vix")}
     symbols |= {config["fx_symbol"], config["benchmark"]["symbol"]}
     symbols |= {symbol for g in config["heatmap"]["groups"] for symbol, _ in g["items"]}
+    symbols |= {t for k, g in (config.get("industry_groups") or {}).items() if not k.startswith("_")
+                for r in g["rows"] for t, _ in r["tickers"] + r.get("etfs", [])}
     fred_ids = {c["id"] for c in series.values() if c["source"] == "fred"}
     fred_ids |= {i for c in series.values() for i in c.get("needs", [])}
     fred_ids |= {regime["rates"]["fred"], regime["credit"]["fred"], senti["fred_hy"]}
@@ -1330,6 +1373,7 @@ def main():
         "sec": sec.build(config, (prev or {}).get("sec"), today, warn),
         "financials": None,
         "heatmap": build_heatmap(ctx),
+        "industry": build_industry(ctx),
         "capex": build_capex(ctx),
         "debt_rules": config["debt_rules"],
         "glossary": json.loads((ROOT / "config/glossary.json").read_text(encoding="utf-8"))["terms"],
