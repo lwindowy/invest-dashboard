@@ -1031,9 +1031,49 @@ def build_heatmap(ctx):
     return {"groups": groups, "source": "Yahoo Finance"}
 
 
+def industry_cfg(config):
+    """설정 industry_groups 에서 묶음(rows 가 있는 것)만."""
+    return {k: v for k, v in (config.get("industry_groups") or {}).items() if isinstance(v, dict) and "rows" in v}
+
+
+US_SYMBOL = re.compile(r"^[A-Z]{1,5}$")   # 미국 상장 종목(해외 거래소 접미사·숫자 코드는 뺀다)
+
+
+def industry_holdings(config, prev, today):
+    """산업 묶음이 기준으로 삼는 ETF의 상위 보유 종목. 하루 한 번만 받고, 실패하면 이전에 받은 목록을 쓴다."""
+    old = ((prev or {}).get("industry") or {}).get("holdings") or {}
+    etfs = sorted({e for g in industry_cfg(config).values() for r in g["rows"] for e in r.get("etf_source", [])})
+    out = {}
+    for etf in etfs:
+        if (old.get(etf) or {}).get("fetched") == today.isoformat() and old[etf].get("items"):
+            out[etf] = old[etf]
+            continue
+        items, err = None, None
+        for attempt in range(3):
+            try:
+                th = yf.Ticker(etf).funds_data.top_holdings
+                items = [[str(sym), str(row.get("Name") or ""), num(float(row.get("Holding Percent") or 0) * 100, 2)] for sym, row in th.iterrows()]
+                break
+            except Exception as exc:
+                err = exc
+                time.sleep(5 * (attempt + 1))
+        if items:
+            out[etf] = {"fetched": today.isoformat(), "items": items}
+        elif old.get(etf):
+            out[etf] = {**old[etf], "stale": True}
+            warn(f"ETF 상위 종목 {etf} (이전 목록 사용)", err)
+        else:
+            warn(f"ETF 상위 종목 {etf}", err)
+    return out
+
+
 def build_industry(ctx):
     """산업 묶음(설정 industry_groups): 종목·ETF별 기간 수익률과, 줄마다 종목 묶음의 단순 평균(ETF는 평균에서 뺌)."""
-    cfg = {k: v for k, v in (ctx["config"].get("industry_groups") or {}).items() if not k.startswith("_")}
+    cfg = industry_cfg(ctx["config"])
+    names = {e["ticker"]: e["name"] for entries in ctx["config"]["watchlist"].values() for e in entries}   # 관심 종목 이름 먼저, 설정 names 로 덮음
+    names.update((ctx["config"].get("industry_groups") or {}).get("names") or {})
+    holdings = ctx.get("holdings") or {}
+    short = lambda n: re.sub(r"(,? (Inc|Corp|Corporation|Co|Ltd|plc|PLC|N\.?V|S\.?A|Holdings?|Ordinary Shares.*|Class [A-C]|ADR|Sponsored ADR.*))+\.?$", "", n).strip()
     watch = {e["ticker"] for entries in ctx["config"]["watchlist"].values() for e in entries}
     year_start = pd.Timestamp(ctx["today"].year, 1, 1)
     PER = ("w1", "m1", "m3", "ytd", "from_high")
@@ -1055,8 +1095,25 @@ def build_industry(ctx):
     out = {}
     for gid, g in cfg.items():
         rows = []
+        used = {t for r in g["rows"] for t, _ in r["tickers"]}   # 같은 묶음 안에서 한 회사는 한 줄에만(직접 적은 종목이 먼저, ETF 종목은 앞줄부터)
         for r in g["rows"]:
             members = [stats(t, n) for t, n in r["tickers"]]
+            source = None
+            if r.get("etf_source"):   # 관심 종목 + 기준 ETF 상위 종목 중 미국 상장·가격 있는 것을 위에서부터 top 개씩
+                have = used
+                source = []
+                for etf in r["etf_source"]:
+                    h = holdings.get(etf) or {}
+                    added = []
+                    for sym, nm, w in h.get("items", []):
+                        if len(added) >= r.get("top", 5):
+                            break
+                        if sym in have or not US_SYMBOL.match(sym) or sym not in ctx["yahoo"]:
+                            continue
+                        m = stats(sym, names.get(sym) or short(nm) or sym)
+                        m["from_etf"], m["weight"] = etf, w
+                        members.append(m); have.add(sym); added.append(sym)
+                    source.append({"etf": etf, "fetched": h.get("fetched"), "stale": h.get("stale", False), "added": added})
             etfs = [stats(t, n, True) for t, n in r.get("etfs", [])]
             for m in members + etfs:
                 if m.get("missing"):
@@ -1066,9 +1123,10 @@ def build_industry(ctx):
                 vals = [m[k] for m in members if m.get(k) is not None]
                 avg[k] = num(sum(vals) / len(vals), 1) if vals else None
                 avg[k + "_n"] = len(vals)
-            rows.append({"name": r["name"], "note": r.get("note"), "avg": avg, "members": members, "etfs": etfs, "size": len(members)})
+            rows.append({"name": r["name"], "note": r.get("note"), "pick": r.get("pick"), "source": source, "top": r.get("top"),
+                         "avg": avg, "members": members, "etfs": etfs, "size": len(members)})
         out[gid] = {"name": g["name"], "rows": rows}
-    return {"groups": out, "source": "Yahoo Finance",
+    return {"groups": out, "holdings": holdings, "source": "Yahoo Finance",
             "method": "줄의 값 = 종목 묶음의 단순 평균(등가중). ETF는 평균에 넣지 않음. 1주 5거래일, 1개월 21거래일, 3개월 63거래일, 52주 고점은 최근 252거래일 종가 최고값 기준."}
 
 
@@ -1277,8 +1335,9 @@ def main():
     symbols |= {senti[k] for k in ("stock", "bond", "equal_weight", "index", "vix")}
     symbols |= {config["fx_symbol"], config["benchmark"]["symbol"]}
     symbols |= {symbol for g in config["heatmap"]["groups"] for symbol, _ in g["items"]}
-    symbols |= {t for k, g in (config.get("industry_groups") or {}).items() if not k.startswith("_")
-                for r in g["rows"] for t, _ in r["tickers"] + r.get("etfs", [])}
+    symbols |= {t for g in industry_cfg(config).values() for r in g["rows"] for t, _ in r["tickers"] + r.get("etfs", [])}
+    holdings = industry_holdings(config, prev, dt.datetime.now(KST).date())
+    symbols |= {sym for h in holdings.values() for sym, _, _ in h.get("items", []) if US_SYMBOL.match(sym)}
     fred_ids = {c["id"] for c in series.values() if c["source"] == "fred"}
     fred_ids |= {i for c in series.values() for i in c.get("needs", [])}
     fred_ids |= {regime["rates"]["fred"], regime["credit"]["fred"], senti["fred_hy"]}
@@ -1287,7 +1346,7 @@ def main():
 
     today = dt.datetime.now(KST).date()
     ctx = {"config": config, "manual": manual, "prev": prev, "today": today,
-           "yahoo": fetch_yahoo(sorted(symbols)), "fred": {}}
+           "yahoo": fetch_yahoo(sorted(symbols)), "fred": {}, "holdings": holdings}
     for sid in sorted(fred_ids):
         s = fetch_fred(sid)
         if s is not None:
