@@ -980,6 +980,10 @@
       "label": "산업",
       "sections": [
         {
+          "type": "sp500map",
+          "label": "S&P 500 지도"
+        },
+        {
           "type": "heatmap",
           "label": "섹터 히트맵"
         },

@@ -31,6 +31,7 @@ import news_ai
 import profiles
 import financials
 import screener
+import sp500map
 import sec
 import thesis
 
@@ -1324,6 +1325,13 @@ def main():
             prev_scr = json.loads(scr_path.read_text(encoding="utf-8"))
         except Exception as exc:
             print(f"이전 스크리너 표를 읽지 못해 무시합니다: {exc}", file=sys.stderr)
+    prev_map = None
+    map_path = Path(args.prev).with_name("map.json") if args.prev else None
+    if map_path and map_path.is_file():
+        try:
+            prev_map = json.loads(map_path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            print(f"이전 S&P 500 지도를 읽지 못해 무시합니다: {exc}", file=sys.stderr)
 
     # 필요한 심볼·시계열을 설정에서 모아 한 번에 받는다
     series, regime, senti = config["series"], config["regime"], config["sentiment"]
@@ -1484,6 +1492,7 @@ def main():
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     (out.parent / "financials.json").write_text(json.dumps(fin, ensure_ascii=False, separators=(",", ":"), allow_nan=False), encoding="utf-8")
+    scr = prev_scr
     try:
         scr = screener.build(config, prev_scr, today, warn)
         (out.parent / "screener.json").write_text(json.dumps(scr, ensure_ascii=False, separators=(",", ":"), allow_nan=False), encoding="utf-8")
@@ -1492,6 +1501,15 @@ def main():
         warn("스크리너", exc)
         if prev_scr:
             (out.parent / "screener.json").write_text(json.dumps(prev_scr, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    try:   # S&P 500 지도: 스크리너가 받은 시가총액을 함께 쓴다
+        smap = sp500map.build(prev_map, scr, today, warn)
+        if smap:
+            (out.parent / "map.json").write_text(json.dumps(smap, ensure_ascii=False, separators=(",", ":"), allow_nan=False), encoding="utf-8")
+            data["sp500map"] = {"asof": smap.get("asof"), "count": len(smap.get("rows") or []), "missing": len(smap.get("missing") or [])}
+    except Exception as exc:
+        warn("S&P 500 지도", exc)
+        if prev_map:
+            (out.parent / "map.json").write_text(json.dumps(prev_map, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     try:
         n_ai = ai_export.write(data, fin, out.parent / "ai")
     except Exception as exc:
