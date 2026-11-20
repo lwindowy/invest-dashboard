@@ -295,7 +295,7 @@
       var chip = function (m) {
         var v = m[key], inner = esc(m.name) + (m.watch ? '<span class="star" aria-label="관심 종목">★</span>' : '') + (m.etf && !/ETF/.test(m.name) ? ' <small>ETF</small>' : '') + ' ' + pc(v);
         return m.watch && DATA.stocks[m.symbol] ? '<a class="cchip" href="#stocks/' + encodeURIComponent(m.symbol) + '" title="' + esc(m.symbol) + '">' + inner + '</a>'
-          : '<span class="cchip' + (m.etf ? ' etf' : '') + '" title="' + esc(m.symbol) + (m.missing ? ' · 가격 없음' : '') + '">' + inner + '</span>';
+          : '<span class="cchip' + (m.etf ? ' etf' : '') + '" title="' + esc(m.symbol) + (m.from_etf ? ' · ' + esc(m.from_etf) + ' 비중 ' + fmt(m.weight, 1) + '%' : '') + (m.missing ? ' · 가격 없음' : '') + '">' + inner + '</span>';
       };
       var rows = g.rows.map(function (r) {
         var a = r.avg, n = a[key + '_n'];
@@ -303,7 +303,10 @@
         var others = PERIODS.filter(function (p) { return p[0] !== key; }).map(function (p) { return p[1] + ' ' + pc(a[p[0]]); }).join(' · ') + ' · 52주 고점 대비 ' + pc(a.from_high);
         return '<div class="chain-row"><div class="chain-head"><b>' + esc(r.name) + '</b>' + bar(a[key]) + '<span class="v">' + pc(a[key]) + '</span></div>' +
           '<div class="chain-sub">' + others + (n < r.size ? ' <small>(값 있는 ' + n + '/' + r.size + '개 평균)</small>' : '') + '</div>' +
-          '<div class="chips">' + ms.map(chip).join('') + r.etfs.map(chip).join('') + '</div></div>';
+          '<div class="chips">' + ms.map(chip).join('') + r.etfs.map(chip).join('') + '</div>' +
+          (r.source ? '<p class="chain-src">구성: ' + (r.members.some(function (m) { return m.watch; }) ? '관심 종목 + ' : '') + r.source.map(function (x) {
+            return esc(x.etf) + ' 상위 보유 종목 ' + x.added.length + '개' + (x.fetched ? ' (' + md(x.fetched) + (x.stale ? ' 받은 이전 목록' : ' 기준') + ')' : ' (목록을 받지 못함)');
+          }).join(', ') + '</p>' : r.pick ? '<p class="chain-src">구성: 직접 고름 — ' + esc(r.pick) + '</p>' : '') + '</div>';
       }).join('');
       var summary = '';
       if (g.rows.length > 2) {
@@ -313,7 +316,7 @@
       }
       var asof = ((g.rows[0] || {}).members || []).map(function (m) { return m.asof; }).filter(Boolean).sort().pop() || '';
       return '<section class="card" aria-label="' + esc(sec.label) + '"><div class="card-head"><h2>' + esc(sec.label) + '</h2><div class="seg wrap">' + buttons + '</div></div>' + summary + rows +
-        '<p class="src">막대와 큰 숫자는 그 줄 종목들의 단순 평균 수익률(' + label + ')입니다. ETF는 참고용으로 따로 보여 주고 평균에는 넣지 않습니다. ★ = 관심 종목(누르면 종목 화면). 묶음 구성은 대시보드가 정했습니다(설정 industry_groups). 상장한 지 짧은 종목은 그 기간 값이 없어 평균에서 빠집니다. 출처: ' + esc(DATA.industry.source) + (asof ? ' · ' + md(asof) + ' 기준' : '') + '</p></section>';
+        '<p class="src">막대와 큰 숫자는 그 줄 종목들의 단순 평균 수익률(' + label + ')입니다. ETF는 참고용으로 따로 보여 주고 평균에는 넣지 않습니다. ★ = 관심 종목(누르면 종목 화면). 종목은 관심 종목을 먼저 넣고, 나머지는 줄마다 적힌 ETF의 상위 보유 종목 중 미국 상장 종목을 위에서부터 채웁니다(하루 한 번 갱신). 맞는 ETF가 없는 줄은 대시보드가 직접 골랐고 이유를 적었습니다. 상장한 지 짧은 종목은 그 기간 값이 없어 평균에서 빠집니다. 출처: ' + esc(DATA.industry.source) + (asof ? ' · ' + md(asof) + ' 기준' : '') + '</p></section>';
     },
     heatmap: function (sec) {
       var hm = DATA.heatmap, key = state.heat || 'd1';

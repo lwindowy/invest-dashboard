@@ -522,3 +522,4 @@ svg.mc .mc-cross { stroke: var(--sub); stroke-width: 1; }
 a.cchip:hover { border-color: var(--sub); }
 .cchip .star { color: var(--sub); margin-left: 1px; }
 @media (max-width: 760px) { .chain-head { grid-template-columns: 1fr 64px; } .chain-head .cbar { grid-column: 1 / -1; grid-row: 2; } }
+.chain-src { font-size: 12px; color: var(--sub); margin: 6px 0 0; }
