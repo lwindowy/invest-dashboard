@@ -63,6 +63,11 @@ jobs:
         continue-on-error: true
         run: curl -fsSL --retry 3 --retry-delay 10 --max-time 60 "${{ steps.pages.outputs.base_url }}/data/screener.json" -o "$RUNNER_TEMP/screener.json"
 
+      # S&P 500 지도(산업 탭)의 종목 목록·주식 수도 일주일에 한 번만 다시 받는다
+      - name: 이전 S&P 500 지도 받기
+        continue-on-error: true
+        run: curl -fsSL --retry 3 --retry-delay 10 --max-time 60 "${{ steps.pages.outputs.base_url }}/data/map.json" -o "$RUNNER_TEMP/map.json"
+
       # Claude 예약 작업이 ai-results 브랜치에 저장한 AI 뉴스 분류 결과와 회사 소개. 없으면 없는 채로 계속한다
       - name: AI 뉴스 분류 결과와 회사 소개 받기
         continue-on-error: true

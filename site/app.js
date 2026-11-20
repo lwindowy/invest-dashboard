@@ -275,6 +275,9 @@
         '<div class="br">' + head + body + '</div>' + rules +
         '<p class="src">수익률 머리글(1일·1주·1개월)을 누르면 묶음 안에서 정렬됩니다. 1주는 5거래일, 1개월은 21거래일 전 종가 대비입니다. 주가 출처: Yahoo Finance(약 15분 지연).</p></section>';
     },
+    sp500map: function (sec) {
+      return '<section class="card" id="smap" aria-label="' + esc(sec.label) + '"><h2>' + esc(sec.label) + '</h2><p class="empty">불러오는 중입니다…</p></section>';
+    },
     chain: function (sec) {
       // 산업 묶음(AI 밸류체인, 우주 등): 줄 = 종목 묶음의 단순 평균, 그 밑에 종목·ETF별 값
       var g = ((DATA.industry || {}).groups || {})[sec.group];
@@ -1554,6 +1557,118 @@
   SECTIONS.screener = function () {
     return '<div id="scr">' + (SCR ? scrBody() : '<section class="card"><p class="empty">' + (scrErr ? '스크리너 표를 불러오지 못했습니다 (' + esc(scrErr) + ').' : '불러오는 중입니다…') + '</p></section>') + '</div>';
   };
+  // ───────── S&P 500 지도 (산업 탭, AI 아님): 업종 → 세부 업종 → 종목, 넓이 = 시가총액, 색 = 등락률 ─────────
+  var SMAP = null, smapErr = null, smapLoading = false;
+  var SECTOR_KO = { 'Information Technology': '정보기술', 'Communication Services': '통신서비스', 'Consumer Discretionary': '경기소비재', 'Consumer Staples': '필수소비재',
+    'Health Care': '헬스케어', 'Financials': '금융', 'Industrials': '산업재', 'Energy': '에너지', 'Materials': '소재', 'Utilities': '유틸리티', 'Real Estate': '부동산' };
+  var SMAP_CAP = { d1: 3, w1: 6, m1: 10, ytd: 30 };   // 이 값(%) 이상이면 가장 진한 색. 대시보드가 정한 값
+  function squarify(items, x, y, w, h) {
+    // items: [{v: 넓이 값, ...}] 큰 순. 정사각형에 가깝게 나눈다(squarified treemap)
+    var out = [], total = items.reduce(function (a, b) { return a + b.v; }, 0);
+    if (!total || w <= 0 || h <= 0) return out;
+    var scale = w * h / total, rest = items.map(function (it) { return { it: it, a: it.v * scale }; });
+    function worst(row, side) {
+      var s = row.reduce(function (a, b) { return a + b.a; }, 0), mx = 0, mn = Infinity;
+      row.forEach(function (r) { mx = Math.max(mx, r.a); mn = Math.min(mn, r.a); });
+      return Math.max(side * side * mx / (s * s), s * s / (side * side * mn));
+    }
+    while (rest.length) {
+      var side = Math.min(w, h), row = [rest[0]], i = 1;
+      while (i < rest.length && worst(row.concat([rest[i]]), side) <= worst(row, side)) { row.push(rest[i]); i++; }
+      var s = row.reduce(function (a, b) { return a + b.a; }, 0), off = 0;
+      if (w >= h) {   // 왼쪽에 세로 줄
+        var cw = s / h;
+        row.forEach(function (r) { var rh = r.a / cw; out.push({ it: r.it, x: x, y: y + off, w: cw, h: rh }); off += rh; });
+        x += cw; w -= cw;
+      } else {        // 위쪽에 가로 줄
+        var ch = s / w;
+        row.forEach(function (r) { var rw = r.a / ch; out.push({ it: r.it, x: x + off, y: y, w: rw, h: ch }); off += rw; });
+        y += ch; h -= ch;
+      }
+      rest = rest.slice(i);
+    }
+    return out;
+  }
+  function smapColor(v, key) {
+    if (v == null) return '#6b7280';
+    if (v === 0) return '#4b5563';
+    var p = Math.round(25 + Math.min(1, Math.abs(v) / SMAP_CAP[key]) * 75);
+    return 'color-mix(in srgb, ' + (v >= 0 ? 'var(--up)' : 'var(--down)') + ' ' + p + '%, #4b5563)';
+  }
+  function smapBody() {
+    var key = state.mapP || 'd1', F = SMAP.fields, ix = {};
+    F.forEach(function (f, i) { ix[f] = i; });
+    var narrow = window.matchMedia && window.matchMedia('(max-width: 760px)').matches;
+    var box = $('smap'), cs = box && getComputedStyle(box);
+    var avail = box ? box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) : 1180;   // 칸 너비에 맞춘다
+    var W = narrow ? 900 : Math.max(700, Math.floor(avail)), H = narrow ? 620 : Math.round(Math.max(520, Math.min(700, W * 0.55))), HEAD = 18;
+    var sectors = {};
+    SMAP.rows.forEach(function (r) {
+      var s = sectors[r[ix.s]] = sectors[r[ix.s]] || { name: r[ix.s], v: 0, ind: {} };
+      var g = s.ind[r[ix.i]] = s.ind[r[ix.i]] || { name: r[ix.i], v: 0, st: [] };
+      s.v += r[ix.cap]; g.v += r[ix.cap]; g.st.push({ v: r[ix.cap], r: r });
+    });
+    var byV = function (a, b) { return b.v - a.v; };
+    var html = '';
+    squarify(Object.keys(sectors).map(function (k) { return sectors[k]; }).sort(byV), 0, 0, W, H).forEach(function (sb) {
+      var sec = sb.it, showHead = sb.h > 40 && sb.w > 50, top = showHead ? HEAD : 0;
+      html += '<div class="sm-sec" style="left:' + sb.x.toFixed(1) + 'px;top:' + sb.y.toFixed(1) + 'px;width:' + sb.w.toFixed(1) + 'px;height:' + sb.h.toFixed(1) + 'px">' +
+        (showHead ? '<span class="sm-sec-h">' + esc(SECTOR_KO[sec.name] || sec.name) + '</span>' : '') + '</div>';
+      var inds = Object.keys(sec.ind).map(function (k) { return sec.ind[k]; }).sort(byV);
+      squarify(inds, sb.x + 1, sb.y + top, sb.w - 2, sb.h - top - 1).forEach(function (ib) {
+        var g = ib.it, ihead = ib.h > 70 && ib.w > 90 ? 13 : 0;
+        if (ihead) html += '<span class="sm-ind" style="left:' + ib.x.toFixed(1) + 'px;top:' + ib.y.toFixed(1) + 'px;width:' + ib.w.toFixed(1) + 'px">' + esc(g.name) + '</span>';
+        squarify(g.st.sort(byV), ib.x, ib.y + ihead, ib.w, ib.h - ihead).forEach(function (tb) {
+          var r = tb.it.r, v = r[ix[key]], t = r[ix.t];
+          var fs = Math.max(9, Math.min(34, Math.min(tb.w / (t.length * 0.66 + 0.6), tb.h / 2.3)));
+          var lab = tb.w > 22 && tb.h > 14 ? '<b style="font-size:' + fs.toFixed(0) + 'px">' + esc(t) + '</b>' + (tb.h > fs * 2.1 && tb.w > 30 ? '<small style="font-size:' + Math.max(9, fs * 0.55).toFixed(0) + 'px">' + (v == null ? '–' : signed(v, 1, '%')) + '</small>' : '') : '';
+          html += '<a class="sm-t' + (DATA.stocks[t] ? ' watch' : '') + '" data-sm="' + esc(t) + '" href="' + (DATA.stocks[t] ? '#stocks/' + encodeURIComponent(t) : 'https://finance.yahoo.com/quote/' + encodeURIComponent(t)) + '"' + (DATA.stocks[t] ? '' : ' target="_blank" rel="noopener"') +
+            ' style="left:' + tb.x.toFixed(1) + 'px;top:' + tb.y.toFixed(1) + 'px;width:' + tb.w.toFixed(1) + 'px;height:' + tb.h.toFixed(1) + 'px;background:' + smapColor(v, key) + '">' + lab + '</a>';
+        });
+      });
+    });
+    var PERIODS = [['d1', '1일'], ['w1', '1주'], ['m1', '1개월'], ['ytd', '연초 이후']];
+    var buttons = PERIODS.map(function (p) { return '<button type="button" class="btn small" data-map-p="' + p[0] + '" aria-pressed="' + (p[0] === key) + '">' + p[1] + '</button>'; }).join('');
+    var c = SMAP_CAP[key], steps = [-c, -c * 2 / 3, -c / 3, 0, c / 3, c * 2 / 3, c];
+    var legend = '<div class="sm-legend">' + steps.map(function (v) { return '<span style="background:' + smapColor(v, key) + '">' + (v > 0 ? '+' : '') + fmt(v, 0) + '%</span>'; }).join('') + '</div>';
+    var up = SMAP.rows.filter(function (r) { return r[ix[key]] > 0; }).length, dn = SMAP.rows.filter(function (r) { return r[ix[key]] < 0; }).length;
+    return '<div class="card-head"><h2>S&amp;P 500 지도</h2><div class="seg wrap">' + buttons + '</div></div>' +
+      '<p class="lead">' + PERIODS.filter(function (p) { return p[0] === key; })[0][1] + ' 기준 오른 종목 <b class="' + dir(1) + '">' + up + '개</b> · 내린 종목 <b class="' + dir(-1) + '">' + dn + '개</b></p>' +
+      '<div class="scroll-x"><div class="sm-map" style="width:' + W + 'px;height:' + H + 'px">' + html + '</div></div><div class="sm-tip" hidden></div>' + legend +
+      '<p class="src">칸 넓이는 시가총액, 색은 등락률입니다(±' + c + '% 이상이면 가장 진함, 대시보드가 정한 값). 업종 → 세부 업종(GICS) → 종목 순으로 묶었습니다. 테두리 굵은 칸은 관심 종목이고 누르면 종목 화면, 나머지는 Yahoo가 열립니다. ' +
+      '시가총액은 발행 주식 수(Yahoo 시가총액 또는 SEC 공시, 7일에 한 번 갱신) × 최근 종가이고, 주식 종류가 여러 개인 회사는 하나만 넣었습니다. 종목·업종: ' + esc((SMAP.universe || {}).source || '') + ' · 가격: Yahoo Finance · ' + md(SMAP.asof) + ' 종가 기준' +
+      (narrow ? '. 휴대폰에서는 옆으로 밀어서 봅니다.' : '') + '</p>';
+  }
+  function loadMap() {
+    if (!$('smap') || smapLoading) return;
+    if (SMAP) { $('smap').innerHTML = smapBody(); return; }
+    smapLoading = true;
+    fetch('data/map.json?t=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (j) { SMAP = j; if ($('smap')) $('smap').innerHTML = smapBody(); })
+      .catch(function (e) { smapErr = e.message; if ($('smap')) $('smap').innerHTML = '<h2>S&amp;P 500 지도</h2><p class="empty">지도를 불러오지 못했습니다 (' + esc(e.message) + ').</p>'; })
+      .then(function () { smapLoading = false; });
+  }
+  document.addEventListener('click', function (ev) {
+    var b = ev.target.closest && ev.target.closest('[data-map-p]');
+    if (!b || !SMAP) return;
+    state.mapP = b.dataset.mapP; if ($('smap')) $('smap').innerHTML = smapBody();
+  });
+  document.addEventListener('mousemove', function (ev) {
+    var a = ev.target.closest && ev.target.closest('[data-sm]'), tip = document.querySelector('.sm-tip');
+    if (!tip) return;
+    if (!a || !SMAP) { tip.hidden = true; return; }
+    var F = SMAP.fields, r = SMAP.rows.filter(function (x) { return x[0] === a.dataset.sm; })[0];
+    if (!r) return;
+    var g = function (k) { var v = r[F.indexOf(k)]; return v == null ? '–' : '<span class="' + dir(v) + '">' + signed(v, 1, '%') + '</span>'; };
+    tip.innerHTML = '<b>' + esc(r[0]) + '</b> ' + esc(r[1]) + (DATA.stocks[r[0]] ? ' ★' : '') + '<br><small>' + esc(SECTOR_KO[r[2]] || r[2]) + ' · ' + esc(r[3]) + '</small><br>시가총액 ' + money(r[4], 'USD') +
+      '<br>1일 ' + g('d1') + ' · 1주 ' + g('w1') + ' · 1개월 ' + g('m1') + ' · 연초 이후 ' + g('ytd');
+    tip.hidden = false;
+    var x = ev.clientX + 14, y = ev.clientY + 14, tw = tip.offsetWidth, th = tip.offsetHeight;
+    if (x + tw > window.innerWidth - 8) x = ev.clientX - tw - 14;
+    if (y + th > window.innerHeight - 8) y = ev.clientY - th - 14;
+    tip.style.left = x + 'px'; tip.style.top = y + 'px';
+  });
   function loadScr() {
     if (!$('scr') || SCR || scrLoading) return;
     scrLoading = true;
@@ -1851,6 +1966,7 @@
     loadFin();
     loadMulti();
     loadScr();
+    loadMap();
   }
   function renderChrome() {
     document.title = DATA.site.title;
