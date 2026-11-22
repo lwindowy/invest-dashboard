@@ -193,11 +193,11 @@
           return '<div class="tr">' + name + '<span class="flat">–</span><span></span><span></span><span></span><span class="src">수집 실패</span></div>';
         }
         var price = s.currency === 'KRW' ? fmt(s.price, 0) + '원' : '$' + fmt(s.price, 2);
-        var d = dir(s.change_pct);
+        var d = dir(s.change_pct), lv = liveAttr(s);
         var flag = s.rsi >= 70 ? pill('과매수', 'warn', true) : s.rsi != null && s.rsi <= 30 ? pill('과매도', 'good', true) : '';
         return '<div class="tr">' + name +
-          '<span class="price">' + price + '</span>' +
-          '<span class="chg-cell ' + d + '">' + signed(s.change_pct, 2, '%') + '</span>' +
+          '<span class="price"' + lv('p') + '>' + price + '</span>' +
+          '<span class="chg-cell ' + d + '"' + lv('c') + '>' + signed(s.change_pct, 2, '%') + '</span>' +
           '<div class="rsi-cell">' + flag + '<span>' + (s.rsi == null ? '–' : fmt(s.rsi, 0)) + '</span></div>' +
           '<span class="flat">' + signed(s.from_high_pct, 1, '%') + '</span>' +
           sparkline(s.spark, d, 96, 28) + '</div>';
@@ -208,7 +208,7 @@
         '<div class="scroll-x"><div class="table">' +
         '<div class="tr th"><span>종목</span><span>현재가</span><span>등락률</span><span>RSI(14)' + q('rsi') + '</span><span>52주 고점 대비' + q('from_high') + '</span><span>3개월 추이</span></div>' +
         rows + '</div></div>' +
-        '<p class="src">종목 이름을 누르면 종목 한 장 요약으로 이동합니다. RSI 70 이상은 과매수, 30 이하는 과매도로 표시합니다. 출처: Yahoo Finance · ' + md(asof) + ' 기준 · 주가는 15분가량 지연됩니다.</p></section>';
+        '<p class="src">종목 이름을 누르면 종목 한 장 요약으로 이동합니다. RSI 70 이상은 과매수, 30 이하는 과매도로 표시합니다. 출처: Yahoo Finance · ' + md(asof) + ' 기준 · 주가는 15분가량 지연됩니다.' + liveNote(state.market === 'us') + '</p></section>';
     },
     newsfeed: function (sec) {
       var all = [];
@@ -249,8 +249,8 @@
           '<small>' + esc(r.news.publisher || '') + ' · ' + md(r.news.at) + ' ' + esc((r.news.at || '').slice(11, 16)) + (r.news.importance ? '' : ' · 아직 AI 분류 전') + '</small></li>' : '';
         var cov = r.coverage && !r.coverage.sec ? '<li class="cov">' + pill('커버리지 밖', 'none', true) + ' <small>공시·내부자 매매: ' + esc(r.coverage.sec_reason) + '</small></li>' : '';
         return '<div class="br-item ' + r.level + '"><div class="br-row">' + name +
-          '<span class="price">' + (r.currency === 'KRW' ? fmt(r.price, 0) + '원' : '$' + fmt(r.price, 2)) + '</span>' +
-          pct(r.d1) + pct(r.w1) + '<span class="c-m1">' + pct(r.m1) + '</span>' +
+          '<span class="price"' + liveAttr(r)('p') + '>' + (r.currency === 'KRW' ? fmt(r.price, 0) + '원' : '$' + fmt(r.price, 2)) + '</span>' +
+          pct(r.d1).replace('<span ', '<span' + liveAttr(r)('c') + ' ') + pct(r.w1) + '<span class="c-m1">' + pct(r.m1) + '</span>' +
           '<span class="c-spark">' + sparkline(r.spark, dir(r.m1), 88, 26) + '</span><span class="c-earn">' + earn + '</span></div>' +
           (why || news || cov ? '<ul class="br-why">' + why + news + cov + '</ul>' : '') + '</div>';
       }
@@ -273,7 +273,7 @@
         '<li>기준 숫자는 대시보드가 정한 값이며 config/dashboard.json 의 briefing·alerts 에서 바꿉니다.</li></ul></details>';
       return '<section class="card" aria-label="' + esc(sec.label) + '"><div class="card-head"><h2>' + esc(sec.label) + '</h2><span class="src">' + md(b.generated_at) + ' ' + esc(b.generated_at.slice(11, 16)) + ' 기준</span></div>' +
         '<div class="br">' + head + body + '</div>' + rules +
-        '<p class="src">수익률 머리글(1일·1주·1개월)을 누르면 묶음 안에서 정렬됩니다. 1주는 5거래일, 1개월은 21거래일 전 종가 대비입니다. 주가 출처: Yahoo Finance(약 15분 지연).</p></section>';
+        '<p class="src">수익률 머리글(1일·1주·1개월)을 누르면 묶음 안에서 정렬됩니다. 1주는 5거래일, 1개월은 21거래일 전 종가 대비입니다. 주가 출처: Yahoo Finance(약 15분 지연).' + liveNote(true) + '</p></section>';
     },
     sp500map: function (sec) {
       return '<section class="card" id="smap" aria-label="' + esc(sec.label) + '"><h2>' + esc(sec.label) + '</h2><p class="empty">불러오는 중입니다…</p></section>';
@@ -621,8 +621,8 @@
     var fsrc = s.fund ? esc(f.source) + ' · ' + md(f.fetched) + ' 수집' + (f.stale ? ' · 수집 실패로 이전 값' : '') : '';
     var head = '<section class="card stock-head"><a class="back" href="#stocks">← 종목 목록</a>' +
       '<div class="card-head"><div><h2 class="big">' + esc(s.name) + '</h2><p class="sub">' + esc(s.ticker.replace(/\.K[SQ]$/, '')) + (f.long_name ? ' · ' + esc(f.long_name) : '') + (f.industry ? ' · ' + esc(f.industry) : '') + '</p></div>' +
-      '<div class="quote"><b>' + price(s.price, cur) + '</b><span class="' + d + '">' + signed(s.change_pct, 2, '%') + '</span></div></div>' +
-      stockLinks(s) + '<p class="src">' + stamp(s) + ' · 주가는 15분가량 지연됩니다.</p></section>';
+      '<div class="quote"><b' + liveAttr(s)('p') + '>' + price(s.price, cur) + '</b><span class="' + d + '"' + liveAttr(s)('c') + '>' + signed(s.change_pct, 2, '%') + '</span></div></div>' +
+      stockLinks(s) + '<p class="src">' + stamp(s) + ' · 주가는 15분가량 지연됩니다.' + liveNote(cur === 'USD') + '</p></section>';
 
     var ret = '<div class="ctable wide"><div class="ctr c3 th"><span>기간</span><span>' + (cur === 'KRW' ? '수익률' : '달러 기준') + '</span><span>' + (cur === 'KRW' ? '' : '원화 환산') + '</span></div>' +
       s.returns.map(function (r) {
@@ -1493,8 +1493,8 @@
         }
         if (s.error || s.price == null) return '<div class="tr">' + name + '<span class="flat">–</span><span></span><span></span><span></span><span class="src">수집 실패</span></div>';
         var d = dir(s.change_pct), det = DATA.stocks[s.ticker] || {}, f = det.fund || {};
-        return '<div class="tr">' + name + '<span class="price">' + price(s.price, s.currency) + '</span>' +
-          '<span class="chg-cell ' + d + '">' + signed(s.change_pct, 2, '%') + '</span>' +
+        return '<div class="tr">' + name + '<span class="price"' + liveAttr(s)('p') + '>' + price(s.price, s.currency) + '</span>' +
+          '<span class="chg-cell ' + d + '"' + liveAttr(s)('c') + '>' + signed(s.change_pct, 2, '%') + '</span>' +
           '<span>' + (s.rsi == null ? '–' : fmt(s.rsi, 0)) + '</span><span class="flat">' + signed(s.from_high_pct, 1, '%') + '</span>' +
           '<span>' + money(f.market_cap, s.currency) + '</span></div>';
       }).join('');
@@ -1967,6 +1967,7 @@
     loadMulti();
     loadScr();
     loadMap();
+    livePaint();
   }
   function renderChrome() {
     document.title = DATA.site.title;
@@ -2069,6 +2070,90 @@
     $('strength').innerHTML = strengthChart(DATA.stocks[state.stock]);   // 이 묶음만 다시 그린다
   });
 
+  // ───────── 실시간 시세 (Finnhub, 미국 관심 종목만) ─────────
+  // 키는 갱신 워크플로가 GitHub Secrets 의 FINNHUB_KEY 로 data/live.json 에 넣는다. 없으면 이 기능은 꺼진 채로 둔다.
+  // 처음에 REST 시세(전일 종가 포함)를 한 번 받고, 그 뒤로는 WebSocket 체결가로 값을 바꾼다. 화면이 가려지면 연결을 끊는다.
+  var LIVE = { key: null, ws: null, q: {}, retry: 0, timer: null, paintAt: 0, status: 'off', last: 0 };
+  function liveAttr(s) {
+    var on = LIVE.key && s && s.currency === 'USD';
+    return function (kind) { return on ? ' data-live="' + esc(s.ticker) + '" data-live-kind="' + kind + '"' : ''; };
+  }
+  function liveNote(show) { return show && LIVE.key ? ' <span data-live-note>' + liveNoteText() + '</span>' : ''; }
+  function liveNoteText() {
+    if (LIVE.status === 'badkey') return '실시간 시세: Finnhub 키가 맞지 않아 끔.';
+    if (!LIVE.last) return '실시간 시세: 연결 중이거나 아직 체결 없음(장이 닫히면 체결이 없습니다).';
+    var t = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(new Date(LIVE.last));
+    return '미국 종목 현재가·등락률은 Finnhub 실시간 값(마지막 ' + t + ', 한국 시간)으로 바뀝니다.';
+  }
+  function liveTickers() {
+    return (DATA.watchlist.us || []).map(function (s) { return s.ticker; }).filter(function (t) { return /^[A-Z][A-Z.\-]*$/.test(t); }).slice(0, 50);
+  }
+  function livePaint() {
+    LIVE.paintAt = 0;
+    if (!LIVE.key) return;
+    Array.prototype.forEach.call(document.querySelectorAll('[data-live]'), function (el) {
+      var v = LIVE.q[el.getAttribute('data-live')];
+      if (!v || v.price == null) return;
+      if (el.getAttribute('data-live-kind') === 'p') { el.textContent = price(v.price, 'USD'); return; }
+      if (!v.pc) return;
+      var pct = (v.price / v.pc - 1) * 100;
+      el.textContent = signed(pct, 2, '%');
+      el.classList.remove('up', 'down', 'flat'); el.classList.add(dir(Number(pct.toFixed(2))));
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-live-note]'), function (el) { el.textContent = liveNoteText(); });
+  }
+  function liveSchedule() { if (!LIVE.paintAt) LIVE.paintAt = setTimeout(livePaint, 1000); }   // 체결이 몰려도 1초에 한 번만 그린다
+  function liveQuotes() {
+    // 처음 값과 전일 종가. 무료 요금은 1분에 60번까지라 종목마다 한 번만 부른다
+    return Promise.all(liveTickers().map(function (t) {
+      return fetch('https://finnhub.io/api/v1/quote?symbol=' + encodeURIComponent(t) + '&token=' + encodeURIComponent(LIVE.key))
+        .then(function (r) { if (r.status === 401 || r.status === 403) { LIVE.status = 'badkey'; throw new Error('key'); } return r.ok ? r.json() : null; })
+        .then(function (j) {
+          if (!j || !j.pc) return;
+          var q = LIVE.q[t] = LIVE.q[t] || {};
+          q.pc = j.pc;
+          if (j.c && (!q.t || j.t * 1000 > q.t)) { q.price = j.c; q.t = j.t * 1000; LIVE.last = Math.max(LIVE.last, q.t); }
+        }).catch(function () {});
+    })).then(livePaint);
+  }
+  function liveStop() {
+    clearTimeout(LIVE.timer);
+    if (LIVE.ws) { LIVE.ws.onclose = null; try { LIVE.ws.close(); } catch (e) {} LIVE.ws = null; }
+  }
+  function liveStart() {
+    liveStop();
+    if (!LIVE.key || !DATA || document.hidden || LIVE.status === 'badkey') return;
+    liveQuotes().then(function () {
+      if (LIVE.status === 'badkey' || document.hidden || LIVE.ws) return;
+      var ws = LIVE.ws = new WebSocket('wss://ws.finnhub.io?token=' + encodeURIComponent(LIVE.key));
+      ws.onopen = function () {
+        LIVE.retry = 0;
+        liveTickers().forEach(function (t) { ws.send(JSON.stringify({ type: 'subscribe', symbol: t })); });
+      };
+      ws.onmessage = function (ev) {
+        var m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+        if (m.type !== 'trade' || !m.data) return;
+        m.data.forEach(function (d) {
+          var q = LIVE.q[d.s] = LIVE.q[d.s] || {};
+          if (q.t && d.t < q.t) return;   // 늦게 온 옛 체결은 버린다
+          q.price = d.p; q.t = d.t; LIVE.last = Math.max(LIVE.last, d.t);
+        });
+        liveSchedule();
+      };
+      ws.onclose = function () {   // 끊기면 2초, 4초 … 최대 1분 뒤 다시 잇는다
+        LIVE.ws = null;
+        LIVE.timer = setTimeout(liveStart, Math.min(60000, 2000 * Math.pow(2, LIVE.retry++)));
+      };
+    });
+  }
+  document.addEventListener('visibilitychange', function () { if (document.hidden) liveStop(); else liveStart(); });
+  function liveInit() {
+    fetch('data/live.json?t=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : {}; })
+      .then(function (j) { LIVE.key = j.finnhub_key || null; if (LIVE.key && DATA) { render(); liveStart(); } })
+      .catch(function () {});
+  }
+
   function load() {
     return fetch('data/dashboard.json?t=' + Date.now(), { cache: 'no-store' })
       .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
@@ -2083,6 +2168,6 @@
       });
   }
   renderButtons();
-  load();
+  load().then(liveInit);
   setInterval(load, 10 * 60 * 1000); // 화면을 켜 두면 10분마다 새 데이터를 다시 읽는다
 })();

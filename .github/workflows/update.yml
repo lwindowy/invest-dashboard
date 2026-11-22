@@ -80,6 +80,13 @@ jobs:
       - name: 데이터 수집
         run: python scripts/fetch_data.py --prev "$RUNNER_TEMP/prev.json"
 
+      # 실시간 시세(Finnhub) 키. 화면이 브라우저에서 직접 쓰므로 사이트에서 보이는 값이다 → 무료 키만 넣는다.
+      # Secrets 에 FINNHUB_KEY 가 없으면 빈 값으로 두고, 화면은 실시간 없이 지금처럼 동작한다.
+      - name: 실시간 시세 키 넣기
+        env:
+          FINNHUB_KEY: ${{ secrets.FINNHUB_KEY }}
+        run: python -c "import json,os; k=os.environ.get('FINNHUB_KEY','').strip(); json.dump({'finnhub_key': k or None}, open('site/data/live.json','w'))"
+
       # 브라우저가 예전 화면 파일을 붙잡고 있지 않도록, 파일 주소에 이번 커밋 번호를 붙인다
       - name: 화면 파일에 버전 붙이기
         run: sed -i -E "s/(style\.css|app\.js)\"/\1?v=${GITHUB_SHA::8}\"/" site/index.html && grep -E "style.css|app.js" site/index.html
