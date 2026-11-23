@@ -51,7 +51,12 @@ jobs:
             git add config/dashboard.json
             git commit -F commit.txt
             git push origin HEAD:main
-            gh workflow run update.yml --ref main
+            # 종목을 넣었으면 갱신이 끝난 뒤 회사 소개를 바로 쓰도록 티커를 넘긴다
+            if [ -f added.txt ]; then
+              gh workflow run update.yml --ref main -f new_stock="$(head -c 20 added.txt | tr -cd 'A-Za-z0-9.-')"
+            else
+              gh workflow run update.yml --ref main
+            fi
           fi
 
       - name: 결과 알리고 요청 닫기

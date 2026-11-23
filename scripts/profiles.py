@@ -2,7 +2,9 @@
 
 흐름
 1. 30분 갱신(GitHub)이 소개를 새로 써야 할 종목을 data/profile_queue.json 으로 내보낸다.
-   새로 쓸 종목: 소개가 없거나, 소개를 쓴 뒤 새 정기 보고서(10-K·10-Q·20-F)가 나왔거나, 쓴 지 100일이 넘은 종목.
+   - 소개 없음(mode "new"): 새로 쓴다. 종목을 추가하면 갱신이 끝난 뒤 바로 Claude 예약 작업을 불러 쓴다(update.yml).
+   - 새 정기 보고서(mode "review"): 소개를 쓰거나 확인한 뒤 10-K·10-Q·20-F가 새로 나온 종목.
+     기존 소개와 비교해 달라진 부분만 고치고, 달라진 것이 없으면 확인한 날(checked)만 적는다.
 2. Claude 예약 작업(뉴스 분류와 같은 작업, 한 번에 2종목까지)이 공시와 회사 자료를 읽고 소개를 써서
    ai-results 브랜치의 profiles.json 에 저장한다. 지시문: config/ai_tasks/profile_update.md
 3. 다음 30분 갱신이 그 파일을 받아 검사(validate)한 뒤 종목 데이터에 붙인다. 검사에 걸린 항목은 버린다.
@@ -20,7 +22,6 @@ import re
 import sys
 from pathlib import Path
 
-MAX_AGE_DAYS = 100
 REPORTS = ("10-K", "10-Q", "20-F", "40-F")
 TEXT_LIST_KEYS = ("business", "vision", "strengths", "risks")
 
@@ -58,6 +59,9 @@ def validate_one(t, p):
 
     out = {"ticker": t, "updated": str(p.get("updated") or "")[:10], "by": str(p.get("by") or "")[:60],
            "basis": str(p.get("basis") or "")[:160], "sources": sources}
+    checked = str(p.get("checked") or "")[:10]  # 새 보고서와 비교해 확인한 날(내용을 안 고쳤어도 적는다)
+    if re.match(r"^\d{4}-\d{2}-\d{2}$", checked):
+        out["checked"] = checked
     one = p.get("one_liner") or {}
     src = [i for i in _src_ok(one.get("src"), n) if sources[i - 1]]
     if not one.get("text") or not src:
@@ -123,16 +127,14 @@ def build_queue(data, prof, today):
         p = items.get(t)
         filings = (((data.get("sec") or {}).get("companies") or {}).get(t) or {}).get("filings") or []
         reports = [f for f in filings if f.get("form") in REPORTS]
-        why = None
+        why = mode = None
         if not p:
-            why = "소개 없음"
-        elif reports and reports[0]["date"] > p.get("updated", ""):
-            why = f"새 정기 보고서 {reports[0]['form']} ({reports[0]['date']})"
-        elif (today - dt.date.fromisoformat(p["updated"])).days > MAX_AGE_DAYS:
-            why = f"쓴 지 {MAX_AGE_DAYS}일이 넘음"
+            why, mode = "소개 없음", "new"
+        elif reports and reports[0]["date"] > max(p.get("updated", ""), p.get("checked", "")):
+            why, mode = f"새 정기 보고서 {reports[0]['form']} ({reports[0]['date']})", "review"
         if why:
             fund = s.get("fund") or {}
-            out.append({"ticker": t, "name": s.get("name"), "long_name": fund.get("long_name"), "why": why,
+            out.append({"ticker": t, "name": s.get("name"), "long_name": fund.get("long_name"), "why": why, "mode": mode,
                         "website": fund.get("website"), "reports": [{k: f.get(k) for k in ("form", "date", "url")} for f in reports[:3]],
                         "ai_file": f"data/ai/{t}.json"})
     return {"generated_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="minutes"), "count": len(out), "items": out,

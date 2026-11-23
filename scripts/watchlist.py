@@ -6,6 +6,7 @@
 한국 종목은 숫자 6자리만 적어도 된다(코스피 .KS, 코스닥 .KQ 순서로 찾는다).
 
 결과 안내문은 result.md, 커밋 메시지는 commit.txt 에 쓴다. 바뀐 것이 없으면 commit.txt 를 만들지 않는다.
+종목을 넣었으면 그 티커를 added.txt 에 쓴다(갱신이 끝난 뒤 회사 소개를 바로 쓰게 하려고).
 """
 import json
 import os
@@ -84,7 +85,9 @@ def main():
         entry["news_q"] = long_name
     watch.setdefault(market, []).append(entry)
     CONFIG.write_text(json.dumps(config, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    finish(f"**{name or long_name} ({ticker})** 을(를) 관심 종목에 넣었습니다. 1~3분 뒤 사이트에 모든 지표가 나옵니다.",
+    (ROOT / "added.txt").write_text(ticker + "\n", encoding="utf-8")
+    finish(f"**{name or long_name} ({ticker})** 을(를) 관심 종목에 넣었습니다. 1~3분 뒤 사이트에 모든 지표가 나옵니다. "
+           "회사 소개는 그 뒤 Claude가 바로 써서 10분쯤 더 걸립니다.",
            f"관심 종목 추가: {ticker}")
 
 
