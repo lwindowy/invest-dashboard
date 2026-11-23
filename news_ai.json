@@ -1,6 +1,6 @@
 {
  "version": 1,
- "updated_at": "2026-11-17T07:41+09:00",
+ "updated_at": "2026-11-23T22:42+09:00",
  "by": "Claude 예약 작업 (구독)",
  "items": {
   "c8c869c2c6cf": {
@@ -3074,6 +3074,1446 @@
    "event": "seoul selloff nov 16",
    "reason": "제목에 SK하이닉스가 없고 삼성전자가 주인공인 기사",
    "classified_at": "2026-11-17T07:41+09:00"
+  },
+  "4908ab683920": {
+   "ticker": "IREN",
+   "title": "Gavin Baker Says “Consolidation Is Probably Coming” for Neoclouds That Can’t Get Prepayments. Here’s Who Can",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/gavin-baker-says-consolidation-probably-123620094.html",
+   "publisher": "TIKR",
+   "at": "2026-11-23T21:36+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "neocloud consolidation",
+   "reason": "여러 네오클라우드를 다룬 해설 기사로 이 회사가 주인공이 아님",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "2c9fc94cbd8e": {
+   "ticker": "IREN",
+   "title": "Is IREN (IREN) Too Pricey For Its Sales As AI Optimism Builds?",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/iren-iren-too-pricey-sales-120731403.html",
+   "publisher": "Simply Wall St.",
+   "at": "2026-11-23T21:07+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "iren valuation",
+   "reason": "밸류에이션 해설 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "268fdb5ad321": {
+   "ticker": "IREN",
+   "title": "U.S. chip and neocloud stocks rally premarket after last week’s selloff",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/u-chip-neocloud-stocks-rally-102133642.html",
+   "publisher": "Investing.com",
+   "at": "2026-11-23T19:21+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "chip neocloud rebound",
+   "reason": "반도체·네오클라우드 전반 반등 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "350d466a41bf": {
+   "ticker": "IREN",
+   "title": "CRWV, IREN, NBIS Rally After Sell-Off — New US Curbs Threaten Southeast Asia Neocloud Business",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/crwv-iren-nbis-rally-sell-091156067.html",
+   "publisher": "Stocktwits",
+   "at": "2026-11-23T18:11+09:00",
+   "importance": 3,
+   "type": "규제",
+   "event": "us curbs neocloud sea",
+   "reason": "미국 신규 제한이 동남아 네오클라우드 사업에 미치는 영향을 다룬 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "967789fe1f34": {
+   "ticker": "IREN",
+   "title": "Jim Chanos: CoreWeave Still Needs “$4 of Capital for Every $1 of Revenue.” That Undercuts the GPU Rental Boom",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/jim-chanos-coreweave-still-needs-072354784.html",
+   "publisher": "TIKR",
+   "at": "2026-11-23T16:23+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "chanos coreweave capital",
+   "reason": "코어위브가 주인공인 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "7e64af8b752b": {
+   "ticker": "IREN",
+   "title": "Warning for CoreWeave: Satya Nadella Says “Selling to One or Two Customers Is Not a Business”",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/warning-coreweave-satya-nadella-says-144332433.html",
+   "publisher": "TIKR",
+   "at": "2026-11-22T23:43+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "nadella coreweave customers",
+   "reason": "코어위브가 주인공인 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "e01bde7ca1e7": {
+   "ticker": "IREN",
+   "title": "Investis Holding (SWX:IREN) Stock Looks Pricey As Its 67% Run Draws Focus",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/investis-holding-swx-iren-stock-211623751.html",
+   "publisher": "Simply Wall St.",
+   "at": "2026-11-21T06:16+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "investis swx iren",
+   "reason": "다른 회사(Investis Holding)에 대한 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "b233599b1b70": {
+   "ticker": "IREN",
+   "title": "Between IREN and CoreWeave Here’s Who Has the Cleaner Path to a Sustained 30% Rebound",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/between-iren-coreweave-cleaner-path-154535203.html",
+   "publisher": "24/7 Wall St.",
+   "at": "2026-11-21T00:45+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "iren vs coreweave rebound",
+   "reason": "비교·전망 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "52ccbcfadc11": {
+   "ticker": "RKLB",
+   "title": "Rocket Lab Just Raised Prices on a Rocket It Hasn't Launched Yet. Here's What That Means for SpaceX.",
+   "url": "https://finance.yahoo.com/technology/articles/rocket-lab-just-raised-prices-125002781.html",
+   "publisher": "Motley Fool",
+   "at": "2026-11-23T21:50+09:00",
+   "importance": 3,
+   "type": "기타",
+   "event": "rklb electron price hike",
+   "reason": "신규 발사체 가격 인상을 다룬 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "7113fe6e1763": {
+   "ticker": "RKLB",
+   "title": "Why Did Rocket Lab Stock Fall Again?",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/why-did-rocket-lab-stock-122708761.html",
+   "publisher": "Trefis",
+   "at": "2026-11-23T21:27+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "rklb stock fall",
+   "reason": "주가 하락 설명 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "4ade6f076c86": {
+   "ticker": "RKLB",
+   "title": "Rocket Lab and Nebius Are Each About 66% Below Their Highs. I'd Buy Both and Hold Through 2030.",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/rocket-lab-nebius-66-below-090702515.html",
+   "publisher": "Motley Fool",
+   "at": "2026-11-23T18:07+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "rklb nbis buy hold",
+   "reason": "투자 의견 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "a555922e9a7f": {
+   "ticker": "RKLB",
+   "title": "RKLB Stock Has Its Worst Week Ever — But CFO Sees ‘Very Strong Uplift’ In Electron Prices As SpaceX Rideshare Slots Tighten",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/rklb-stock-worst-week-ever-075716928.html",
+   "publisher": "Stocktwits",
+   "at": "2026-11-23T16:57+09:00",
+   "importance": 3,
+   "type": "기타",
+   "event": "rklb worst week cfo electron",
+   "reason": "주가 급락과 CFO의 Electron 가격 전망 발언 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "9b9437d567ee": {
+   "ticker": "RKLB",
+   "title": "If You’d Invested $10,000 in Rocket Lab 5 Years Ago, Here’s How Much You’d Have Today -- Even After a 60% Crash",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/d-invested-10-000-rocket-214302424.html",
+   "publisher": "Motley Fool",
+   "at": "2026-11-22T06:43+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "rklb 5y return",
+   "reason": "과거 수익률 홍보성 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "b74cb7136d6f": {
+   "ticker": "RKLB",
+   "title": "What Does Rocket Lab (RKLB) Achieving A Mars Burn Milestone Mean Now?",
+   "url": "https://finance.yahoo.com/technology/articles/does-rocket-lab-rklb-achieving-011345764.html",
+   "publisher": "Simply Wall St.",
+   "at": "2026-11-21T10:13+09:00",
+   "importance": 3,
+   "type": "기타",
+   "event": "rklb mars burn",
+   "reason": "화성 관련 엔진 점화 이정표 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "7ecf6cecad30": {
+   "ticker": "RKLB",
+   "title": "Prediction: Rocket Lab Will Triple Its Revenue by 2028. Here’s What That Would Mean for the Stock.",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/prediction-rocket-lab-triple-revenue-235003518.html",
+   "publisher": "Motley Fool",
+   "at": "2026-11-21T08:50+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "rklb revenue 2028",
+   "reason": "매출 전망 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "e90aa7bafb61": {
+   "ticker": "RKLB",
+   "title": "What Could Send Rocket Lab Stock Higher?",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/could-send-rocket-lab-stock-194653303.html",
+   "publisher": "Trefis",
+   "at": "2026-11-21T04:46+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "rklb stock upside",
+   "reason": "주가 전망 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "adb4b55e28a9": {
+   "ticker": "CRWV",
+   "title": "CoreWeave vs. Nebius: Which AI Cloud Stock Offers Better Upside?",
+   "url": "https://finance.yahoo.com/technology/ai/articles/coreweave-vs-nebius-ai-cloud-122300018.html",
+   "publisher": "Zacks",
+   "at": "2026-11-23T21:23+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "crwv vs nbis",
+   "reason": "비교 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "8ae9ece61a23": {
+   "ticker": "CRWV",
+   "title": "What Is Behind The Move In CoreWeave Stock?",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/behind-move-coreweave-stock-120131404.html",
+   "publisher": "Trefis",
+   "at": "2026-11-23T21:01+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "crwv stock move",
+   "reason": "주가 움직임 설명 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "8ebade07ffcd": {
+   "ticker": "CRWV",
+   "title": "CRWV, IREN, NBIS Rally After Sell-Off — New US Curbs Threaten Southeast Asia Neocloud Business",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/crwv-iren-nbis-rally-sell-091156067.html",
+   "publisher": "Stocktwits",
+   "at": "2026-11-23T18:11+09:00",
+   "importance": 3,
+   "type": "규제",
+   "event": "us curbs neocloud sea",
+   "reason": "미국 신규 제한이 동남아 네오클라우드 사업에 미치는 영향을 다룬 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "b7f447578b98": {
+   "ticker": "CRWV",
+   "title": "Jim Chanos: CoreWeave Still Needs “$4 of Capital for Every $1 of Revenue.” That Undercuts the GPU Rental Boom",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/jim-chanos-coreweave-still-needs-072354784.html",
+   "publisher": "TIKR",
+   "at": "2026-11-23T16:23+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "chanos coreweave capital",
+   "reason": "제3자 평가 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "840008b734be": {
+   "ticker": "CRWV",
+   "title": "CoreWeave (CRWV) Stock Gets An AI Demand Jolt From A Record $81.3 Billion IPO",
+   "url": "https://finance.yahoo.com/technology/ai/articles/coreweave-crwv-stock-gets-ai-070621794.html",
+   "publisher": "Simply Wall St.",
+   "at": "2026-11-23T16:06+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "crwv ipo demand",
+   "reason": "다른 IPO가 AI 수요에 미친 영향 해설",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "7d2a51a50164": {
+   "ticker": "CRWV",
+   "title": "CoreWeave Is the Real Loser in Anthropic’s IPO Slide: $22.4 Billion of OpenAI Contracts",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/coreweave-real-loser-anthropic-ipo-004802096.html",
+   "publisher": "TIKR",
+   "at": "2026-11-23T09:48+09:00",
+   "importance": 3,
+   "type": "기타",
+   "event": "crwv openai contracts anthropic ipo",
+   "reason": "OpenAI 계약 관련 노출 위험을 다룬 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "189f4e4def0c": {
+   "ticker": "CRWV",
+   "title": "Cathie Wood Just Bought $22 Million of CoreWeave Across 2 ARK Funds",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/cathie-wood-just-bought-22-180616593.html",
+   "publisher": "TIKR",
+   "at": "2026-11-23T03:06+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "crwv ark buy",
+   "reason": "ARK 펀드 매수 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "0155d262590b": {
+   "ticker": "CRWV",
+   "title": "Warning for CoreWeave: Satya Nadella Says “Selling to One or Two Customers Is Not a Business”",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/warning-coreweave-satya-nadella-says-144332433.html",
+   "publisher": "TIKR",
+   "at": "2026-11-22T23:43+09:00",
+   "importance": 3,
+   "type": "기타",
+   "event": "nadella coreweave customers",
+   "reason": "고객 집중 위험에 대한 발언 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "a91884fd722c": {
+   "ticker": "NBIS",
+   "title": "Gavin Baker Says “Consolidation Is Probably Coming” for Neoclouds That Can’t Get Prepayments. Here’s Who Can",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/gavin-baker-says-consolidation-probably-123620094.html",
+   "publisher": "TIKR",
+   "at": "2026-11-23T21:36+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "neocloud consolidation",
+   "reason": "여러 네오클라우드를 다룬 해설 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "43e13c55c0d5": {
+   "ticker": "NBIS",
+   "title": "CoreWeave vs. Nebius: Which AI Cloud Stock Offers Better Upside?",
+   "url": "https://finance.yahoo.com/technology/ai/articles/coreweave-vs-nebius-ai-cloud-122300018.html",
+   "publisher": "Zacks",
+   "at": "2026-11-23T21:23+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "crwv vs nbis",
+   "reason": "비교 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "b1ae5b3f0f9a": {
+   "ticker": "NBIS",
+   "title": "Social Buzz: Wallstreetbets Stocks Advance Premarket Monday; Nebius Group, Nvidia to Open Higher",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/social-buzz-wallstreetbets-stocks-advance-113408727.html",
+   "publisher": "MT Newswires",
+   "at": "2026-11-23T20:34+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "wsb premarket",
+   "reason": "여러 종목 나열 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "6855404dd3ab": {
+   "ticker": "NBIS",
+   "title": "CRWV, IREN, NBIS Rally After Sell-Off — New US Curbs Threaten Southeast Asia Neocloud Business",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/crwv-iren-nbis-rally-sell-091156067.html",
+   "publisher": "Stocktwits",
+   "at": "2026-11-23T18:11+09:00",
+   "importance": 3,
+   "type": "규제",
+   "event": "us curbs neocloud sea",
+   "reason": "미국 신규 제한이 동남아 네오클라우드 사업에 미치는 영향을 다룬 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "67986a4c21c2": {
+   "ticker": "NBIS",
+   "title": "Rocket Lab and Nebius Are Each About 66% Below Their Highs. I'd Buy Both and Hold Through 2030.",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/rocket-lab-nebius-66-below-090702515.html",
+   "publisher": "Motley Fool",
+   "at": "2026-11-23T18:07+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "rklb nbis buy hold",
+   "reason": "투자 의견 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "3421bc19394a": {
+   "ticker": "NBIS",
+   "title": "Could Investing $500 a Month in Nebius Help You Retire a Millionaire?",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/could-investing-500-month-nebius-185702052.html",
+   "publisher": "Motley Fool",
+   "at": "2026-11-22T03:57+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "nbis retire millionaire",
+   "reason": "홍보성 투자 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "acecadafb48f": {
+   "ticker": "NBIS",
+   "title": "Is Nebius Group N.V. (NBIS) Still Overvalued?",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/nebius-group-n-v-nbis-145215381.html",
+   "publisher": "Insider Monkey",
+   "at": "2026-11-21T23:52+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "nbis valuation",
+   "reason": "밸류에이션 해설 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "1831f10e39e4": {
+   "ticker": "NBIS",
+   "title": "Michael Burry Says He Tried to Warn You About Nebius. The Stock Just Crashed 16% and Is 72% Below Its Record",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/michael-burry-says-tried-warn-014408609.html",
+   "publisher": "24/7 Wall St.",
+   "at": "2026-11-21T10:44+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "nbis burry crash",
+   "reason": "주가 급락과 투자자 발언 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "8e4d09351aa8": {
+   "ticker": "NVDA",
+   "title": "Stock Market Today: Tech Futures, Nvidia Surge After Market Sell-Off; CrowdStrike Plunges On Zscaler Deal (Live Coverage)",
+   "url": "https://finance.yahoo.com/m/8751de70-467e-380a-82cb-f4ee42adc461/stock-market-today%3A-tech.html",
+   "publisher": "Investor's Business Daily",
+   "at": "2026-11-23T22:12+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "market today tech futures",
+   "reason": "시황 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "6829c10d0ede": {
+   "ticker": "NVDA",
+   "title": "Arm Chief Not Interested In Nvidia CEO Job",
+   "url": "https://finance.yahoo.com/m/39566712-44c4-35ec-b8c9-1992f19c0624/arm-chief-not-interested-in.html",
+   "publisher": "Investor's Business Daily",
+   "at": "2026-11-23T22:10+09:00",
+   "importance": 3,
+   "type": "경영진 변동",
+   "event": "nvda ceo succession",
+   "reason": "엔비디아 CEO 승계 논란 관련 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "382b41a06c24": {
+   "ticker": "NVDA",
+   "title": "Arm CEO Rene Haas Extends Tenure Through 2033 After Reports Said He Was Approached For Nvidia CEO Role",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/arm-ceo-rene-haas-extends-131050121.html",
+   "publisher": "Stocktwits",
+   "at": "2026-11-23T22:10+09:00",
+   "importance": 3,
+   "type": "경영진 변동",
+   "event": "nvda ceo succession",
+   "reason": "엔비디아 CEO 승계 논란 관련 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "bec9234f8256": {
+   "ticker": "NVDA",
+   "title": "Scott Galloway: Jensen Believed Nvidia “Didn’t Need a Succession Plan.” Now It Trades at Half the Market’s Multiple",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/scott-galloway-jensen-believed-nvidia-130612251.html",
+   "publisher": "TIKR",
+   "at": "2026-11-23T22:06+09:00",
+   "importance": 3,
+   "type": "경영진 변동",
+   "event": "nvda ceo succession",
+   "reason": "CEO 승계 계획 관련 발언 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "7cebda81fc38": {
+   "ticker": "NVDA",
+   "title": "US Equity Futures Rise Pre-Bell as Nvidia Starts Off Week Strong",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/us-equity-futures-rise-pre-130523697.html",
+   "publisher": "MT Newswires",
+   "at": "2026-11-23T22:05+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "futures premarket",
+   "reason": "시황 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "2e7cd44d7923": {
+   "ticker": "NVDA",
+   "title": "SATO's First AI Customer, Datum, Goes Live with NVIDIA B300 GPUs at Its Québec Datacenter",
+   "url": "https://finance.yahoo.com/technology/ai/articles/satos-first-ai-customer-datum-130000087.html",
+   "publisher": "TMX Newsfile",
+   "at": "2026-11-23T22:00+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "sato datum b300",
+   "reason": "고객사 보도자료",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "0346f4d836a0": {
+   "ticker": "NVDA",
+   "title": "Arm locks in CEO Rene Haas through 2033, ending Nvidia succession speculation",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/arm-locks-ceo-rene-haas-125631742.html",
+   "publisher": "Investing.com",
+   "at": "2026-11-23T21:56+09:00",
+   "importance": 3,
+   "type": "경영진 변동",
+   "event": "nvda ceo succession",
+   "reason": "엔비디아 CEO 승계 논란 관련 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "43c551c133e1": {
+   "ticker": "NVDA",
+   "title": "Colette Kress Could Win Nvidia’s CEO Job by Default. Jay Goldberg Thinks That’s a Risk",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/colette-kress-could-win-nvidia-125412594.html",
+   "publisher": "Benzinga Prediction Markets",
+   "at": "2026-11-23T21:54+09:00",
+   "importance": 3,
+   "type": "경영진 변동",
+   "event": "nvda ceo succession",
+   "reason": "CEO 승계 후보 관련 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "e6a565cc43d3": {
+   "ticker": "PLTR",
+   "title": "Why Did Palantir Stock Fall?",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/why-did-palantir-stock-fall-123551920.html",
+   "publisher": "Trefis",
+   "at": "2026-11-23T21:35+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "pltr stock fall",
+   "reason": "주가 하락 설명 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "f5130eea2668": {
+   "ticker": "PLTR",
+   "title": "ETFs Are Buying Palantir (PLTR) on Nov. 19",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/etfs-buying-palantir-pltr-nov-110127861.html",
+   "publisher": "GuruFocus.com",
+   "at": "2026-11-23T20:01+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "pltr etf buying",
+   "reason": "ETF 매수 나열 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "9292abe5b5a4": {
+   "ticker": "PLTR",
+   "title": "Palantir Technologies (PLTR) Co Hosts Sovereign AI Defense Summit",
+   "url": "https://finance.yahoo.com/technology/ai/articles/palantir-technologies-pltr-co-hosts-210650181.html",
+   "publisher": "Simply Wall St.",
+   "at": "2026-11-23T06:06+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "pltr sovereign ai summit",
+   "reason": "행사 개최 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "883b100c68a4": {
+   "ticker": "PLTR",
+   "title": "Palantir Stock Could Finish 2026 Lower. Its Only 2 Losing Years Ended Very Differently.",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/palantir-stock-could-finish-2026-185702324.html",
+   "publisher": "Motley Fool",
+   "at": "2026-11-23T03:57+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "pltr 2026 outlook",
+   "reason": "주가 전망 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "45130907725a": {
+   "ticker": "PLTR",
+   "title": "UiPath vs. Palantir Technologies: Which AI Automation Platform Makes a Better Stock Buy for 2027?",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/uipath-vs-palantir-technologies-ai-183302672.html",
+   "publisher": "Motley Fool",
+   "at": "2026-11-23T03:33+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "uipath vs pltr",
+   "reason": "비교 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "1c52dc70f8a2": {
+   "ticker": "PLTR",
+   "title": "Stanley Druckenmiller and 16 Other Big Funds Bought Palantir Last Quarter, While 6 Sold. Who’s Right?",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/stanley-druckenmiller-16-other-big-110638180.html",
+   "publisher": "TIKR",
+   "at": "2026-11-22T20:06+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "pltr fund holdings",
+   "reason": "펀드 매수 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "d82f3660fbe2": {
+   "ticker": "PLTR",
+   "title": "Palantir Just Dropped 25% in a Month. Is It Time to Sell, or Load Up?",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/palantir-just-dropped-25-month-142235001.html",
+   "publisher": "TIKR",
+   "at": "2026-11-21T23:22+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "pltr drop sell or buy",
+   "reason": "주가 해설 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "c81046b58423": {
+   "ticker": "PLTR",
+   "title": "Alex Karp Wants to Sell $100 Million of Palantir Stock as It Slides",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/alex-karp-wants-sell-100-131740800.html",
+   "publisher": "24/7 Wall St.",
+   "at": "2026-11-21T22:17+09:00",
+   "importance": 2,
+   "type": "기타",
+   "event": "pltr karp stock sale",
+   "reason": "CEO의 대규모 주식 매도 계획 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "6d0adc327272": {
+   "ticker": "SPCX",
+   "title": "Rocket Lab Just Raised Prices on a Rocket It Hasn't Launched Yet. Here's What That Means for SpaceX.",
+   "url": "https://finance.yahoo.com/technology/articles/rocket-lab-just-raised-prices-125002781.html",
+   "publisher": "Motley Fool",
+   "at": "2026-11-23T21:50+09:00",
+   "importance": 3,
+   "type": "기타",
+   "event": "rklb electron price hike",
+   "reason": "로켓랩이 주인공인 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "700921b44105": {
+   "ticker": "SPCX",
+   "title": "Musk Says Teslas Will Tap “Grok’s Real-Time X Feed.” Another Tie Between Tesla and SpaceX",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/musk-says-teslas-tap-grok-123624366.html",
+   "publisher": "TIKR",
+   "at": "2026-11-23T21:36+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "tesla grok x feed",
+   "reason": "머스크 발언 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "b0ab4e049250": {
+   "ticker": "SPCX",
+   "title": "Jefferies Initiates SpaceX at Buy With $210 Price Target",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/jefferies-initiates-spacex-buy-210-123312800.html",
+   "publisher": "MT Newswires",
+   "at": "2026-11-23T21:33+09:00",
+   "importance": 3,
+   "type": "기타",
+   "event": "spcx jefferies initiation",
+   "reason": "애널리스트 신규 커버리지 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "68103631e9ad": {
+   "ticker": "SPCX",
+   "title": "Zacks Investment Ideas feature highlights: Anthropic, SpaceX and Meta Platforms",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/zacks-investment-ideas-feature-highlights-121100413.html",
+   "publisher": "Zacks",
+   "at": "2026-11-23T21:11+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "zacks ideas",
+   "reason": "여러 종목 나열 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "6304a35c8bca": {
+   "ticker": "SPCX",
+   "title": "Why Owning SpaceX Through ETFs Could Make More Sense Now",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/why-owning-spacex-etfs-could-120751201.html",
+   "publisher": "Simply Wall St.",
+   "at": "2026-11-23T21:07+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "spcx etf",
+   "reason": "ETF 보유 해설 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "b3c2437d9285": {
+   "ticker": "SPCX",
+   "title": "SpaceX Shares Slip as It Sells $32 Billion of AI Chip Debt",
+   "url": "https://finance.yahoo.com/technology/ai/articles/spacex-shares-slip-sells-32-112347731.html",
+   "publisher": "GuruFocus.com",
+   "at": "2026-11-23T20:23+09:00",
+   "importance": 2,
+   "type": "기타",
+   "event": "spcx chip debt sale",
+   "reason": "대규모 부채 발행 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "627cc90cffdb": {
+   "ticker": "SPCX",
+   "title": "Alphabet Trades at “Just 18 Times Forward Earnings.” Its SpaceX and Anthropic Stakes Top $200 Billion",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/alphabet-trades-just-18-times-110521017.html",
+   "publisher": "TIKR",
+   "at": "2026-11-23T20:05+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "alphabet stakes",
+   "reason": "알파벳이 주인공인 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "a0c7f64e57e2": {
+   "ticker": "SPCX",
+   "title": "SpaceX Lenders Want to Stop Musk From Launching $40 Billion in Nvidia Chips Into Orbit",
+   "url": "https://finance.yahoo.com/technology/ai/articles/spacex-lenders-want-stop-musk-104504849.html",
+   "publisher": "Benzinga",
+   "at": "2026-11-23T19:45+09:00",
+   "importance": 2,
+   "type": "기타",
+   "event": "spcx lenders nvidia orbit",
+   "reason": "대출기관과 대규모 투자 계획 갈등 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "463ea20a0a77": {
+   "ticker": "ORCL",
+   "title": "Oracle’s “Big Permitting Win” Proves the Data Center Backlash Hasn’t Won Yet",
+   "url": "https://finance.yahoo.com/technology/articles/oracle-big-permitting-win-proves-102024705.html",
+   "publisher": "TIKR",
+   "at": "2026-11-23T19:20+09:00",
+   "importance": 3,
+   "type": "규제",
+   "event": "orcl permitting win",
+   "reason": "데이터센터 인허가 관련 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "1f43c4befef5": {
+   "ticker": "ORCL",
+   "title": "Oracle Dismisses Reports it Lacks Funding to Fulfill OpenAI Contract",
+   "url": "https://finance.yahoo.com/technology/articles/oracle-dismisses-reports-lacks-funding-092810346.html",
+   "publisher": "MT Newswires",
+   "at": "2026-11-23T18:28+09:00",
+   "importance": 2,
+   "type": "기타",
+   "event": "orcl openai funding",
+   "reason": "OpenAI 계약 자금 보도에 대한 회사 반박 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "53c3e3674010": {
+   "ticker": "ORCL",
+   "title": "Why Did NVDA, NFLX, ORCL Slip To 52-Week Lows Last Week?",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/why-did-nvda-nflx-orcl-051119276.html",
+   "publisher": "Stocktwits",
+   "at": "2026-11-23T14:11+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "52w lows",
+   "reason": "여러 종목 나열 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "dd39c49af9cd": {
+   "ticker": "ORCL",
+   "title": "Dow Jones Futures Jump As Oracle, Korea Try To Ease Market Fears; Look For These Absolute Losers",
+   "url": "https://finance.yahoo.com/m/9ef9da98-bccf-3565-9a30-9bc3e57ad4b9/dow-jones-futures-jump-as.html",
+   "publisher": "Investor's Business Daily",
+   "at": "2026-11-23T13:15+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "dow futures",
+   "reason": "시황 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "b7db259781b5": {
+   "ticker": "ORCL",
+   "title": "Billionaire David Tepper’s Appaloosa Opened a $172 Million Stake in Oracle",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/billionaire-david-tepper-appaloosa-opened-175908841.html",
+   "publisher": "24/7 Wall St.",
+   "at": "2026-11-23T02:59+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "orcl appaloosa stake",
+   "reason": "투자자 지분 매입 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "75d3201f2c5d": {
+   "ticker": "ORCL",
+   "title": "Musk Warns AI’s “Cash Shortage Is Also Going to Be Nuts Next Year.” Credit Markets Put SpaceX Beside Oracle",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/musk-warns-ai-cash-shortage-135029530.html",
+   "publisher": "TIKR",
+   "at": "2026-11-22T22:50+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "musk cash shortage",
+   "reason": "머스크 발언 중심 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "5e0eaab481c4": {
+   "ticker": "ORCL",
+   "title": "Intuit vs. Oracle: Which Technology Stock Is a Better Buy for 2027?",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/intuit-vs-oracle-technology-stock-000025706.html",
+   "publisher": "Motley Fool",
+   "at": "2026-11-22T09:00+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "intuit vs orcl",
+   "reason": "비교 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "0460a480aef9": {
+   "ticker": "ORCL",
+   "title": "Oracle (ORCL) Hospital Java Patching Rush Meets New AI Product Push",
+   "url": "https://finance.yahoo.com/healthcare/articles/oracle-orcl-hospital-java-patching-180644592.html",
+   "publisher": "Simply Wall St.",
+   "at": "2026-11-22T03:06+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "orcl java ai product",
+   "reason": "제품 소식 해설 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "55fd86400caa": {
+   "ticker": "IONQ",
+   "title": "Is IonQ Stock a Buy Right Now?",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/ionq-stock-buy-now-172002064.html",
+   "publisher": "Motley Fool",
+   "at": "2026-11-22T02:20+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "ionq buy now",
+   "reason": "투자 의견 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "c30776603c15": {
+   "ticker": "IONQ",
+   "title": "IonQ vs. Alphabet: Which is the Better Quantum Computing Stock to Own for Next 5 Years?",
+   "url": "https://finance.yahoo.com/technology/articles/ionq-vs-alphabet-better-quantum-105502489.html",
+   "publisher": "Motley Fool",
+   "at": "2026-11-21T19:55+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "ionq vs alphabet",
+   "reason": "비교 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "78d809e7d378": {
+   "ticker": "IONQ",
+   "title": "IonQ (IONQ) Stock Dropped, So What Is Driving Attention Now?",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/ionq-ionq-stock-dropped-driving-220928364.html",
+   "publisher": "Simply Wall St.",
+   "at": "2026-11-21T07:09+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "ionq stock drop",
+   "reason": "주가 해설 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "02309d52e6b8": {
+   "ticker": "IONQ",
+   "title": "IonQ (IONQ) Stock Looks Overvalued As Its 83% 3 Year Gain Continues",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/ionq-ionq-stock-looks-overvalued-211212154.html",
+   "publisher": "Simply Wall St.",
+   "at": "2026-11-21T06:12+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "ionq overvalued",
+   "reason": "밸류에이션 해설 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "13cc477f1280": {
+   "ticker": "IONQ",
+   "title": "IonQ Is Down 33% in a Month. What Will It Take to Get IONQ Stock Back to $30?",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/ionq-down-33-month-ionq-175641877.html",
+   "publisher": "24/7 Wall St.",
+   "at": "2026-11-21T02:56+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "ionq down 33",
+   "reason": "주가 하락 해설 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "a08210f5f5aa": {
+   "ticker": "IONQ",
+   "title": "Should You Sell Your IonQ Stock Now That It Has Halved?",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/sell-ionq-stock-now-halved-174752778.html",
+   "publisher": "Trefis",
+   "at": "2026-11-20T02:47+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "ionq halved",
+   "reason": "주가 해설 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "e2e3ead227e0": {
+   "ticker": "IONQ",
+   "title": "Why IonQ Stock Popped Today",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/why-ionq-stock-popped-today-165339220.html",
+   "publisher": "Motley Fool",
+   "at": "2026-11-20T01:53+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "ionq pop",
+   "reason": "주가 상승 설명 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "9d4c9f1b0c42": {
+   "ticker": "IONQ",
+   "title": "IonQ Jumps 9% as Anthropic’s IPO Lifts Beaten-Down Quantum Stocks; D-Wave and Rigetti Surge 8%",
+   "url": "https://finance.yahoo.com/technology/ai/articles/ionq-jumps-9-anthropic-ipo-150242023.html",
+   "publisher": "24/7 Wall St.",
+   "at": "2026-11-20T00:02+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "anthropic ipo quantum",
+   "reason": "다른 회사 IPO로 인한 주가 반등 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "f4666b954843": {
+   "ticker": "TSLA",
+   "title": "Tesla's autonomy ambitions just got a Wall Street vote of confidence",
+   "url": "https://finance.yahoo.com/markets/stocks/article/teslas-autonomy-ambitions-just-got-a-wall-street-vote-of-confidence-130035595.html",
+   "publisher": "Yahoo Finance",
+   "at": "2026-11-23T22:00+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "tsla autonomy vote",
+   "reason": "자율주행 관련 평가 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "9e88732fa0ea": {
+   "ticker": "TSLA",
+   "title": "Tesla FSD V15 Rolling Out, Goes 'Wide' Next Month. Elon Musk Says It's 'Something Special.'",
+   "url": "https://finance.yahoo.com/m/b31af40e-5144-3249-9033-82521507fe84/tesla-fsd-v15-rolling-out%2C.html",
+   "publisher": "Investor's Business Daily",
+   "at": "2026-11-23T21:58+09:00",
+   "importance": 3,
+   "type": "기타",
+   "event": "tsla fsd v15",
+   "reason": "FSD V15 배포 소식",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "a9a60f8a2600": {
+   "ticker": "TSLA",
+   "title": "Could Tesla Stock Really Fall To $140?",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/could-tesla-stock-really-fall-123953188.html",
+   "publisher": "Trefis",
+   "at": "2026-11-23T21:39+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "tsla fall 140",
+   "reason": "주가 전망 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "8ec9dc580bbc": {
+   "ticker": "TSLA",
+   "title": "Musk Says Teslas Will Tap “Grok’s Real-Time X Feed.” Another Tie Between Tesla and SpaceX",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/musk-says-teslas-tap-grok-123624366.html",
+   "publisher": "TIKR",
+   "at": "2026-11-23T21:36+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "tesla grok x feed",
+   "reason": "머스크 발언 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "c4e0d2e08496": {
+   "ticker": "TSLA",
+   "title": "Tesla Makes an Unsafe Pitch to Senior Drivers Clinging to Car Keys",
+   "url": "https://finance.yahoo.com/technology/ai/articles/tesla-makes-unsafe-pitch-senior-113009926.html",
+   "publisher": "Bloomberg",
+   "at": "2026-11-23T20:30+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "tsla senior drivers",
+   "reason": "제품 비판 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "de2b45126648": {
+   "ticker": "TSLA",
+   "title": "Musk Admits Robot Demos Fail if You “Move the Table.” Tesla’s Optimus Bet Rides on Fixing That",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/musk-admits-robot-demos-fail-112022101.html",
+   "publisher": "TIKR",
+   "at": "2026-11-23T20:20+09:00",
+   "importance": 3,
+   "type": "기타",
+   "event": "tsla optimus demo",
+   "reason": "옵티머스 개발 과제 관련 발언 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "91a9f678912b": {
+   "ticker": "TSLA",
+   "title": "What ARK Autonomous Technology & Robotics ETF (ARKQ) Bought: Tesla Leads on Thursday",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/ark-autonomous-technology-robotics-etf-110438349.html",
+   "publisher": "GuruFocus.com",
+   "at": "2026-11-23T20:04+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "arkq buys",
+   "reason": "ETF 매수 나열 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "33b0723daaa0": {
+   "ticker": "TSLA",
+   "title": "Tesla Set to Roll Out FSD V15 in December",
+   "url": "https://finance.yahoo.com/technology/ai/articles/tesla-set-roll-fsd-v15-101546454.html",
+   "publisher": "MT Newswires",
+   "at": "2026-11-23T19:15+09:00",
+   "importance": 3,
+   "type": "기타",
+   "event": "tsla fsd v15",
+   "reason": "FSD V15 배포 소식",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "7d79038fc659": {
+   "ticker": "AMD",
+   "title": "Nvidia, Broadcom, and AMD roar higher as chip stocks rebound from worst week since 2001",
+   "url": "https://finance.yahoo.com/markets/article/nvidia-broadcom-and-amd-roar-higher-as-chips-rebound-from-worst-week-since-2001-133109931.html",
+   "publisher": "Yahoo Finance",
+   "at": "2026-11-23T22:31+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "chip rebound",
+   "reason": "여러 반도체 종목 반등 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "8015a113b510": {
+   "ticker": "AMD",
+   "title": "Premarket movers: Chip stocks lead AI rebound; CrowdStrike falls",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/premarket-movers-chip-stocks-lead-124424524.html",
+   "publisher": "Investing.com",
+   "at": "2026-11-23T21:44+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "premarket movers",
+   "reason": "시황 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "6cb4a14811d9": {
+   "ticker": "AMD",
+   "title": "When Did Nvidia Buyers Break Even After 30% Falls?",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/did-nvidia-buyers-break-even-123953144.html",
+   "publisher": "Trefis",
+   "at": "2026-11-23T21:39+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "nvda breakeven",
+   "reason": "엔비디아가 주인공인 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "271fcced1dde": {
+   "ticker": "AMD",
+   "title": "What Sent NVIDIA Stock Lower On Friday?",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/sent-nvidia-stock-lower-friday-122708741.html",
+   "publisher": "Trefis",
+   "at": "2026-11-23T21:27+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "nvda friday drop",
+   "reason": "엔비디아가 주인공인 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "f7db248a36af": {
+   "ticker": "AMD",
+   "title": "Why Did AMD Stock Move?",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/why-did-amd-stock-move-111817722.html",
+   "publisher": "Trefis",
+   "at": "2026-11-23T20:18+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "amd stock move",
+   "reason": "주가 움직임 설명 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "12f70e3b540c": {
+   "ticker": "AMD",
+   "title": "Montage Technology Showcases Its Full Interconnect Portfolio at the 6th Gen AMD EPYC™ Processor Technology Summit, Completing Platform Interoperability Validation",
+   "url": "https://finance.yahoo.com/technology/articles/montage-technology-showcases-full-interconnect-090000117.html",
+   "publisher": "Business Wire",
+   "at": "2026-11-23T18:00+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "montage amd epyc",
+   "reason": "협력사 홍보 보도자료",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "6278a9719f7d": {
+   "ticker": "AMD",
+   "title": "NVDA, INTC, MU, AMD Chip Stocks Rip Higher: Dan Ives Says ‘Bears Feel Validated,’ But There’s No Stopping The AI Wave",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/nvda-intc-mu-amd-chip-022405766.html",
+   "publisher": "Stocktwits",
+   "at": "2026-11-23T11:24+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "chip stocks rip",
+   "reason": "여러 종목 나열 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "ea1516ed92f5": {
+   "ticker": "AMD",
+   "title": "AMD vs. Nvidia Stock After Jensen Huang’s Exit: 1 Trades at Nearly 4x the Other’s Earnings Multiple. Here’s the AI Chip Stock I’d Buy Now.",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/amd-vs-nvidia-stock-jensen-212513753.html",
+   "publisher": "Barchart",
+   "at": "2026-11-23T06:25+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "amd vs nvda",
+   "reason": "엔비디아 CEO 관련 비교 기사, AMD 중심 아님",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "5de4c5ac72d0": {
+   "ticker": "MP",
+   "title": "MP Materials (MP) Stock Sees Modest Fair Value Cut As Analysts Focus On Execution",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/mp-materials-mp-stock-sees-200631671.html",
+   "publisher": "Simply Wall St.",
+   "at": "2026-11-23T05:06+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "mp fair value cut",
+   "reason": "적정가치 조정 해설 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "395333e0efc5": {
+   "ticker": "MP",
+   "title": "MP's Materials Segment Revenues Up 141% in 9M26: What's Next?",
+   "url": "https://finance.yahoo.com/markets/commodities/articles/mps-materials-segment-revenues-141-143600986.html",
+   "publisher": "Zacks",
+   "at": "2026-11-20T23:36+09:00",
+   "importance": 3,
+   "type": "실적",
+   "event": "mp q3 materials",
+   "reason": "소재 부문 매출 증가를 다룬 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "87c4d1b70738": {
+   "ticker": "MP",
+   "title": "I Listened to MP Materials' Earnings Call. Here's the 1 Thing That Stuck With Me.",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/listened-mp-materials-earnings-call-222500463.html",
+   "publisher": "Motley Fool",
+   "at": "2026-11-19T07:25+09:00",
+   "importance": 4,
+   "type": "실적",
+   "event": "mp q3 call",
+   "reason": "실적 발표 해설 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "096410024a0f": {
+   "ticker": "MP",
+   "title": "MP Materials Is Down 27% This Year. Can Needham’s Magnet Call Get MP Stock Back to $48?",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/mp-materials-down-27-needham-180449031.html",
+   "publisher": "24/7 Wall St.",
+   "at": "2026-11-19T03:04+09:00",
+   "importance": 3,
+   "type": "기타",
+   "event": "mp needham magnet",
+   "reason": "애널리스트 의견 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "482da9ebb4e4": {
+   "ticker": "MP",
+   "title": "MP To Become Major Domestic Permanent Magnet Supplier Over Next 3 Years, Says Needham",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/mp-become-major-domestic-permanent-173729618.html",
+   "publisher": "Stocktwits",
+   "at": "2026-11-19T02:37+09:00",
+   "importance": 3,
+   "type": "기타",
+   "event": "mp needham magnet",
+   "reason": "애널리스트 의견 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "21ec0fda0f08": {
+   "ticker": "MP",
+   "title": "Three MP Materials Insiders Just Bet $3.6 Million on Their Own Stock Near Its 52-Week Low",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/three-mp-materials-insiders-just-172616381.html",
+   "publisher": "24/7 Wall St.",
+   "at": "2026-11-19T02:26+09:00",
+   "importance": 3,
+   "type": "기타",
+   "event": "mp insider buying",
+   "reason": "임원 자사주 매입 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "7f9d25126f9d": {
+   "ticker": "MP",
+   "title": "USA Rare Earth Climbs 7%, MP Materials Jumps 8% as Traders Eye U.S.-China Rare-Earth Talks; United States Antimony Rallies 7%",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/usa-rare-earth-climbs-7-155604804.html",
+   "publisher": "24/7 Wall St.",
+   "at": "2026-11-19T00:56+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "rare earth talks",
+   "reason": "미중 희토류 협상 관련 주가 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "79818a491eb9": {
+   "ticker": "MP",
+   "title": "MP Materials' NdPr Production Up 41% in Q3: Will Magnet Growth Follow?",
+   "url": "https://finance.yahoo.com/markets/commodities/articles/mp-materials-ndpr-production-41-123100377.html",
+   "publisher": "Zacks",
+   "at": "2026-11-18T21:31+09:00",
+   "importance": 3,
+   "type": "실적",
+   "event": "mp q3 ndpr",
+   "reason": "3분기 NdPr 생산량 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "6b5f6f7f48af": {
+   "ticker": "INFQ",
+   "title": "memQ and Infleqtion Sign MoU to Advance Networked Quantum Computing",
+   "url": "https://finance.yahoo.com/technology/ai/articles/memq-infleqtion-sign-mou-advance-130100003.html",
+   "publisher": "GlobeNewswire",
+   "at": "2026-11-19T22:01+09:00",
+   "importance": 3,
+   "type": "기타",
+   "event": "infq memq mou",
+   "reason": "양해각서 체결 소식",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "51e34a32e20a": {
+   "ticker": "INFQ",
+   "title": "Infleqtion (INFQ) Stock Fair Value Falls As Analysts Reassess Commercialization Risks",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/infleqtion-infq-stock-fair-value-021210452.html",
+   "publisher": "Simply Wall St.",
+   "at": "2026-11-19T11:12+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "infq fair value",
+   "reason": "적정가치 해설 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "37ba0434e44c": {
+   "ticker": "INFQ",
+   "title": "Infleqtion (INFQ) Stock May Look Fully Priced Following Q3 Revenue Growth",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/infleqtion-infq-stock-may-look-091224752.html",
+   "publisher": "Simply Wall St.",
+   "at": "2026-11-18T18:12+09:00",
+   "importance": 4,
+   "type": "실적",
+   "event": "infq q3 valuation",
+   "reason": "3분기 매출 증가 후 밸류 해설",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "33dc07e32456": {
+   "ticker": "INFQ",
+   "title": "Is Infleqtion (INFQ) Undervalued As Revenue Rises But Losses Widen?",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/infleqtion-infq-undervalued-revenue-rises-081137969.html",
+   "publisher": "Simply Wall St.",
+   "at": "2026-11-18T17:11+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "infq valuation",
+   "reason": "밸류에이션 해설 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "c32561cde157": {
+   "ticker": "INFQ",
+   "title": "Infleqtion's Poised for Stronger Q4, Quantum Computing Growth, Wedbush Says",
+   "url": "https://finance.yahoo.com/technology/articles/infleqtion-apos-poised-stronger-q4-164032941.html",
+   "publisher": "MT Newswires",
+   "at": "2026-11-18T01:40+09:00",
+   "importance": 3,
+   "type": "기타",
+   "event": "infq wedbush",
+   "reason": "애널리스트 의견 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "43819079d346": {
+   "ticker": "INFQ",
+   "title": "Infleqtion Q3 Loss Narrows Y/Y, Revenues Rise on NASA Demand",
+   "url": "https://finance.yahoo.com/technology/ai/articles/infleqtion-q3-loss-narrows-y-135100339.html",
+   "publisher": "Zacks",
+   "at": "2026-11-17T22:51+09:00",
+   "importance": 2,
+   "type": "실적",
+   "event": "infq q3 earnings",
+   "reason": "3분기 실적 발표 보도",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "e76c6f6b0ac0": {
+   "ticker": "INFQ",
+   "title": "What Infleqtion (INFQ) Said on Its Q3 Earnings Call",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/infleqtion-infq-said-q3-earnings-011507567.html",
+   "publisher": "MarketBeat",
+   "at": "2026-11-17T10:15+09:00",
+   "importance": 2,
+   "type": "실적",
+   "event": "infq q3 earnings",
+   "reason": "3분기 실적 발표 컨퍼런스콜 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "16d767dcfe2a": {
+   "ticker": "INFQ",
+   "title": "Infleqtion improves on revenue and EPS, maintains 2026 outlook",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/infleqtion-improves-revenue-eps-maintains-215351099.html",
+   "publisher": "Investing.com",
+   "at": "2026-11-17T06:53+09:00",
+   "importance": 1,
+   "type": "가이던스",
+   "event": "infq q3 earnings",
+   "reason": "실적 발표와 2026 전망 유지를 다룬 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "68c415f951aa": {
+   "ticker": "005930.KS",
+   "title": "Korean Semiconductor Stocks After The Selloff With Samsung Electronics In Focus",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/korean-semiconductor-stocks-selloff-samsung-080741244.html",
+   "publisher": "Simply Wall St.",
+   "at": "2026-11-23T17:07+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "korea chip selloff",
+   "reason": "한국 반도체 매도세 해설 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "153aafec82d3": {
+   "ticker": "005930.KS",
+   "title": "Can Samsung and SK Hynix Buybacks Stop Korea's $115 Billion Selloff?",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/samsung-sk-hynix-buybacks-stop-003800159.html",
+   "publisher": "BeInCrypto",
+   "at": "2026-11-23T09:38+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "samsung hynix buybacks",
+   "reason": "삼성·SK하이닉스 나열 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "812691ad5864": {
+   "ticker": "005930.KS",
+   "title": "What Does Samsung Electronics (KOSE:A005930) Leadership Shakeup Mean After China Chip Curbs?",
+   "url": "https://finance.yahoo.com/technology/articles/does-samsung-electronics-kose-a005930-100948879.html",
+   "publisher": "Simply Wall St.",
+   "at": "2026-11-21T19:09+09:00",
+   "importance": 2,
+   "type": "경영진 변동",
+   "event": "samsung leadership shakeup",
+   "reason": "경영진 개편 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "d5f7011acd79": {
+   "ticker": "005930.KS",
+   "title": "Anthropic's 20X Sales Valuation Makes Samsung And Hynix Look Like Bargains, Warns Dan Niles",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/anthropics-20x-sales-valuation-makes-045846867.html",
+   "publisher": "Stocktwits",
+   "at": "2026-11-21T13:58+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "anthropic valuation niles",
+   "reason": "앤트로픽 밸류에이션 중심 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "745dca750500": {
+   "ticker": "005930.KS",
+   "title": "Samsung Stocks Fall 7.01% as AI Selloff Hits Seoul After Record ?107 Trillion Quarter",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/samsung-stocks-fall-7-01-213859960.html",
+   "publisher": "GuruFocus.com",
+   "at": "2026-11-21T06:38+09:00",
+   "importance": 3,
+   "type": "기타",
+   "event": "samsung ai selloff",
+   "reason": "주가 하락과 분기 실적 기록을 다룬 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "d618be3c82ce": {
+   "ticker": "005930.KS",
+   "title": "Micron’s President Says “We Can’t Support Every Customer.” Apple Just Locked In Samsung’s DRAM",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/micron-president-says-t-support-182401841.html",
+   "publisher": "TIKR",
+   "at": "2026-11-21T03:24+09:00",
+   "importance": 3,
+   "type": "기타",
+   "event": "apple samsung dram",
+   "reason": "애플의 삼성 D램 확보 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "e51672bd9fc9": {
+   "ticker": "005930.KS",
+   "title": "Apple's Rare Samsung Memory Plan Could Solve One Problem and Create Another",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/apples-rare-samsung-memory-plan-153000343.html",
+   "publisher": "MarketBeat",
+   "at": "2026-11-21T00:30+09:00",
+   "importance": 3,
+   "type": "기타",
+   "event": "apple samsung dram",
+   "reason": "애플의 삼성 D램 확보 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "a5108d64ad5e": {
+   "ticker": "005930.KS",
+   "title": "Global Push-to-Talk Rugged Device Market Report 2026-2030 | Capitalize on 5G and Wearables as Motorola Solutions, Samsung Electronics, Hytera and Honeywell Target $9.05B",
+   "url": "https://finance.yahoo.com/technology/articles/global-push-talk-rugged-device-143700884.html",
+   "publisher": "GlobeNewswire",
+   "at": "2026-11-20T23:37+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "ptt rugged report",
+   "reason": "시장 보고서 광고성 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "b9bbdbb6ec70": {
+   "ticker": "000660.KS",
+   "title": "Premarket movers: Chip stocks lead AI rebound; CrowdStrike falls",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/premarket-movers-chip-stocks-lead-124424524.html",
+   "publisher": "Investing.com",
+   "at": "2026-11-23T21:44+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "premarket movers",
+   "reason": "시황 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "e5f4c0934fc5": {
+   "ticker": "000660.KS",
+   "title": "Qualcomm Is Down 42% and SK hynix Has Plunged 48% Amid the AI Sell-Off. Which Is the Better Stock to Buy for 2027?",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/qualcomm-down-42-sk-hynix-102002231.html",
+   "publisher": "Motley Fool",
+   "at": "2026-11-23T19:20+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "qcom vs hynix",
+   "reason": "비교 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "4dcd37c8a394": {
+   "ticker": "000660.KS",
+   "title": "Market Chatter: SoftBank Considered Potential $1 Trillion SK Hynix Buyout",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/market-chatter-softbank-considered-potential-100537912.html",
+   "publisher": "MT Newswires",
+   "at": "2026-11-23T19:05+09:00",
+   "importance": 2,
+   "type": "M&A",
+   "event": "hynix softbank buyout",
+   "reason": "소프트뱅크의 인수 검토 소문 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "3c509c02d16c": {
+   "ticker": "000660.KS",
+   "title": "Can Samsung and SK Hynix Buybacks Stop Korea's $115 Billion Selloff?",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/samsung-sk-hynix-buybacks-stop-003800159.html",
+   "publisher": "BeInCrypto",
+   "at": "2026-11-23T09:38+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "samsung hynix buybacks",
+   "reason": "삼성·SK하이닉스 나열 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "d1bd24d04bce": {
+   "ticker": "000660.KS",
+   "title": "SK hynix Sinks 21% in a Week With Micron and Sandisk. Its U.S. Premium Is an “Extra Special Case”",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/sk-hynix-sinks-21-week-165056332.html",
+   "publisher": "TIKR",
+   "at": "2026-11-22T01:50+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "hynix weekly drop",
+   "reason": "주가 하락 해설 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "dfacc8c1b44b": {
+   "ticker": "000660.KS",
+   "title": "ASML vs. SK Hynix: Which Artificial Intelligence Stock Is a Better Buy for 2027?",
+   "url": "https://finance.yahoo.com/technology/ai/articles/asml-vs-sk-hynix-artificial-164501490.html",
+   "publisher": "Motley Fool",
+   "at": "2026-11-22T01:45+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "asml vs hynix",
+   "reason": "비교 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "f14c1df06978": {
+   "ticker": "000660.KS",
+   "title": "Coatue Management Bets on SK hynix Stock as Demand for HBM Chips Accelerates",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/coatue-management-bets-sk-hynix-163003330.html",
+   "publisher": "Barchart",
+   "at": "2026-11-22T01:30+09:00",
+   "importance": 3,
+   "type": "기타",
+   "event": "hynix coatue",
+   "reason": "투자사 지분 매입 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
+  },
+  "08f40e24a0a3": {
+   "ticker": "000660.KS",
+   "title": "SK Hynix Is About to Become the Biggest Shareholder of Rival Kioxia",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/sk-hynix-become-biggest-shareholder-123814488.html",
+   "publisher": "24/7 Wall St.",
+   "at": "2026-11-21T21:38+09:00",
+   "importance": 2,
+   "type": "M&A",
+   "event": "hynix kioxia stake",
+   "reason": "키옥시아 최대주주 지위 기사",
+   "classified_at": "2026-11-23T22:42+09:00"
   }
  },
  "monthly": {
@@ -3081,43 +4521,21 @@
    "month": "2026-11",
    "lines": [
     {
-     "text": "젠슨 황의 복귀 검토 보도가 이어지며 이사회가 투자자 압박을 받음",
+     "text": "Arm CEO 연임 발표로 엔비디아 CEO 승계 논란이 이어짐",
      "sources": [
-      "24f82a7053bc",
-      "f96205821cea",
-      "8d48caa0e9a2"
+      "0346f4d836a0",
+      "382b41a06c24"
      ]
     },
     {
-     "text": "이사회가 젠슨 황의 CEO 복귀에 반대한다는 보도와 함께 이사회 보강 요구도 나옴",
+     "text": "승계 계획과 후계 후보를 둘러싼 논평이 나옴",
      "sources": [
-      "0aa199339e25",
-      "0476ce6e3793",
-      "763cbd04c533"
-     ]
-    },
-    {
-     "text": "BofA는 CEO 교체 속에서도 3분기 실적이 기대를 넘을 것으로 봄",
-     "sources": [
-      "50372a4c7f6e"
-     ]
-    },
-    {
-     "text": "미국 정부가 엔비디아 등을 AI '국가 대표 기업'으로 지정할 것이라는 보도",
-     "sources": [
-      "2047730bcc84",
-      "36b5c1207b20"
-     ]
-    },
-    {
-     "text": "임시 CEO 크레스 체제에서 3분기 실적 발표를 앞두고 있음",
-     "sources": [
-      "8d48caa0e9a2",
-      "98b69845fc78"
+      "bec9234f8256",
+      "43c551c133e1"
      ]
     }
    ],
-   "updated_at": "2026-11-17T07:41+09:00"
+   "updated_at": "2026-11-23T22:00+09:00"
   },
   "IONQ": {
    "month": "2026-11",
@@ -3149,140 +4567,76 @@
    "month": "2026-11",
    "lines": [
     {
-     "text": "스페이스X와의 합병 이야기가 거론되며 주가 하락(확정 아님)",
+     "text": "FSD V15가 다음 달 배포될 예정이라는 보도가 나옴",
      "sources": [
-      "f2cd05497f29"
+      "9e88732fa0ea",
+      "33b0723daaa0"
      ]
     },
     {
-     "text": "독일 공장에 30억 유로(33억 달러) 확장 투자, 사이버캡 생산 계획 보도",
+     "text": "옵티머스 로봇 시연의 한계를 머스크가 언급함",
      "sources": [
-      "b33f83b8517e",
-      "94433e2b47f2",
-      "9f98d6697c68"
-     ]
-    },
-    {
-     "text": "무인 차량 사이버캡의 개인용 판매·예약 시작",
-     "sources": [
-      "b88ae32677f2",
-      "8068a6f4596f",
-      "f79638040534"
-     ]
-    },
-    {
-     "text": "JP모건은 사이버캡 일반 판매를 로보택시 전략의 초기 검증으로 평가",
-     "sources": [
-      "aeb112206a07"
-     ]
-    },
-    {
-     "text": "텍사스 100억 달러 규모 태양광 공장 착공",
-     "sources": [
-      "f3be6370bd86"
+      "de2b45126648"
      ]
     }
    ],
-   "updated_at": "2026-11-17T07:41+09:00"
+   "updated_at": "2026-11-23T22:00+09:00"
   },
   "005930.KS": {
    "month": "2026-11",
    "lines": [
     {
-     "text": "D램 가격 담합 소송의 기각 신청이 받아들여지지 않음",
+     "text": "경영진 개편 관련 기사가 나옴",
      "sources": [
-      "2b36c34d7619"
+      "812691ad5864"
      ]
     },
     {
-     "text": "데이터센터 냉각 업체 모딘(Modine) 인수 검토 보도",
+     "text": "애플의 삼성 D램 확보 관련 기사가 나옴",
      "sources": [
-      "384f125e2c11",
-      "240a064e8f7a"
-     ]
-    },
-    {
-     "text": "대규모 HBM 투자와 미국의 중국 메모리 견제가 함께 거론됨",
-     "sources": [
-      "11f13a57b47d",
-      "1bd5d551e6c0"
+      "d618be3c82ce",
+      "e51672bd9fc9"
      ]
     }
    ],
-   "updated_at": "2026-11-17T07:41+09:00"
+   "updated_at": "2026-11-23T22:00+09:00"
   },
   "000660.KS": {
    "month": "2026-11",
    "lines": [
     {
-     "text": "D램 가격 담합 소송의 기각 신청이 받아들여지지 않음",
+     "text": "소프트뱅크가 인수를 검토했다는 시장 소문이 나옴",
      "sources": [
-      "f585dd480a07"
+      "4dcd37c8a394"
      ]
     },
     {
-     "text": "국내 반도체 공급망에 10억 달러 투자 계획 보도",
+     "text": "키옥시아 최대주주가 될 예정이라는 기사가 나옴",
      "sources": [
-      "b94e34d5ba93"
-     ]
-    },
-    {
-     "text": "공급망 병목을 이유로 협력사 지원 방침이 보도됨",
-     "sources": [
-      "0b21f0375261"
-     ]
-    },
-    {
-     "text": "최대 고객 엔비디아의 경영진 충격으로 주가 약세",
-     "sources": [
-      "8161256afe1c",
-      "71590944a260"
-     ]
-    },
-    {
-     "text": "중국 CXMT 제재 가능성이 미칠 영향이 거론됨",
-     "sources": [
-      "2dd80ee2f078"
+      "08f40e24a0a3"
      ]
     }
    ],
-   "updated_at": "2026-11-17T07:41+09:00"
+   "updated_at": "2026-11-23T22:00+09:00"
   },
   "CRWV": {
    "month": "2026-11",
    "lines": [
     {
-     "text": "엔비디아 경영진 변화가 네오클라우드 대출 기관을 흔들며 주가 하락",
+     "text": "미국 신규 제한과 고객 집중 위험 관련 기사가 나옴",
      "sources": [
-      "d69a10efc45b"
+      "8ebade07ffcd",
+      "0155d262590b"
      ]
     },
     {
-     "text": "3분기 실적 발표 후 매출 급증으로 주가가 오름",
+     "text": "OpenAI 계약 노출 관련 기사가 나옴",
      "sources": [
-      "8ed15a54b267"
-     ]
-    },
-    {
-     "text": "엔비디아 베라 루빈 기반 MLPerf 결과를 처음 낸 클라우드 업체가 됨",
-     "sources": [
-      "868d243c86a7"
-     ]
-    },
-    {
-     "text": "미국 반도체 규제 강화 소식에 주가 하락",
-     "sources": [
-      "62a805daacb8"
-     ]
-    },
-    {
-     "text": "핵심 공급사 엔비디아의 경영진 충격이 리스크로 거론됨",
-     "sources": [
-      "e61bd25f9028"
+      "7d2a51a50164"
      ]
     }
    ],
-   "updated_at": "2026-11-17T07:41+09:00"
+   "updated_at": "2026-11-23T22:00+09:00"
   },
   "NBIS": {
    "month": "2026-11",
@@ -3325,58 +4679,38 @@
    "month": "2026-11",
    "lines": [
     {
-     "text": "일렉트론 100번째 발사를 완료해 가장 빠르게 이 기록에 도달한 상업 로켓이 됨",
+     "text": "주가가 급락했고 CFO가 Electron 가격 전망을 밝힘",
      "sources": [
-      "ae5900a04633",
-      "1b8bc2e246b4"
+      "a555922e9a7f"
      ]
     },
     {
-     "text": "첫 비행 전 뉴트론 가격을 7,000만 달러로 올리고 수주잔고가 52% 늘었다는 기사",
+     "text": "신규 발사체 가격 인상 기사가 나옴",
      "sources": [
-      "65873d388d82"
+      "52ccbcfadc11"
      ]
     }
    ],
-   "updated_at": "2026-11-17T02:40+09:00"
+   "updated_at": "2026-11-23T22:00+09:00"
   },
   "SPCX": {
    "month": "2026-11",
    "lines": [
     {
-     "text": "BofA·웰스파고가 스타십 상단 회수 성공을 재사용성 진전으로 평가",
+     "text": "Jefferies가 매수 의견으로 커버리지를 시작함",
      "sources": [
-      "89f8d61d29ed",
-      "58a856e858f7"
+      "b0ab4e049250"
      ]
     },
     {
-     "text": "테슬라와의 합병 이야기가 거론됨(확정 아님)",
+     "text": "AI 칩 부채 발행과 대출기관 갈등 관련 기사가 나옴",
      "sources": [
-      "17efd1ce30a5"
-     ]
-    },
-    {
-     "text": "스타십 부스터 회수 성공으로 주가가 오름",
-     "sources": [
-      "5e414b068e5b",
-      "d55ef50aa3a8"
-     ]
-    },
-    {
-     "text": "모건스탠리가 2027년을 앞두고 목표가를 유지·강화",
-     "sources": [
-      "4e97b86b3ebe"
-     ]
-    },
-    {
-     "text": "RBC는 정치적 반발로 데이터센터 확장이 늦어질 수 있다고 지적",
-     "sources": [
-      "2cb8ec0ea928"
+      "b3c2437d9285",
+      "a0c7f64e57e2"
      ]
     }
    ],
-   "updated_at": "2026-11-17T04:10+09:00"
+   "updated_at": "2026-11-23T22:00+09:00"
   },
   "AMD": {
    "month": "2026-11",
@@ -3420,75 +4754,89 @@
    "month": "2026-11",
    "lines": [
     {
-     "text": "3분기 매출이 96% 늘고 2026년 가이던스를 올림",
+     "text": "CEO Alex Karp가 팔란티어 주식 매도를 원한다는 기사가 나옴",
      "sources": [
-      "6d5b30560545"
-     ]
-    },
-    {
-     "text": "영국 NHS 데이터 계약에서 경쟁에 직면했다는 보도",
-     "sources": [
-      "216dc04e6e54",
-      "684fb0ae7c91"
-     ]
-    },
-    {
-     "text": "필립증권이 매수로 상향하고 목표가 248달러 제시",
-     "sources": [
-      "5a0108a10250"
+      "c81046b58423"
      ]
     }
    ],
-   "updated_at": "2026-11-17T07:41+09:00"
+   "updated_at": "2026-11-23T22:00+09:00"
   },
   "ORCL": {
    "month": "2026-11",
    "lines": [
     {
-     "text": "보훈부·전쟁부와 오라클 헬스 정보망 가동",
+     "text": "OpenAI 계약 이행 자금이 부족하다는 보도를 오라클이 반박함",
      "sources": [
-      "5bc63c648e14",
-      "e367c2f660c1"
+      "1f43c4befef5"
      ]
     },
     {
-     "text": "스티븐스가 투자의견을 상향",
+     "text": "데이터센터 인허가 관련 소식이 전해짐",
      "sources": [
-      "711967ec8857"
-     ]
-    },
-    {
-     "text": "오픈AI 신용 보강 논란 속 오라클의 노출이 거론됨",
-     "sources": [
-      "8265bf5d0584"
+      "463ea20a0a77"
      ]
     }
    ],
-   "updated_at": "2026-11-17T07:41+09:00"
+   "updated_at": "2026-11-23T22:00+09:00"
   },
   "IREN": {
    "month": "2026-11",
    "lines": [
     {
-     "text": "호라이즌 1을 업계 기준보다 22% 빨리 인도했다고 밝힘",
+     "text": "미국의 신규 제한이 동남아 네오클라우드 사업을 위협한다는 보도가 나옴",
      "sources": [
-      "35ac88cdf11a"
+      "350d466a41bf"
      ]
     },
     {
-     "text": "JP모건이 목표가 55달러로 매도세가 과했다고 평가",
+     "text": "네오클라우드 업종 반등 속에 IREN과 CoreWeave 비교 기사가 이어짐",
      "sources": [
-      "db60df76c2fd"
-     ]
-    },
-    {
-     "text": "엔비디아가 34억 달러 규모 고객이라 엔비디아 혼란의 영향이 거론됨",
-     "sources": [
-      "a882e9a3309e"
+      "b233599b1b70"
      ]
     }
    ],
-   "updated_at": "2026-11-17T07:41+09:00"
+   "updated_at": "2026-11-23T22:00+09:00"
+  },
+  "MP": {
+   "month": "2026-11",
+   "lines": [
+    {
+     "text": "3분기 실적과 NdPr 생산 관련 기사가 나옴",
+     "sources": [
+      "395333e0efc5",
+      "79818a491eb9"
+     ]
+    },
+    {
+     "text": "임원 자사주 매입과 Needham 의견 기사가 나옴",
+     "sources": [
+      "21ec0fda0f08",
+      "482da9ebb4e4"
+     ]
+    }
+   ],
+   "updated_at": "2026-11-23T22:00+09:00"
+  },
+  "INFQ": {
+   "month": "2026-11",
+   "lines": [
+    {
+     "text": "3분기 실적이 나왔고 2026 전망은 유지됨",
+     "sources": [
+      "16d767dcfe2a",
+      "43819079d346",
+      "e76c6f6b0ac0"
+     ]
+    },
+    {
+     "text": "memQ와 양해각서를 체결함",
+     "sources": [
+      "6b5f6f7f48af"
+     ]
+    }
+   ],
+   "updated_at": "2026-11-23T22:00+09:00"
   }
  }
 }
