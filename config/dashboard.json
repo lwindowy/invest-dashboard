@@ -78,6 +78,10 @@
       {
         "ticker": "MP",
         "name": "MP머티리얼즈"
+      },
+      {
+        "ticker": "INFQ",
+        "name": "인플렉션"
       }
     ],
     "kr": [
