@@ -13,6 +13,10 @@ on:
         description: 이전 데이터 없이 시작 (쌓아 둔 이력이 사라집니다)
         type: boolean
         default: false
+      new_stock:
+        description: 방금 추가한 종목(관심 종목 추가 작업이 넣음). 배포 뒤 Claude가 이 종목 회사 소개를 바로 씀
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -99,3 +103,23 @@ jobs:
 
       - id: deploy
         uses: actions/deploy-pages@v4
+
+      # 종목을 추가했으면 Claude 예약 작업(뉴스 분류와 같은 작업)을 바로 불러 그 종목 회사 소개만 쓰게 한다.
+      # 토큰(CLAUDE_ROUTINE_TOKEN)은 사용자가 claude.ai 예약 작업 화면에서 만들어 GitHub Secrets에 넣는다.
+      # 토큰이 없거나 부르기에 실패해도 다음 정기 실행(평일 하루 4번)이 대기 목록을 보고 쓴다.
+      - name: 새 종목 회사 소개 요청 (Claude)
+        if: inputs.new_stock != ''
+        continue-on-error: true
+        env:
+          TOKEN: ${{ secrets.CLAUDE_ROUTINE_TOKEN }}
+          NEW_STOCK: ${{ inputs.new_stock }}
+          ROUTINE: trig_01DKpCQeWem2wavoThE9z5Yu
+        run: |
+          if [ -z "$TOKEN" ]; then echo "CLAUDE_ROUTINE_TOKEN 이 없어 건너뜁니다. 다음 정기 실행 때 씁니다."; exit 0; fi
+          body=$(jq -n --arg s "$NEW_STOCK" '{text: ("회사 소개만 쓰기: " + $s)}')
+          code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 -X POST \
+            "https://api.anthropic.com/v1/claude_code/routines/$ROUTINE/fire" \
+            -H "Authorization: Bearer $TOKEN" -H "anthropic-version: 2023-06-01" \
+            -H "anthropic-beta: experimental-cc-routine-2026-04-01" -H "Content-Type: application/json" -d "$body")
+          echo "Claude 예약 작업 호출 결과: HTTP $code"
+          [ "$code" = "200" ]

@@ -1321,7 +1321,8 @@
     return '<section class="card pf" aria-label="회사 소개"><h2>회사 소개</h2><p class="pf-one">' + esc(p.one_liner.text) + ref(p.one_liner.src) + '</p>' +
       '<div class="pf-grid">' + list('무엇을 하나', p.business) + rev + mg + list('앞으로의 방향', p.vision) + list('강점', p.strengths) + list('위험 요인', p.risks) + '</div>' + srcs +
       '<p class="src">AI(Claude)가 위 출처(공시·회사 자료)를 읽고 한국어로 정리했습니다. 문장 끝 [번호]를 누르면 근거가 열립니다. 출처가 없는 문장은 넣지 않습니다. ' +
-      md(p.updated) + ' 작성' + (p.basis ? ' · 기준: ' + esc(p.basis) : '') + '. 새 정기 보고서가 나오면 다시 씁니다. 투자 권유가 아닙니다.</p></section>';
+      md(p.updated) + ' 작성' + (p.checked && p.checked > p.updated ? ' · ' + md(p.checked) + ' 새 보고서와 비교 확인' : '') +
+      (p.basis ? ' · 기준: ' + esc(p.basis) : '') + '. 새 정기 보고서가 나오면 비교해 달라진 부분만 고칩니다. 투자 권유가 아닙니다.</p></section>';
   }
   // ───────── 투자 논리 점검판 (config/thesis.json + 시세로 계산한 값) ─────────
   function thesisBox(s) {
