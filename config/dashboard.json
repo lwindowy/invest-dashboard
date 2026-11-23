@@ -74,6 +74,10 @@
         "ticker": "AMD",
         "name": "AMD",
         "ir": "https://ir.amd.com/"
+      },
+      {
+        "ticker": "MP",
+        "name": "MP머티리얼즈"
       }
     ],
     "kr": [
