@@ -1,6 +1,6 @@
 {
  "version": 1,
- "updated_at": "2026-11-25T04:41+09:00",
+ "updated_at": "2026-11-25T07:41+09:00",
  "by": "Claude 예약 작업 (구독)",
  "items": {
   "c8c869c2c6cf": {
@@ -8450,6 +8450,486 @@
    "event": "hynix vs tsmc",
    "reason": "투자 비교 해설 기사",
    "classified_at": "2026-11-25T04:41+09:00"
+  },
+  "849c65ac8d8d": {
+   "ticker": "RKLB",
+   "title": "Mizuho Sees 14% Downside in Rocket Lab Even After Its 69% Fall From May’s High",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/mizuho-sees-14-downside-rocket-211106504.html",
+   "publisher": "TIKR",
+   "at": "2026-11-25T06:11+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "rklb mizuho downside",
+   "reason": "목표가 해설·주가 하락 설명 기사",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "562189783695": {
+   "ticker": "CRWV",
+   "title": "Nvidia, Anthropic end sharply lower as AI selloff resumes",
+   "url": "https://finance.yahoo.com/technology/ai/articles/tech-firms-soar-huangs-return-023753159.html",
+   "publisher": "AFP",
+   "at": "2026-11-25T06:29+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "ai selloff nov24",
+   "reason": "제목에 코어위브가 없는 시장 전반 기사",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "b4376dee1ef3": {
+   "ticker": "CRWV",
+   "title": "Nvidia, AMD, Broadcom lead chip stocks lower as AI trade comes under pressure",
+   "url": "https://finance.yahoo.com/markets/article/nvidia-amd-broadcom-lead-chip-stocks-lower-as-ai-trade-comes-under-pressure-141635463.html",
+   "publisher": "Yahoo Finance",
+   "at": "2026-11-25T06:03+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "chip stocks lower nov24",
+   "reason": "제목에 코어위브가 없는 반도체 시장 기사",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "38c399a03aa4": {
+   "ticker": "CRWV",
+   "title": "CoreWeave bonds hit record lows as AI trade concerns return",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/coreweave-bonds-hit-record-lows-195321737.html",
+   "publisher": "Investing.com",
+   "at": "2026-11-25T04:53+09:00",
+   "importance": 3,
+   "type": "기타",
+   "event": "crwv bonds record lows",
+   "reason": "회사 채권 가격이 사상 최저로 떨어진 소식",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "e072d3d48ae8": {
+   "ticker": "CRWV",
+   "title": "CoreWeave Bonds Hit All-Time Lows, Erasing Nvidia-Fueled Gains",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/coreweave-bonds-hit-time-lows-185527465.html",
+   "publisher": "Bloomberg",
+   "at": "2026-11-25T03:55+09:00",
+   "importance": 3,
+   "type": "기타",
+   "event": "crwv bonds record lows",
+   "reason": "회사 채권 가격이 사상 최저로 떨어진 소식",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "2baca3431402": {
+   "ticker": "NBIS",
+   "title": "Update: US Equity Indexes Mixed as Investors Rotate into Defensives Amid Weakening AI Trade",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/us-equity-indexes-mixed-investors-205450035.html",
+   "publisher": "MT Newswires",
+   "at": "2026-11-25T05:54+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "us equity update nov24",
+   "reason": "제목에 회사 이름이 없는 시장 전반 기사",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "90c0c3fdc861": {
+   "ticker": "NVDA",
+   "title": "Don’t chase this Nvidia rally — buy these 3 stocks instead",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/don-t-chase-nvidia-rally-215422020.html",
+   "publisher": "TheStreet",
+   "at": "2026-11-25T06:54+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "nvda rally advice",
+   "reason": "매수 조언 성격의 해설 기사",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "a6f647536c7c": {
+   "ticker": "NVDA",
+   "title": "Embecta Corp. Q4 2026 Earnings Call Summary",
+   "url": "https://finance.yahoo.com/healthcare/articles/embecta-corp-q4-2026-earnings-215423670.html",
+   "publisher": "Moby",
+   "at": "2026-11-25T06:54+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "embecta q4 call",
+   "reason": "다른 회사 실적 요약 기사",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "67e4817e3c22": {
+   "ticker": "NVDA",
+   "title": "Is Jensen Huang the AI 'spirit animal' who will save the stock market?",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/jensen-huang-ai-spirit-animal-215328449.html",
+   "publisher": "USA TODAY",
+   "at": "2026-11-25T06:53+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "nvda huang market",
+   "reason": "CEO 관련 시장 해설 기사",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "ab6998090682": {
+   "ticker": "NVDA",
+   "title": "DICK'S Sporting Goods, Inc. Q3 2026 Earnings Call Summary",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/dicks-sporting-goods-inc-q3-215124451.html",
+   "publisher": "Moby",
+   "at": "2026-11-25T06:51+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "dicks q3 call",
+   "reason": "다른 회사 실적 요약 기사",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "d7a03a938bbf": {
+   "ticker": "NVDA",
+   "title": "Stock Market Today, Nov. 24: Nvidia Gives Back $240 Billion in Market Value Despite Wall Street Upgrade Signaling 29% Upside",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/stock-market-today-nov-24-214949426.html",
+   "publisher": "Motley Fool",
+   "at": "2026-11-25T06:49+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "nvda selloff nov24",
+   "reason": "주가 하락 설명 기사",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "50f2c5028c93": {
+   "ticker": "NVDA",
+   "title": "Update: Wall Street Mixed as AI Concerns Drive Nvidia, Anthropic Sell-Off",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/wall-street-mixed-ai-concerns-214839604.html",
+   "publisher": "MT Newswires",
+   "at": "2026-11-25T06:48+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "nvda selloff nov24",
+   "reason": "AI 우려로 인한 주가 하락 설명 기사",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "77c2e4291279": {
+   "ticker": "NVDA",
+   "title": "Nvidia, Anthropic end sharply lower as AI selloff resumes",
+   "url": "https://finance.yahoo.com/technology/ai/articles/tech-firms-soar-huangs-return-023753159.html",
+   "publisher": "AFP",
+   "at": "2026-11-25T06:29+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "nvda selloff nov24",
+   "reason": "AI 매도세 속 주가 하락 설명 기사",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "20df3a0cbcb3": {
+   "ticker": "NVDA",
+   "title": "Prediction: A $10,000 Investment in Nvidia Stock Will Be Worth This Much by Year-End 2027",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/prediction-10-000-investment-nvidia-212202395.html",
+   "publisher": "Motley Fool",
+   "at": "2026-11-25T06:22+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "nvda prediction 2027",
+   "reason": "주가 전망 기사",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "b82629a55451": {
+   "ticker": "PLTR",
+   "title": "Dropbox (DBX) Stock Is Up 5.8% Today Without Company News",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/dropbox-dbx-stock-5-8-203052038.html",
+   "publisher": "GuruFocus.com",
+   "at": "2026-11-25T05:30+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "dbx stock move",
+   "reason": "다른 회사 주가 기사",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "a45521ec3dd3": {
+   "ticker": "PLTR",
+   "title": "Axon Enterprise vs. Palantir Technologies: Which Law Enforcement Stock Is a Better Buy for 2027?",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/axon-enterprise-vs-palantir-technologies-202002083.html",
+   "publisher": "Motley Fool",
+   "at": "2026-11-25T05:20+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "pltr vs axon",
+   "reason": "두 종목 비교·매수 해설 기사",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "d78157b423e0": {
+   "ticker": "SPCX",
+   "title": "A SpaceX-Tesla Deal Could Come in December. Here's Why 1 Group of Investors Should Be Worried.",
+   "url": "https://finance.yahoo.com/technology/articles/spacex-tesla-deal-could-come-212702424.html",
+   "publisher": "Motley Fool",
+   "at": "2026-11-25T06:27+09:00",
+   "importance": 2,
+   "type": "M&A",
+   "event": "spacex tesla merger",
+   "reason": "스페이스X·테슬라 합병 가능성 보도",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "8294117e42d6": {
+   "ticker": "SPCX",
+   "title": "Tesla and SpaceX Just Assembled Deal Teams for a $3.2 Trillion Merger. Here's What Investors Need to Know.",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/tesla-spacex-just-assembled-deal-205955063.html",
+   "publisher": "Motley Fool",
+   "at": "2026-11-25T05:59+09:00",
+   "importance": 2,
+   "type": "M&A",
+   "event": "spacex tesla merger",
+   "reason": "양사가 합병 협상팀을 꾸렸다는 보도",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "1cee9360ed75": {
+   "ticker": "SPCX",
+   "title": "Anthropic Options Volumes Pale in Comparison With SpaceX",
+   "url": "https://finance.yahoo.com/m/b1c6e025-dada-3e5e-aba7-0b48ff12a135/anthropic-options-volumes.html",
+   "publisher": "The Wall Street Journal",
+   "at": "2026-11-25T05:23+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "spcx options volume",
+   "reason": "옵션 거래량 비교 해설 기사",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "d154757a1514": {
+   "ticker": "SPCX",
+   "title": "Tesla and SpaceX Name Five Directors for a Potential $3.5 Trillion Merger. Tesla Holders Still Get a Vote",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/tesla-spacex-name-five-directors-200533022.html",
+   "publisher": "TIKR",
+   "at": "2026-11-25T05:05+09:00",
+   "importance": 2,
+   "type": "M&A",
+   "event": "spacex tesla merger",
+   "reason": "합병을 위한 이사 5명 지명 보도",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "28f147f63c1f": {
+   "ticker": "SPCX",
+   "title": "Anduril’s Palmer Luckey: Elon Shouldn’t “Sacrifice the Existence of the Entire Starlink Network.” Here’s What’s at Stake for SpaceX",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/anduril-palmer-luckey-elon-shouldn-200500836.html",
+   "publisher": "TIKR",
+   "at": "2026-11-25T05:05+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "spcx starlink luckey",
+   "reason": "외부 인사 발언 중심 해설 기사",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "c03dd5e210a3": {
+   "ticker": "ORCL",
+   "title": "PT Pan Brothers Tbk Advances Smart Manufacturing with More Resilient SAP Operations from Rimini Street",
+   "url": "https://finance.yahoo.com/technology/articles/pt-pan-brothers-tbk-advances-213500189.html",
+   "publisher": "Business Wire",
+   "at": "2026-11-25T06:35+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "pan brothers sap",
+   "reason": "다른 회사 홍보 기사",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "61df32f616ef": {
+   "ticker": "ORCL",
+   "title": "GDS Holdings And 2 Other AI Infrastructure Stocks",
+   "url": "https://finance.yahoo.com/technology/ai/articles/gds-holdings-2-other-ai-211422515.html",
+   "publisher": "Simply Wall St.",
+   "at": "2026-11-25T06:14+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "gds ai infra list",
+   "reason": "여러 종목 나열 기사",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "b176771f2fe8": {
+   "ticker": "ORCL",
+   "title": "Dropbox (DBX) Stock Is Up 5.8% Today Without Company News",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/dropbox-dbx-stock-5-8-203052038.html",
+   "publisher": "GuruFocus.com",
+   "at": "2026-11-25T05:30+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "dbx stock move",
+   "reason": "다른 회사 주가 기사",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "d0b57146a7e4": {
+   "ticker": "ORCL",
+   "title": "Nutanix (NTNX) Stock Is Down 7.2% Today in Tech Selloff",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/nutanix-ntnx-stock-down-7-203019506.html",
+   "publisher": "GuruFocus.com",
+   "at": "2026-11-25T05:30+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "ntnx stock move",
+   "reason": "다른 회사 주가 기사",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "b038d367bfe3": {
+   "ticker": "ORCL",
+   "title": "Not Good: Oracle’s Credit Swaps Blow Out Again a Day After Huang’s Return Lifted Nvidia",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/not-good-oracle-credit-swaps-200031895.html",
+   "publisher": "TIKR",
+   "at": "2026-11-25T05:00+09:00",
+   "importance": 3,
+   "type": "기타",
+   "event": "orcl credit swaps",
+   "reason": "오라클 신용 위험 지표 악화 소식",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "5dfb8abc102c": {
+   "ticker": "TSLA",
+   "title": "A SpaceX-Tesla Deal Could Come in December. Here's Why 1 Group of Investors Should Be Worried.",
+   "url": "https://finance.yahoo.com/technology/articles/spacex-tesla-deal-could-come-212702424.html",
+   "publisher": "Motley Fool",
+   "at": "2026-11-25T06:27+09:00",
+   "importance": 2,
+   "type": "M&A",
+   "event": "spacex tesla merger",
+   "reason": "스페이스X·테슬라 합병 가능성 보도",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "37afa8f9b0f6": {
+   "ticker": "TSLA",
+   "title": "Tesla and SpaceX Just Assembled Deal Teams for a $3.2 Trillion Merger. Here's What Investors Need to Know.",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/tesla-spacex-just-assembled-deal-205955063.html",
+   "publisher": "Motley Fool",
+   "at": "2026-11-25T05:59+09:00",
+   "importance": 2,
+   "type": "M&A",
+   "event": "spacex tesla merger",
+   "reason": "양사가 합병 협상팀을 꾸렸다는 보도",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "fd82cdf02ab5": {
+   "ticker": "TSLA",
+   "title": "Tesla's Vertical Integration Makes it Uniquely Positioned in US Robotaxi Market, UBS Says",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/tesla-apos-vertical-integration-makes-200751408.html",
+   "publisher": "MT Newswires",
+   "at": "2026-11-25T05:07+09:00",
+   "importance": 3,
+   "type": "기타",
+   "event": "tsla ubs robotaxi",
+   "reason": "UBS의 로보택시 평가 기사",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "eb09546de872": {
+   "ticker": "TSLA",
+   "title": "Tesla and SpaceX Name Five Directors for a Potential $3.5 Trillion Merger. Tesla Holders Still Get a Vote",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/tesla-spacex-name-five-directors-200533022.html",
+   "publisher": "TIKR",
+   "at": "2026-11-25T05:05+09:00",
+   "importance": 2,
+   "type": "M&A",
+   "event": "spacex tesla merger",
+   "reason": "합병을 위한 이사 5명 지명 보도",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "9ccb202cdea6": {
+   "ticker": "TSLA",
+   "title": "Tesla robotaxi business valued at $80B in updated UBS model",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/tesla-robotaxi-business-valued-80b-191000130.html",
+   "publisher": "Proactive",
+   "at": "2026-11-25T04:10+09:00",
+   "importance": 3,
+   "type": "기타",
+   "event": "tsla ubs robotaxi",
+   "reason": "UBS 모델의 로보택시 사업 가치 평가",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "a6a42ed73e1a": {
+   "ticker": "AMD",
+   "title": "Stock Market Today, Nov. 24: Nvidia Gives Back $240 Billion in Market Value Despite Wall Street Upgrade Signaling 29% Upside",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/stock-market-today-nov-24-214949426.html",
+   "publisher": "Motley Fool",
+   "at": "2026-11-25T06:49+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "nvda selloff nov24",
+   "reason": "제목에 AMD가 주인공이 아닌 시장 기사",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "3d8118f812c6": {
+   "ticker": "AMD",
+   "title": "Microsoft (MSFT) Is One of the Safest Ways to Own AI",
+   "url": "https://finance.yahoo.com/technology/ai/articles/microsoft-msft-one-safest-ways-210600451.html",
+   "publisher": "TipRanks",
+   "at": "2026-11-25T06:06+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "msft ai safe",
+   "reason": "다른 회사 중심 기사",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "4f2dbfc7fb66": {
+   "ticker": "AMD",
+   "title": "Advanced Energy (AEIS) Stock Is Down 9.6% Today Without Company News",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/advanced-energy-aeis-stock-down-210130944.html",
+   "publisher": "GuruFocus.com",
+   "at": "2026-11-25T06:01+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "aeis stock move",
+   "reason": "다른 회사 주가 기사",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "a8b7452425f7": {
+   "ticker": "AMD",
+   "title": "nVent Electric (NVT) Stock Is Down 8.4% Today: AI Chip Selloff Drags Power Peers",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/nvent-electric-nvt-stock-down-210145373.html",
+   "publisher": "GuruFocus.com",
+   "at": "2026-11-25T06:01+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "nvt stock move",
+   "reason": "다른 회사 주가 기사",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "e95bb1785cad": {
+   "ticker": "AMD",
+   "title": "Why MaxLinear (MXL) Stock Is Plunging Today: Chip Stocks Sell Off",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/why-maxlinear-mxl-stock-plunging-210142402.html",
+   "publisher": "GuruFocus.com",
+   "at": "2026-11-25T06:01+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "mxl stock move",
+   "reason": "다른 회사 주가 기사",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "8515a3f0b11f": {
+   "ticker": "AMD",
+   "title": "Is AMD Among the Morgan Stanley’s Best Semiconductor and Server Stocks to Buy for 2027?",
+   "url": "https://finance.yahoo.com/technology/articles/amd-among-morgan-stanley-best-205409840.html",
+   "publisher": "Insider Monkey",
+   "at": "2026-11-25T05:54+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "amd morgan stanley list",
+   "reason": "추천 종목 목록 해설 기사",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "10df777cc393": {
+   "ticker": "MP",
+   "title": "MP Materials Exec Makes First Stock Purchase Amid Insider Buying Spree",
+   "url": "https://finance.yahoo.com/m/0401dd6e-5061-3ce6-aa42-dc73470c60c3/mp-materials-exec-makes-first.html",
+   "publisher": "Barrons.com",
+   "at": "2026-11-25T05:39+09:00",
+   "importance": 3,
+   "type": "기타",
+   "event": "mp insider buying",
+   "reason": "임원의 첫 주식 매수 소식",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "e4d3f3fe3f5f": {
+   "ticker": "000660.KS",
+   "title": "5 Dirt-Cheap Stocks Positioned to Soar in 2027",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/5-dirt-cheap-stocks-positioned-215028978.html",
+   "publisher": "Insider Monkey",
+   "at": "2026-11-25T06:50+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "cheap stocks 2027",
+   "reason": "여러 종목 나열 기사",
+   "classified_at": "2026-11-25T07:41+09:00"
+  },
+  "d8dde9014271": {
+   "ticker": "000660.KS",
+   "title": "Nvidia, AMD, Broadcom lead chip stocks lower as AI trade comes under pressure",
+   "url": "https://finance.yahoo.com/markets/article/nvidia-amd-broadcom-lead-chip-stocks-lower-as-ai-trade-comes-under-pressure-141635463.html",
+   "publisher": "Yahoo Finance",
+   "at": "2026-11-25T06:03+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "chip stocks lower nov24",
+   "reason": "제목에 회사 이름이 없는 시장 기사",
+   "classified_at": "2026-11-25T07:41+09:00"
   }
  },
  "monthly": {
@@ -8502,25 +8982,21 @@
    "month": "2026-11",
    "lines": [
     {
-     "text": "스페이스X와의 합병 논의가 빠르게 진행 중이라는 보도가 나옴",
+     "text": "스페이스X와의 합병 협상팀 구성과 이사 지명 보도가 나옴",
      "sources": [
-      "9c0b99d2f93b"
+      "37afa8f9b0f6",
+      "eb09546de872"
      ]
     },
     {
-     "text": "시포트 글로벌은 로보택시 사업이 2027년 말까지 연간 반복 매출 30~40억 달러를 낼 수 있다고 봄",
+     "text": "UBS가 로보택시 사업을 높게 평가했다는 보도가 나옴",
      "sources": [
-      "b66522dc7564"
-     ]
-    },
-    {
-     "text": "10월 유럽 등록 대수가 83.5% 늘었다는 보도가 나옴",
-     "sources": [
-      "d77eae43e61f"
+      "fd82cdf02ab5",
+      "9ccb202cdea6"
      ]
     }
    ],
-   "updated_at": "2026-11-25T05:00+09:00"
+   "updated_at": "2026-11-25T07:00+09:00"
   },
   "005930.KS": {
    "month": "2026-11",
@@ -8557,25 +9033,14 @@
    "month": "2026-11",
    "lines": [
     {
-     "text": "엔비디아가 젠슨 황을 CEO로 복귀시킨 날 주가가 22% 급등함",
+     "text": "회사 채권이 사상 최저 수준으로 떨어졌다는 보도가 나옴",
      "sources": [
-      "7cc8693536f0"
-     ]
-    },
-    {
-     "text": "주요 투자자가 지난 분기 지분을 팔았고 9월 30일 이후 45% 하락했다는 기사가 나옴",
-     "sources": [
-      "4c3a5e346c63"
-     ]
-    },
-    {
-     "text": "엔비디아 혼란이 회사에 미칠 위험을 다룬 해설이 나옴",
-     "sources": [
-      "5cecb3f08b61"
+      "38c399a03aa4",
+      "e072d3d48ae8"
      ]
     }
    ],
-   "updated_at": "2026-11-24T22:41+09:00"
+   "updated_at": "2026-11-25T07:00+09:00"
   },
   "NBIS": {
    "month": "2026-11",
@@ -8611,25 +9076,20 @@
    "month": "2026-11",
    "lines": [
     {
-     "text": "테슬라와의 합병 논의가 매우 빠르게 진행되고 있다는 보도가 나옴",
+     "text": "테슬라와 합병 협상팀을 꾸렸고 이사 5명을 지명했다는 보도가 이어짐",
      "sources": [
-      "990b705674af"
+      "8294117e42d6",
+      "d154757a1514"
      ]
     },
     {
-     "text": "상장 후 보호예수가 12월 8일 끝난다고 전해짐",
+     "text": "합병이 12월에 나올 수 있다는 전망 기사가 나옴",
      "sources": [
-      "990b705674af"
-     ]
-    },
-    {
-     "text": "여러 주가 Grok의 안전장치가 약하다며 스페이스X를 상대로 소송을 냄",
-     "sources": [
-      "dfcd053305a7"
+      "d78157b423e0"
      ]
     }
    ],
-   "updated_at": "2026-11-25T05:00+09:00"
+   "updated_at": "2026-11-25T07:00+09:00"
   },
   "AMD": {
    "month": "2026-11",
@@ -8665,25 +9125,13 @@
    "month": "2026-11",
    "lines": [
     {
-     "text": "최대 8.65% 금리로 100억 달러 채권을 발행함",
+     "text": "신용부도스와프가 다시 크게 벌어졌다는 보도가 나옴",
      "sources": [
-      "0162f115a1ce"
-     ]
-    },
-    {
-     "text": "회사는 OpenAI 관련 자금이 충분하다고 밝혔지만 CDS 시장은 다른 신호를 보임",
-     "sources": [
-      "907e77e65626"
-     ]
-    },
-    {
-     "text": "AI 자금 조달에 대한 투자자 반응을 다룬 기사가 나옴",
-     "sources": [
-      "75f70f20bcc7"
+      "b038d367bfe3"
      ]
     }
    ],
-   "updated_at": "2026-11-25T02:30+09:00"
+   "updated_at": "2026-11-25T07:00+09:00"
   },
   "IREN": {
    "month": "2026-11",
@@ -8713,21 +9161,13 @@
    "month": "2026-11",
    "lines": [
     {
-     "text": "3분기 실적과 NdPr 생산 관련 기사가 나옴",
+     "text": "임원이 처음으로 자사 주식을 샀다는 보도가 나옴",
      "sources": [
-      "395333e0efc5",
-      "79818a491eb9"
-     ]
-    },
-    {
-     "text": "임원 자사주 매입과 Needham 의견 기사가 나옴",
-     "sources": [
-      "21ec0fda0f08",
-      "482da9ebb4e4"
+      "10df777cc393"
      ]
     }
    ],
-   "updated_at": "2026-11-23T22:00+09:00"
+   "updated_at": "2026-11-25T07:00+09:00"
   },
   "INFQ": {
    "month": "2026-11",
