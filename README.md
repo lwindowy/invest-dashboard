@@ -6,7 +6,9 @@
 - 홈 화면 시안: https://claude.ai/artifact/WetkXZkh1DDMevfHGjF6pK
 - 변경 기록: [CHANGELOG.md](CHANGELOG.md)
 
-## 새 대화에서 이어가기 (2026-11-20 기준)
+## 새 대화에서 이어가기 (2026-11-26 기준)
+
+**2026-11-26: 사용자가 Claude 구독을 한 달쯤 쉬고 그동안 Codex로 작업합니다.** 인수인계는 `HANDOFF.md` 에 있습니다(쉬는 동안 멈추는 것, 손대지 말 것, Codex로 하기 좋은 일, 돌아오면 확인할 것). 데이터 수집과 배포는 GitHub Actions와 cron-job.org가 돌려 계속 갱신되고, Claude 예약 작업(브리핑, 뉴스 분류, 회사 소개)만 멈춥니다.
 
 새 대화를 시작한 AI(Claude, Codex)는 이 묶음과 아래 "나중에 할 일"을 먼저 읽습니다. **2026-11-20부터 사용자가 ChatGPT Codex로 이어서 작업하기로 함.** 작업 규칙은 `AGENTS.md`(Codex용)와 `CLAUDE.md`(Claude용)에 같은 내용으로 있습니다.
 
