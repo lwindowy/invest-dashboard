@@ -1,6 +1,6 @@
 {
  "version": 1,
- "updated_at": "2026-11-27T04:40+09:00",
+ "updated_at": "2026-11-27T07:41+09:00",
  "by": "Claude 예약 작업 (구독)",
  "items": {
   "c8c869c2c6cf": {
@@ -12914,6 +12914,198 @@
    "event": "micron huawei threat",
    "reason": "마이크론이 주인공인 기사",
    "classified_at": "2026-11-27T04:40+09:00"
+  },
+  "f044c3691430": {
+   "ticker": "NBIS",
+   "title": "Nebius (NBIS) Stock Could Be Undervalued As AI Sector Optimism Returns",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/nebius-nbis-stock-could-undervalued-200849495.html",
+   "publisher": "Simply Wall St.",
+   "at": "2026-11-27T05:08+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "nbis valuation view",
+   "reason": "밸류에이션 해설 기사",
+   "classified_at": "2026-11-27T07:41+09:00"
+  },
+  "91c648f9d850": {
+   "ticker": "NVDA",
+   "title": "Tech Stock Sell-Off: Down 13%, Is Microsoft a Buy Now?",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/tech-stock-sell-off-down-222002685.html",
+   "publisher": "Motley Fool",
+   "at": "2026-11-27T07:20+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "msft selloff",
+   "reason": "마이크로소프트가 주인공인 기사",
+   "classified_at": "2026-11-27T07:41+09:00"
+  },
+  "ed3420159b6d": {
+   "ticker": "NVDA",
+   "title": "‘Room to Spare,’ Says Investor About Oracle Stock",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/room-spare-says-investor-oracle-215243159.html",
+   "publisher": "TipRanks",
+   "at": "2026-11-27T06:52+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "orcl room to spare",
+   "reason": "오라클이 주인공인 기사",
+   "classified_at": "2026-11-27T07:41+09:00"
+  },
+  "bd5d76f20e51": {
+   "ticker": "NVDA",
+   "title": "O’Reilly’s Sales to Professional Mechanics Jumped 12.7% Last Quarter. Here’s Why That’s the Clearest Sign of Its Moat.",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/o-reilly-sales-professional-mechanics-215002026.html",
+   "publisher": "Motley Fool",
+   "at": "2026-11-27T06:50+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "orly moat",
+   "reason": "O’Reilly 기사, 엔비디아와 무관",
+   "classified_at": "2026-11-27T07:41+09:00"
+  },
+  "ca1390bfbb68": {
+   "ticker": "NVDA",
+   "title": "The Nasdaq Composite Is in a Correction, but These 3 Dividend Stocks Are Near 52-Week Highs. Here's Why They're Still Worth Buying Right Now.",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/nasdaq-composite-correction-3-dividend-213302973.html",
+   "publisher": "Motley Fool",
+   "at": "2026-11-27T06:33+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "dividend stocks near highs",
+   "reason": "여러 종목 나열 기사",
+   "classified_at": "2026-11-27T07:41+09:00"
+  },
+  "61d61c59f3ed": {
+   "ticker": "NVDA",
+   "title": "Jensen Huang’s Return Doesn’t Make Nvidia Stock (NVDA) a Buy",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/jensen-huang-return-doesn-t-212200380.html",
+   "publisher": "TipRanks",
+   "at": "2026-11-27T06:22+09:00",
+   "importance": 4,
+   "type": "경영진 변동",
+   "event": "nvda huang return",
+   "reason": "젠슨 황 복귀를 두고 매수 여부를 따지는 해설 기사",
+   "classified_at": "2026-11-27T07:41+09:00"
+  },
+  "62b95db0d770": {
+   "ticker": "NVDA",
+   "title": "Nvidia halts server shipments to 4 countries just weeks after Jensen Huang’s affair with alleged spy was exposed",
+   "url": "https://finance.yahoo.com/technology/ai/articles/nvidia-halts-server-shipments-4-203014469.html",
+   "publisher": "NY Post",
+   "at": "2026-11-27T05:30+09:00",
+   "importance": 2,
+   "type": "규제",
+   "event": "nvda server shipment halt",
+   "reason": "4개국 서버 출하 중단 보도",
+   "classified_at": "2026-11-27T07:41+09:00"
+  },
+  "935534e72b9a": {
+   "ticker": "NVDA",
+   "title": "Nvidia hits pause on chip shipments to Southeast Asia",
+   "url": "https://finance.yahoo.com/technology/articles/nvidia-hits-pause-chip-shipments-200354308.html",
+   "publisher": "TechCrunch",
+   "at": "2026-11-27T05:03+09:00",
+   "importance": 2,
+   "type": "규제",
+   "event": "nvda server shipment halt",
+   "reason": "동남아 칩 출하 일시 중단 보도",
+   "classified_at": "2026-11-27T07:41+09:00"
+  },
+  "1a31d4663cbc": {
+   "ticker": "SPCX",
+   "title": "SpaceX Is a Great Company. Is It a Great Stock at This Price?",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/spacex-great-company-great-stock-205602689.html",
+   "publisher": "Motley Fool",
+   "at": "2026-11-27T05:56+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "spcx valuation view",
+   "reason": "현재 주가 적정성을 따지는 해설 기사",
+   "classified_at": "2026-11-27T07:41+09:00"
+  },
+  "ede29200f406": {
+   "ticker": "SPCX",
+   "title": "SpaceX Stocks Rise 1.3% as FCC Approves 1 Million Orbital Data Center Satellites",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/spacex-stocks-rise-1-3-191028542.html",
+   "publisher": "GuruFocus.com",
+   "at": "2026-11-27T04:10+09:00",
+   "importance": 3,
+   "type": "규제",
+   "event": "spcx fcc data center sats",
+   "reason": "FCC의 궤도 데이터센터 위성 승인 소식",
+   "classified_at": "2026-11-27T07:41+09:00"
+  },
+  "00310d3b98ce": {
+   "ticker": "ORCL",
+   "title": "‘Room to Spare,’ Says Investor About Oracle Stock",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/room-spare-says-investor-oracle-215243159.html",
+   "publisher": "TipRanks",
+   "at": "2026-11-27T06:52+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "orcl room to spare",
+   "reason": "오라클 주식 전망 기사",
+   "classified_at": "2026-11-27T07:41+09:00"
+  },
+  "ee3d46f36c55": {
+   "ticker": "MP",
+   "title": "TMC (TMC) Stock Is Up 14.3% Today Without Company News",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/tmc-tmc-stock-14-3-184524003.html",
+   "publisher": "GuruFocus.com",
+   "at": "2026-11-26T03:45+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "tmc move",
+   "reason": "다른 회사(TMC) 주가 기사",
+   "classified_at": "2026-11-27T07:41+09:00"
+  },
+  "0df4e9025853": {
+   "ticker": "MP",
+   "title": "As Shares Tumble in 2026, Company Insiders Are Buying These 2 Rare Earth Stocks",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/shares-tumble-2026-company-insiders-174500523.html",
+   "publisher": "MarketBeat",
+   "at": "2026-11-26T02:45+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "rare earth insider buying",
+   "reason": "희토류 종목 내부자 매수 해설, 여러 종목 기사",
+   "classified_at": "2026-11-27T07:41+09:00"
+  },
+  "6628e41cc439": {
+   "ticker": "MP",
+   "title": "Critical Metals (CRML) Stock Is Down 16.7% Today Amid Market Selloff",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/critical-metals-crml-stock-down-170022558.html",
+   "publisher": "GuruFocus.com",
+   "at": "2026-11-26T02:00+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "crml move",
+   "reason": "다른 회사(CRML) 주가 기사",
+   "classified_at": "2026-11-27T07:41+09:00"
+  },
+  "d8331fd09b48": {
+   "ticker": "MP",
+   "title": "Rare-Earth Stock Moves Hint at China’s Fading Dominance",
+   "url": "https://finance.yahoo.com/m/d1964044-82d9-39db-b740-367bd040d31e/rare-earth-stock-moves-hint.html",
+   "publisher": "Barrons.com",
+   "at": "2026-11-25T01:39+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "rare earth china dominance",
+   "reason": "희토류 업계 흐름 해설",
+   "classified_at": "2026-11-27T07:41+09:00"
+  },
+  "5c9c5f2e3bfa": {
+   "ticker": "000660.KS",
+   "title": "SK hynix Stocks Rise 2.23% as Seoul Chip Rebound Fades From a 5.7% Gain",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/sk-hynix-stocks-rise-2-191120627.html",
+   "publisher": "GuruFocus.com",
+   "at": "2026-11-27T04:11+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "hynix daily move",
+   "reason": "일간 주가 움직임 기사",
+   "classified_at": "2026-11-27T07:41+09:00"
   }
  },
  "monthly": {
@@ -12921,19 +13113,19 @@
    "month": "2026-11",
    "lines": [
     {
-     "text": "S&P가 지배구조 우려로 신용등급 검토를 밝혔다는 보도",
+     "text": "엔비디아가 서버 출하를 4개국에 대해 중단했다고 보도됨",
      "sources": [
-      "9cad5543eb24"
+      "62b95db0d770"
      ]
     },
     {
-     "text": "젠슨 황 복귀 관련 기사가 나옴",
+     "text": "동남아로 가는 칩 출하를 일시 중단했다고 TechCrunch가 전함",
      "sources": [
-      "686eff9b890c"
+      "935534e72b9a"
      ]
     }
    ],
-   "updated_at": "2026-11-27T02:30+09:00"
+   "updated_at": "2026-11-27T07:30+09:00"
   },
   "IONQ": {
    "month": "2026-11",
@@ -13045,20 +13237,13 @@
    "month": "2026-11",
    "lines": [
     {
-     "text": "우주 데이터센터에 대한 첫 미국 승인을 받았다는 보도",
+     "text": "FCC가 궤도 데이터센터 위성 100만 기를 승인해 주가가 1.3% 올랐다고 보도됨",
      "sources": [
-      "f098f0052e61"
-     ]
-    },
-    {
-     "text": "머스크가 어린이 대상 주식 증정을 약속했다는 보도",
-     "sources": [
-      "5652dde8eedb",
-      "a09a512d8076"
+      "ede29200f406"
      ]
     }
    ],
-   "updated_at": "2026-11-27T02:30+09:00"
+   "updated_at": "2026-11-27T07:30+09:00"
   },
   "AMD": {
    "month": "2026-11",
