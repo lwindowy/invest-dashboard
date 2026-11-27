@@ -1,6 +1,6 @@
 {
  "version": 1,
- "updated_at": "2026-11-28T02:41+09:00",
+ "updated_at": "2026-11-28T04:41+09:00",
  "by": "Claude 예약 작업 (구독)",
  "items": {
   "c8c869c2c6cf": {
@@ -14402,6 +14402,354 @@
    "event": "memory stocks rebound",
    "reason": "메모리 종목 반등 시황",
    "classified_at": "2026-11-28T02:41+09:00"
+  },
+  "00c55d032255": {
+   "ticker": "IREN",
+   "title": "AI Chip Stocks Roar Back -- Sandisk and Micron Lead the Rally",
+   "url": "https://finance.yahoo.com/technology/ai/articles/ai-chip-stocks-roar-back-180304210.html",
+   "publisher": "GuruFocus.com",
+   "at": "2026-11-28T03:03+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "ai chip rally",
+   "reason": "여러 종목을 나열한 시장 기사",
+   "classified_at": "2026-11-28T04:41+09:00"
+  },
+  "ca67fac03ca3": {
+   "ticker": "IREN",
+   "title": "IREN Stock Jumps 8% as Analysts See 340% Upside Despite Sell Signals",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/iren-stock-jumps-8-analysts-173438398.html",
+   "publisher": "GuruFocus.com",
+   "at": "2026-11-28T02:34+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "iren analyst upside",
+   "reason": "주가 움직임과 애널리스트 전망 해설",
+   "classified_at": "2026-11-28T04:41+09:00"
+  },
+  "077b0e4b338e": {
+   "ticker": "IREN",
+   "title": "IREN Ramps Up AI Cloud: Can It Capitalize on Rising Demand?",
+   "url": "https://finance.yahoo.com/technology/ai/articles/iren-ramps-ai-cloud-capitalize-171400672.html",
+   "publisher": "Zacks",
+   "at": "2026-11-28T02:14+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "iren ai cloud demand",
+   "reason": "AI 클라우드 수요 전망 해설",
+   "classified_at": "2026-11-28T04:41+09:00"
+  },
+  "9b71020161cc": {
+   "ticker": "CRWV",
+   "title": "Dell's Strong Results Fail to Ease Concerns About AI Spending Durability, UBS Says",
+   "url": "https://finance.yahoo.com/technology/ai/articles/dell-apos-strong-results-fail-185100918.html",
+   "publisher": "MT Newswires",
+   "at": "2026-11-28T03:51+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "dell ubs ai spending",
+   "reason": "델 실적 기사로 코어위브가 주인공이 아님",
+   "classified_at": "2026-11-28T04:41+09:00"
+  },
+  "7cabfe0fa5de": {
+   "ticker": "CRWV",
+   "title": "CoreWeave Eyes $4.5B Loan, but Bankruptcy Odds Rise to 21% on Prediction Markets",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/coreweave-eyes-4-5b-loan-183008020.html",
+   "publisher": "Benzinga Prediction Markets",
+   "at": "2026-11-28T03:30+09:00",
+   "importance": 2,
+   "type": "기타",
+   "event": "crwv loan bankruptcy odds",
+   "reason": "45억 달러 대출 추진과 파산 확률 관련 중요한 재무 소식",
+   "classified_at": "2026-11-28T04:41+09:00"
+  },
+  "f7d314911ab0": {
+   "ticker": "CRWV",
+   "title": "AI Chip Stocks Roar Back -- Sandisk and Micron Lead the Rally",
+   "url": "https://finance.yahoo.com/technology/ai/articles/ai-chip-stocks-roar-back-180304210.html",
+   "publisher": "GuruFocus.com",
+   "at": "2026-11-28T03:03+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "ai chip rally",
+   "reason": "여러 종목을 나열한 시장 기사",
+   "classified_at": "2026-11-28T04:41+09:00"
+  },
+  "d0f1a32c12b2": {
+   "ticker": "CRWV",
+   "title": "IREN Ramps Up AI Cloud: Can It Capitalize on Rising Demand?",
+   "url": "https://finance.yahoo.com/technology/ai/articles/iren-ramps-ai-cloud-capitalize-171400672.html",
+   "publisher": "Zacks",
+   "at": "2026-11-28T02:14+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "iren ai cloud demand",
+   "reason": "다른 회사(IREN)가 주인공인 기사",
+   "classified_at": "2026-11-28T04:41+09:00"
+  },
+  "077ac523c40d": {
+   "ticker": "NVDA",
+   "title": "Dow Jones Futures: Stock Market Makes Bullish Move, Tesla Leads 7 New Buys; Nvidia's Jensen Huang Heads To Capitol Hill",
+   "url": "https://finance.yahoo.com/m/5b917298-e5b5-3d87-b1fa-f7cad345af64/dow-jones-futures%3A-stock.html",
+   "publisher": "Investor's Business Daily",
+   "at": "2026-11-28T03:48+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "dow futures nov27",
+   "reason": "시장 전반 기사",
+   "classified_at": "2026-11-28T04:41+09:00"
+  },
+  "69d3921e5be1": {
+   "ticker": "NVDA",
+   "title": "US Equity Indexes Rise as Jensen Huang's Return to Nvidia Guardrails AI Trade While Investors Slice Growth Exposure This Week",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/us-equity-indexes-rise-jensen-183902792.html",
+   "publisher": "MT Newswires",
+   "at": "2026-11-28T03:39+09:00",
+   "importance": 2,
+   "type": "경영진 변동",
+   "event": "nvda huang return",
+   "reason": "젠슨 황의 복귀가 언급된 경영진 관련 기사",
+   "classified_at": "2026-11-28T04:41+09:00"
+  },
+  "3b21c5a20f8c": {
+   "ticker": "NVDA",
+   "title": "Stocks snap from a $6 trillion washout to a $3.5 trillion surge as Nvidia, Micron, and SpaceX bounce back",
+   "url": "https://finance.yahoo.com/markets/article/stocks-snap-from-a-6-trillion-washout-to-a-3-trillion-surge-as-nvidia-micron-and-spacex-bounce-back-151218930.html",
+   "publisher": "Yahoo Finance",
+   "at": "2026-11-28T03:32+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "market rebound nov27",
+   "reason": "시장 전반 반등 기사",
+   "classified_at": "2026-11-28T04:41+09:00"
+  },
+  "8ac6978255fd": {
+   "ticker": "NVDA",
+   "title": "For a Little While, Nvidia Faced a Future Without Jensen Huang",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/little-while-nvidia-faced-future-183102870.html",
+   "publisher": "Motley Fool",
+   "at": "2026-11-28T03:31+09:00",
+   "importance": 3,
+   "type": "경영진 변동",
+   "event": "nvda huang return",
+   "reason": "젠슨 황 부재 상황을 다룬 경영진 관련 해설",
+   "classified_at": "2026-11-28T04:41+09:00"
+  },
+  "048e46711cf5": {
+   "ticker": "NVDA",
+   "title": "Nvidia Stock Wavers On Headline Risks From Huang Testimony, Asia Sales",
+   "url": "https://finance.yahoo.com/m/6af34eed-47a9-34c0-aebc-a1a78d458605/nvidia-stock-wavers-on.html",
+   "publisher": "Investor's Business Daily",
+   "at": "2026-11-28T03:21+09:00",
+   "importance": 3,
+   "type": "규제",
+   "event": "nvda huang testimony",
+   "reason": "황 증언과 아시아 판매 관련 이슈 기사",
+   "classified_at": "2026-11-28T04:41+09:00"
+  },
+  "dc99ab21c595": {
+   "ticker": "NVDA",
+   "title": "SanDisk Stocks Jump 12.85% After Kioxia and Nvidia Stretch GPU Memory With SSDs",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/sandisk-stocks-jump-12-85-181316890.html",
+   "publisher": "GuruFocus.com",
+   "at": "2026-11-28T03:13+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "nvda ssd gpu memory",
+   "reason": "엔비디아·키옥시아 SSD 관련 타사 주가 기사",
+   "classified_at": "2026-11-28T04:41+09:00"
+  },
+  "00f05ab032fd": {
+   "ticker": "NVDA",
+   "title": "Kioxia Stocks Jump 8.86% as Nvidia SSD Test and Index Buying Lift Shares",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/kioxia-stocks-jump-8-86-181157042.html",
+   "publisher": "GuruFocus.com",
+   "at": "2026-11-28T03:11+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "nvda ssd gpu memory",
+   "reason": "키옥시아 주가가 중심인 기사",
+   "classified_at": "2026-11-28T04:41+09:00"
+  },
+  "835751e5ca37": {
+   "ticker": "NVDA",
+   "title": "Nvidia’s Key Man Problem",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/nvidia-key-man-problem-180102958.html",
+   "publisher": "Motley Fool",
+   "at": "2026-11-28T03:01+09:00",
+   "importance": 4,
+   "type": "경영진 변동",
+   "event": "nvda key man",
+   "reason": "핵심 인물 의존 위험을 다룬 해설",
+   "classified_at": "2026-11-28T04:41+09:00"
+  },
+  "18adddd13964": {
+   "ticker": "PLTR",
+   "title": "PLTR Stock Sees Best Week In 4 Months: Palantir Bags Reported $300M Defense Deal With Poland",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/pltr-stock-sees-best-week-184136158.html",
+   "publisher": "Stocktwits",
+   "at": "2026-11-28T03:41+09:00",
+   "importance": 2,
+   "type": "기타",
+   "event": "pltr poland defense deal",
+   "reason": "폴란드와의 대형 국방 계약 보도",
+   "classified_at": "2026-11-28T04:41+09:00"
+  },
+  "01e1d4b1f7fc": {
+   "ticker": "PLTR",
+   "title": "Peter Thiel Takes $122M of Palantir Off the Market",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/peter-thiel-takes-122m-palantir-182933607.html",
+   "publisher": "Moby",
+   "at": "2026-11-28T03:29+09:00",
+   "importance": 3,
+   "type": "기타",
+   "event": "pltr thiel shares",
+   "reason": "대주주의 지분 관련 소식",
+   "classified_at": "2026-11-28T04:41+09:00"
+  },
+  "8bae2a771ad5": {
+   "ticker": "PLTR",
+   "title": "Palantir Lands Major Defense Deal as European Demand Grows",
+   "url": "https://finance.yahoo.com/technology/articles/palantir-lands-major-defense-deal-175756769.html",
+   "publisher": "GuruFocus.com",
+   "at": "2026-11-28T02:57+09:00",
+   "importance": 2,
+   "type": "기타",
+   "event": "pltr poland defense deal",
+   "reason": "유럽 대형 국방 계약 보도",
+   "classified_at": "2026-11-28T04:41+09:00"
+  },
+  "631a16d5647e": {
+   "ticker": "PLTR",
+   "title": "Palantir Raised Its 2026 Growth Outlook to 91%. Could the Stock Have More Room to Run?",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/palantir-raised-2026-growth-outlook-173336289.html",
+   "publisher": "24/7 Wall St.",
+   "at": "2026-11-28T02:33+09:00",
+   "importance": 4,
+   "type": "가이던스",
+   "event": "pltr growth outlook",
+   "reason": "상향된 성장 전망을 해설한 기사",
+   "classified_at": "2026-11-28T04:41+09:00"
+  },
+  "d5b5de8c8413": {
+   "ticker": "PLTR",
+   "title": "PLTR vs. ARM: Which AI-Tech Stock is Better Positioned Now?",
+   "url": "https://finance.yahoo.com/technology/ai/articles/pltr-vs-arm-ai-tech-165200990.html",
+   "publisher": "Zacks",
+   "at": "2026-11-28T01:52+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "pltr vs arm",
+   "reason": "종목 비교 기사",
+   "classified_at": "2026-11-28T04:41+09:00"
+  },
+  "4c2ccb353dbd": {
+   "ticker": "SPCX",
+   "title": "ATEX Stock Jumps After SpaceX Reportedly Eyes 900 MHz Spectrum For Direct-To-Device Expansion; Alternative Target NN Climbs Double Digits",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/atex-stock-jumps-spacex-reportedly-175256922.html",
+   "publisher": "Stocktwits",
+   "at": "2026-11-28T02:52+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "atex spectrum",
+   "reason": "다른 회사 주가가 중심인 기사",
+   "classified_at": "2026-11-28T04:41+09:00"
+  },
+  "783dec9efd99": {
+   "ticker": "SPCX",
+   "title": "Here's Why SpaceX’s Starship Could Lift Linde’s Space Revenue up to 700%",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/heres-why-spacex-starship-could-174603357.html",
+   "publisher": "Benzinga Prediction Markets",
+   "at": "2026-11-28T02:46+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "linde starship",
+   "reason": "린데가 중심인 기사",
+   "classified_at": "2026-11-28T04:41+09:00"
+  },
+  "9daa911e5e4a": {
+   "ticker": "SPCX",
+   "title": "Elon Musk’s SpaceX stock giveaway hides a surprise for shareholders",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/elon-musk-spacex-stock-giveaway-173300639.html",
+   "publisher": "TheStreet",
+   "at": "2026-11-28T02:33+09:00",
+   "importance": 3,
+   "type": "기타",
+   "event": "spcx stock giveaway",
+   "reason": "주주 대상 주식 제공 관련 기사",
+   "classified_at": "2026-11-28T04:41+09:00"
+  },
+  "cdc0e7d5189d": {
+   "ticker": "ORCL",
+   "title": "Oracle Has Frustrated Me, but Even With Zero AI Revenue the Stock Is Worth $133—So I’m Buying at $104",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/oracle-frustrated-even-zero-ai-174551474.html",
+   "publisher": "24/7 Wall St.",
+   "at": "2026-11-28T02:45+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "orcl valuation view",
+   "reason": "투자 의견 해설",
+   "classified_at": "2026-11-28T04:41+09:00"
+  },
+  "3b2f3d73ad2c": {
+   "ticker": "ORCL",
+   "title": "Is Oracle Stock Underperforming the Nasdaq?",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/oracle-stock-underperforming-nasdaq-123159270.html",
+   "publisher": "Barchart",
+   "at": "2026-11-27T21:31+09:00",
+   "importance": 4,
+   "type": "기타",
+   "event": "orcl vs nasdaq",
+   "reason": "주가 흐름 해설",
+   "classified_at": "2026-11-28T04:41+09:00"
+  },
+  "9a5652484300": {
+   "ticker": "TSLA",
+   "title": "Dow Jones Futures: Stock Market Makes Bullish Move, Tesla Leads 7 New Buys; Nvidia's Jensen Huang Heads To Capitol Hill",
+   "url": "https://finance.yahoo.com/m/5b917298-e5b5-3d87-b1fa-f7cad345af64/dow-jones-futures%3A-stock.html",
+   "publisher": "Investor's Business Daily",
+   "at": "2026-11-28T03:48+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "dow futures nov27",
+   "reason": "시장 전반 기사",
+   "classified_at": "2026-11-28T04:41+09:00"
+  },
+  "b0b5f841ba5d": {
+   "ticker": "TSLA",
+   "title": "Tesla Takes 1.2M SF at Houston’s Cedar Port Industrial Park",
+   "url": "https://finance.yahoo.com/real-estate/articles/tesla-takes-1-2m-sf-181154319.html",
+   "publisher": "CRE Daily",
+   "at": "2026-11-28T03:11+09:00",
+   "importance": 3,
+   "type": "기타",
+   "event": "tsla houston lease",
+   "reason": "휴스턴 대형 부지 임차 소식",
+   "classified_at": "2026-11-28T04:41+09:00"
+  },
+  "46d3ecbc7997": {
+   "ticker": "TSLA",
+   "title": "Stock Market Today: Dow, Nasdaq Pop In Post-Holiday Trade; Nvidia Falls, Sandisk Vaults Higher (Live Coverage)",
+   "url": "https://finance.yahoo.com/m/86a4597f-ee47-3048-ae92-1a56fa4711e5/stock-market-today%3A-dow%2C.html",
+   "publisher": "Investor's Business Daily",
+   "at": "2026-11-28T02:47+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "market today nov27",
+   "reason": "시장 전반 기사",
+   "classified_at": "2026-11-28T04:41+09:00"
+  },
+  "54f826617b64": {
+   "ticker": "AMD",
+   "title": "Not AMD. This Is the 1 Company Nvidia Should Worry About Most.",
+   "url": "https://finance.yahoo.com/markets/stocks/articles/not-amd-1-company-nvidia-173502133.html",
+   "publisher": "Motley Fool",
+   "at": "2026-11-28T02:35+09:00",
+   "importance": 5,
+   "type": "기타",
+   "event": "nvda rival worry",
+   "reason": "AMD가 주인공이 아닌 경쟁사 기사",
+   "classified_at": "2026-11-28T04:41+09:00"
   }
  },
  "monthly": {
@@ -14409,25 +14757,14 @@
    "month": "2026-11",
    "lines": [
     {
-     "text": "미국의 중국 AI 칩 접근 제한 강화 소식에 엔비디아가 거론됨",
+     "text": "젠슨 황의 복귀와 핵심 인물 의존 문제가 기사에서 다뤄짐",
      "sources": [
-      "7e41334fe757"
-     ]
-    },
-    {
-     "text": "엔비디아 칩이 중국 데이터센터에서 발견됐다는 보도가 나옴",
-     "sources": [
-      "ad2083095731"
-     ]
-    },
-    {
-     "text": "엔비디아의 아시아 제한 강화로 델 서버 출하 중단 우려가 제기됨",
-     "sources": [
-      "ad1921227998"
+      "69d3921e5be1",
+      "835751e5ca37"
      ]
     }
    ],
-   "updated_at": "2026-11-28T02:40+09:00"
+   "updated_at": "2026-11-28T04:00+09:00"
   },
   "IONQ": {
    "month": "2026-11",
@@ -14536,13 +14873,13 @@
    "month": "2026-11",
    "lines": [
     {
-     "text": "코어위브의 부도 보험 비용이 최고 기록을 냈다고 보도됨",
+     "text": "45억 달러 대출을 추진 중이며 예측시장의 파산 확률이 21%로 올랐다고 보도됨",
      "sources": [
-      "86ac7be54467"
+      "7cabfe0fa5de"
      ]
     }
    ],
-   "updated_at": "2026-11-28T02:40+09:00"
+   "updated_at": "2026-11-28T04:00+09:00"
   },
   "NBIS": {
    "month": "2026-11",
@@ -14656,19 +14993,14 @@
    "month": "2026-11",
    "lines": [
     {
-     "text": "팔란티어가 폴란드 대형 국방 계약을 따낼 수 있다는 보도로 주가가 오름",
+     "text": "폴란드와 3억 달러 규모 국방 계약을 맺었다고 보도됨",
      "sources": [
-      "e5d9a4270080"
-     ]
-    },
-    {
-     "text": "월간 하락 속에서도 진입 기회라는 월가 전망 기사가 나옴",
-     "sources": [
-      "d53dbfc4a200"
+      "18adddd13964",
+      "8bae2a771ad5"
      ]
     }
    ],
-   "updated_at": "2026-11-28T02:40+09:00"
+   "updated_at": "2026-11-28T04:00+09:00"
   },
   "ORCL": {
    "month": "2026-11",
